@@ -18,6 +18,7 @@ class LDMMgrPair:
         self.enhanceErr = 0.1
         self.verbose = 100
         self.gpu = gpu
+        self.err = spacemap.AffineFinderMultiDice(10)
         
     def start(self, show=True, saveGrid=False):
         sI, sJ = self.sI, self.sJ
@@ -36,6 +37,8 @@ class LDMMgrPair:
         if saveGrid:
             grid = ldm.generateTransFromGrid()
             self.sJ.saveGrid(grid, self.sI.index)
+        imgJ3 = sJ.create_img2(self.finalKey)
+        self.show_err(imgI1, imgJ2, imgJ3, "")
     
     def start_enhance(self, enhance=2, show=True):
         xyd = spacemap.XYD
@@ -44,7 +47,7 @@ class LDMMgrPair:
         imgI1 = sI.create_img2(self.targetIKey)
         imgJ2 = sJ.create_img2(self.finalKey)
         ldm = spacemap.get_init2D(imgI1, imgJ2, gpu=self.gpu, verbose=self.verbose)
-        spacemap.Info("Start LDMPair Enhance: %s/%s -> %s/%s xyd=%d" % (sJ.index, self.finalKey, sI.index, self.targetIKey, xyd))
+        spacemap.Info("Start LDMPair Enhance: %s/%s -> %s/%s xyd=%d" % (sJ.index, self.finalKey, sI.index, self.targetIKey, spacemap.XYD))
         spacemap.lddmm_main(ldm, err=self.enhanceErr)
         spacemap.Info("Finish LDMPair Enhance: %s/%s -> %s/%s" % (sJ.index, self.finalKey, sI.index, self.targetIKey))
         points2 = ldm.applyThisTransformPoints2D(sJ.to_points(self.finalKey))
@@ -54,4 +57,11 @@ class LDMMgrPair:
         if show:
             spacemap.Slice.show_align(sI, sJ, self.targetIKey, self.enhanceKey)
         spacemap.XYD = xyd
+        imgJ3 = sJ.create_img2(self.finalKey)
+        self.show_err(imgI1, imgJ2, imgJ3, "Enhance")
+        
+    def show_err(self, imgI, imgJ2, imgJ3, tag):
+        e1 = self.err.computeI(imgI, imgJ2, False)
+        e2 = self.err.computeI(imgI, imgJ3, False)
+        spacemap.Info("Err LDMPair %s: %.5f->%.5f" % (tag, e1, e2))
         

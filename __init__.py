@@ -10,8 +10,7 @@ from .ldm.torch_LDDMMBase import saveLDDMM, loadLDDMM, applyPointsByGrid, mergeG
 from .ldm.torch_LDDMM import LDDMM
 from .ldm.torch_LDDMM2D import LDDMM2D, get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
 from .ldm.lddmmFlow import *
-from .ldm.ldmMgr import *
-from .ldm.ldmMgr import LDMMgrPair
+from .mgr.ldmMgr import *
 
 from .err import *
 from .siftFlowFinder.siftFind import *
@@ -32,8 +31,8 @@ from .filterBlocks.matchEach import MatchEach, MatchShow
 from .filterBlocks.matchEach2 import MatchEachImg
 from .filterBlocks.matchEachMatches import MatchEachMatches
 from .filterBlocks.matchFilterGlobal import MatchFilterGlobal
-from .filterBlocks.AutoFlow import SpaceMapAutoFlow
-from .filterBlocks.AutoFlow2 import SpaceMapAutoFlow2
+from .mgr.AutoFlow import SpaceMapAutoFlow
+from .mgr.AutoFlow2 import SpaceMapAutoFlow2
 from .filterBlocks.matchFilterLabels import MatchFilterLabels
 from .siftFlowBlocks.AutoScale import AffineBlockAutoScale
 
@@ -44,3 +43,5 @@ from .siftFlowBlocks.AutoScale import AffineBlockAutoScale
 # from .siftFlowBlocks.SiftGraph import AffineBlockSiftGraph
 
 from .compare import *
+from .mgr.ldmMgr import LDMMgrPair
+from .mgr.ldmMgrMulti import LDMMgrMulti

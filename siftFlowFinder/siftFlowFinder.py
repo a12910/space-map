@@ -17,13 +17,16 @@ class AffineFinder:
         if self.minItem is None or self.minItem[2] > err:
             self.minItem = self.DB[index]
             
-    def compute(self, dfI, dfJ, show=True):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+    def computeI(self, imgI, imgJ, show=True):
         e = self.err(imgI, imgJ)
         if show:
             spacemap.Info("Compute %s Error: %.4f" % (self.name, e))
         return e
+            
+    def compute(self, dfI, dfJ, show=True):
+        imgI = spacemap.show_img3(dfI)
+        imgJ = spacemap.show_img3(dfJ)
+        return self.computeI(imgI, imgJ, show)
     
     def add_result_blank(self, index, H: np.array, err):
         self.DB[index] = [index, H, err]

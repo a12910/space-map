@@ -73,7 +73,7 @@ class AffineBlockSiftEach(spacemap.AffineBlock):
         with Pool(os.cpu_count()) as p:
             result = p.map(AffineBlockSiftEach.findBestH, datas)
         for item in result:
-            if item is not None:
+            if len(item) > 0:
                 finder.add_result(*item)
         spacemap.Info("Compute Each Match Finish")
         
@@ -90,7 +90,7 @@ class AffineBlockSiftEach(spacemap.AffineBlock):
         
         H, _ = spacemap.createHFromPoints2(matches, xyd)
         if H is None:
-            return None
+            return []
         matchesi = matches[:i]
         matchesJ = spacemap.applyH_np(matchesi[:, 2:4] * xyd, H)
         matchesI = matchesi[:, :2] * xyd

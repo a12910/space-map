@@ -166,5 +166,5 @@ def slice_show_align(sI: Slice, sJ: Slice,
     spacemap.show_xy([dfI, dfJ], 
                     ["Target_" + str(sI.index), "New_" + str(sJ.index)], 
                     keyx="x", 
-                    keyy="y", s=0.5)
+                    keyy="y", s=0.2, alpha=0.1)
     
