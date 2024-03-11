@@ -15,6 +15,8 @@ IMGCONF = {"raw": 1}
 BASE = "data/flow"
 APPEND = np.array([0, 0])
 
+GLOBAL_STORAGE = {}
+
 def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)

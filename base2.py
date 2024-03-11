@@ -21,3 +21,11 @@ def init_path(path):
     for f in ["imgs", "outputs", "raw"]:
         spacemap.mkdir(path + "/" + f)
 
+def storage_variables():
+    spacemap.GLOBAL_STORAGE = {"XYD": spacemap.XYD, 
+                               "IMGCONF": spacemap.IMGCONF}
+    
+def revert_variables():
+    spacemap.XYD = spacemap.GLOBAL_STORAGE.get("XYD", spacemap.XYD)
+    spacemap.IMGCONF = spacemap.GLOBAL_STORAGE.get("IMGCONF", spacemap.IMGCONF)
+    

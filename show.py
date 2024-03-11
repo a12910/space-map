@@ -125,8 +125,8 @@ def img_norm(imgI, imgJ):
     clahe = imgConf.get("clahe", 0)
     clahe_limit = imgConf.get("clahe_limit", 20)
     maxx, minn = imgI.max(), imgI.min()
-    imgI = (imgI - minn) / (maxx - minn) * 255
-    imgJ = (imgJ - minn) / (maxx - minn) * 255
+    imgI = (imgI - minn) / (maxx - minn)
+    imgJ = (imgJ - minn) / (maxx - minn)
     if clahe > 0:
         imgI_ = np.array(imgI, dtype=np.uint8)
         imgJ_ = np.array(imgJ, dtype=np.uint8)

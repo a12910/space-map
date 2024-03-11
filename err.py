@@ -26,9 +26,14 @@ def err_dice4(imgI, imgJ, mX, mY):
 def err_dice(imgI, imgJ):
     i1 = imgI.reshape(-1)
     i2 = imgJ.reshape(-1)
-    ii = np.array([i1, i2])
-    inter = ii.min(axis=0).sum()
-    return (2 * inter + 0.001) / (i1.sum() + i2.sum() + 0.001)
+    try:
+        ii = np.array([i1, i2])
+        inter = ii.min(axis=0).sum()
+        return (2 * inter + 0.001) / (i1.sum() + i2.sum() + 0.001)
+    except Exception as e:
+        print(e)
+        print(i1.shape, i2.shape)
+        return 0
 
 def err_dice1(imgI, imgJ):
     i1 = imgI.reshape(-1)
