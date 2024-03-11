@@ -11,6 +11,7 @@ from .ldm.torch_LDDMM import LDDMM
 from .ldm.torch_LDDMM2D import LDDMM2D, get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
 from .ldm.lddmmFlow import *
 from .ldm.ldmMgr import *
+from .ldm.ldmMgr import LDMMgrPair
 
 from .err import *
 from .siftFlowFinder.siftFind import *
