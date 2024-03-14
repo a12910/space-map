@@ -124,7 +124,7 @@ def grid_sample_points(points, phi, xymax=[4000, 4000], xyd=10, mode="tri"):
         tx -= xyd / 2
         ty -= xyd / 2
         result.append([tx, ty])
-        
+    result = np.array(result)
     return result
 
 def irfft(mat,dim,onesided=False):

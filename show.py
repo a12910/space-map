@@ -28,7 +28,7 @@ def show_img_labels(xy: np.array, labels: np.array):
 def show_xy_np(nps: [np.array], labels: [str], 
                xylim=None, s=1, alpha=0.2, 
                legend=True, transparent=False, 
-               outTag=""):
+               outTag="", outSave=True):
     fig,ax = plt.subplots()
     xyr = spacemap.XYRANGE
     if xylim is None:
@@ -45,12 +45,13 @@ def show_xy_np(nps: [np.array], labels: [str],
     ax.legend(markerscale = 10)
     if not legend:
         ax.get_legend().remove()
-    import time
-    
-    path = "%s/imgs/showxy%s_%s_%s.png" % (spacemap.BASE, outTag, "-".join(labels), 
-                                         str(int(time.time())))
-    fig.savefig(path, transparent=transparent)
-    plt.show()
+    if outSave:
+        import time
+        
+        path = "%s/imgs/showxy%s_%s_%s.png" % (spacemap.BASE, outTag, "-".join(labels), 
+                                            str(int(time.time())))
+        fig.savefig(path, transparent=transparent)
+        plt.show()
 
 def show_xy(dfs: list[pd.DataFrame], labels: list[str], keyx: str or list ="x", keyy: str or list="y", xylim=None, s=1, alpha=0.2):
     nps = []
@@ -68,6 +69,37 @@ def show_xy(dfs: list[pd.DataFrame], labels: list[str], keyx: str or list ="x", 
     
 def show_align_np(npI, npJ, titleI, titleJ):
     show_xy_np([npI, npJ], [titleI, titleJ])
+    
+def show_img4(values: np.array, kernel=0):
+    # n*3
+    xyrange = spacemap.XYRANGE
+    xyd = spacemap.XYD
+    img = np.zeros((int((xyrange[1]-xyrange[0])/xyd), int((xyrange[3]-xyrange[2])/xyd)), dtype=np.float64)
+    values1 = values.copy()
+    values1[:, 0] = (values1[:, 0] - xyrange[0]) // xyd
+    values1[:, 1] = (values1[:, 1] - xyrange[2]) // xyd
+    values_ = [(int(x), int(y), z) for x, y, z in values1]
+    for ix, iy, iz in values_:
+        if iz == 0:
+            continue
+        if ix < 0 or ix >= img.shape[0] or iy < 0 or iy >= img.shape[1]:
+            continue
+        img[ix: ix+kernel+1, iy-kernel:iy+kernel+1] += iz
+    return img
+    
+def show_layer_img(points, labels):
+    count, channels = labels.shape
+    img0 = spacemap.show_img3(points, {"raw": 1})
+    shape = img0.shape
+    rawI = np.zeros((channels + 1, *shape))
+    rawI[0, :, :] = img0
+    for i in range(channels):
+        ps = np.zeros((count, 3))
+        ps[:, :2] = points
+        ps[:, 2] = labels[:, i]
+        img = spacemap.show_img4(ps)
+        rawI[i+1, :, :] = img
+    return rawI
     
 def show_img3(values: np.array, imgConf=None):
     if imgConf is None:
@@ -135,3 +167,32 @@ def img_norm(imgI, imgJ):
         imgI = clahe.apply(imgI_)
         imgJ = clahe.apply(imgJ_)
     return imgI, imgJ
+
+def show_images_form(imgs, shape, titles):
+    sx, sy = shape
+    fig, axes = plt.subplots(shape[0], shape[1], figsize=(12*shape[1], 12*shape[0]))
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            ii = i*shape[1] + j
+            if ii >= len(imgs):
+                continue
+            if sx > 1 and sy > 1:
+                axes[i, j].imshow(imgs[ii])
+                axes[i, j].set_title(titles[ii])
+            else:
+                axes[ii].imshow(imgs[ii])
+                axes[ii].set_title(titles[ii])
+    plt.show()
+    
+def show_images_form2(imgs, shape, titles):
+    sx, sy = shape
+    plt.figure(figsize=(8*sx, 8*sy))    
+    for i in range(sx):
+        for j in range(sy):
+            ii = i*shape[1] + j
+            if ii >= len(imgs):
+                continue
+            plt.subplot(sx, sy, ii+1)
+            plt.imshow(imgs[ii])
+            plt.title(titles[ii])
+    plt.show()

@@ -68,7 +68,7 @@ class MatchEach(spacemap.AffineBlock):
         with Pool(os.cpu_count()) as p:
             result = p.map(MatchEach.findBestH, datas)
         for item in result:
-            if item is not None:
+            if len(item) > 0:
                 finder.add_result(*item)
         spacemap.Info("Compute Each Match Finish")
         
@@ -86,7 +86,7 @@ class MatchEach(spacemap.AffineBlock):
         matchesi = matches[:i]
         H, _ = spacemap.createHFromPoints2(matchesi, xyd)
         if H is None:
-            return None
+            return []
         dfOut = spacemap.applyH_np(dfJ, H)            
         imgJ2 = spacemap.show_img3(dfOut)
         return [i, H, imgI, imgJ2]

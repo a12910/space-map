@@ -90,7 +90,7 @@ def createHFromPoints2(matches, xyd, method=cv2.RANSAC):
     H, status =cv2.findHomography(ptsJ,ptsI,
                                   method,ransacReprojThreshold)
     if H is None:
-        return None
+        return None, None
     H1 = H.copy()
     matchesJ = spacemap.applyH_np(matches[:, 2:4] * xyd, H)
     matchesI = matches[:, :2] * xyd

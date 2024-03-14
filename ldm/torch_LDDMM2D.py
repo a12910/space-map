@@ -23,7 +23,7 @@ def get_init2D(imgI, imgJ, gpu=None, verbose=100):
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
                               gpu_number=gpu,
-                              target_err=1,
+                              target_err=0.1,
                               verbose=verbose,
                               target_step=20000,
                               show_init=False)

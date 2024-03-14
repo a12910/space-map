@@ -44,3 +44,4 @@ from .siftFlowBlocks.AutoScale import AffineBlockAutoScale
 from .compare import *
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
+from .grid import GridGenerate

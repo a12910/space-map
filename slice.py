@@ -71,7 +71,9 @@ class Slice:
         path = "%s/outputs/grid_%s_%s.npy" % (self.projectf, str(self.index), str(indexTo))
         np.save(path, grid)
         
-    def save_labels_df(self, df, labels):
+    def save_labels_df(self, df: pd.DataFrame, labels=None):
+        if labels is None:
+            labels = df.columns
         data =np.array(df[labels].values)
         self.save_labels(data)
         
