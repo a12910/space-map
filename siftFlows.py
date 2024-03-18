@@ -38,7 +38,7 @@ class AffineBlock:
         plt.figure(figsize=(10,10))
         plt.imshow(np.concatenate((I, J), axis=1))
         for m in matches:
-            plt.plot([m[1], m[3]+I.shape[1]], [m[0], m[2]], 'r-', linewidth=2)
+            plt.plot([m[1], m[3]+I.shape[1]], [m[0], m[2]], 'r-', linewidth=1)
         plt.show()
         if H is not None:
             imgI_ = I.copy()

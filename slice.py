@@ -11,7 +11,7 @@ class Slice:
     align2Key = "align2"
     finalKey = "final"
     enhanceKey = "enhance"
-    def __init__(self, initdf, index, projectf=None):
+    def __init__(self, initdf, index, projectf=None, save=True):
         self.df = initdf
         self.dfs = {}
         self.index = str(index)
@@ -20,7 +20,8 @@ class Slice:
         initdf2["x"] += spacemap.APPEND[0]
         initdf2["y"] += spacemap.APPEND[1]
         self.dfs[Slice.rawKey] = initdf2
-        self.save_df()
+        if save:
+            self.save_df()
     
     def save_df(self):
         spacemap.Info("Slice Save DF: %s" % self.index)
@@ -168,5 +169,5 @@ def slice_show_align(sI: Slice, sJ: Slice,
     spacemap.show_xy([dfI, dfJ], 
                     ["Target_" + str(sI.index), "New_" + str(sJ.index)], 
                     keyx="x", 
-                    keyy="y", s=0.2, alpha=0.1)
+                    keyy="y", s=0.2, alpha=0.3)
     

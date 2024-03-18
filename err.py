@@ -42,8 +42,8 @@ def err_dice1(imgI, imgJ):
     i2[i2 > 0] = 1
     ii = np.array([i1, i2])
     inter = ii.min(axis=0).sum()
-    all = ii.max(axis=0).sum()
-    return (inter + 0.0001) / (all + 0.0001)
+    all = ii.sum()
+    return (inter + 0.0001) / (all + 0.0001) * 2
     return (2 * inter + 0.001) / (i1.sum() + i2.sum() + 0.001)
 
 def err_ssim(imgI, imgJ):

@@ -10,16 +10,15 @@ class AffineFinderMultiDice(spacemap.AffineFinder):
     def err_all(self, imgI, imgJ):
         ranges = self.compute_range(imgI, imgJ)
         dices = []
+        summ = imgI.sum() + imgJ.sum()
         for i in range(self.clas):
-            e = self.err_part(imgI, imgJ, ranges[i], ranges[i+1])
-            dices.append(e)
-        dices2 = []
-        for i in dices:
-            if i is not None:
-                dices2.append(i)
-        if len(dices2) == 0:
-            return 0
-        result = sum(dices2) / len(dices2)
+            e, pixs = self.err_part(imgI, imgJ, ranges[i], ranges[i+1])
+            if e is not None:
+                e = e * pixs / summ
+                dices.append(e)
+        if len(dices) == 0:
+            return [], 0
+        result = sum(dices)
         return dices, result
         
     def err(self, imgI, imgJ):
@@ -37,8 +36,8 @@ class AffineFinderMultiDice(spacemap.AffineFinder):
         imgI_ = self.filter_part(imgI, minn, maxx)
         imgJ_ = self.filter_part(imgJ, minn, maxx)
         if np.sum(imgI_) < 1 and np.sum(imgJ_) < 1:
-            return None
-        return spacemap.err_dice(imgI_, imgJ_)
+            return None, None
+        return [spacemap.err_dice(imgI_, imgJ_), np.sum(imgI_) + np.sum(imgJ_)]
     
     def filter_part(self, img, minn, maxx):
         img = img.copy()

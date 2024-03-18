@@ -4,7 +4,7 @@ from .base import *
 from .base2 import *
 from .show import *
 # from .tfboard import *
-from .slice import Slice
+from .slice import Slice, slice_show_align
 from .ldm import torch_LDDMMBase as base
 from .ldm.torch_LDDMMBase import saveLDDMM, loadLDDMM, applyPointsByGrid, mergeGrid, grid_sample_points, generateGridFromPoints
 from .ldm.torch_LDDMM import LDDMM

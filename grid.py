@@ -5,12 +5,13 @@ import numpy as np
 import tqdm
 
 class GridGenerate:
-    def __init__(self, shape, xyd) -> None:
+    def __init__(self, shape, xyd, degree=2) -> None:
         self.shape = shape
         self.xyd = xyd
         self.grid = np.zeros((shape[0], shape[1], 2))
         self.label = np.zeros(shape)
-
+        self.degree = degree
+        
         self.mesh = np.zeros_like(self.grid)
         for i in range(shape[0]):
             self.mesh[i, :, 0] = i * xyd
@@ -18,8 +19,7 @@ class GridGenerate:
         self.db = {}
         
     @staticmethod
-    def fit_new_points(pFrom, pTo, target):
-        poly_degree = 2
+    def fit_new_points(pFrom, pTo, target, poly_degree):
         poly_features = PolynomialFeatures(degree=poly_degree, include_bias=False)
         original_points_poly = poly_features.fit_transform(pFrom)
         model = LinearRegression().fit(original_points_poly, pTo)
@@ -60,11 +60,12 @@ class GridGenerate:
                         lis += self.db.get(tag, [])
                 if len(lis) > 2:
                     ps = np.array(lis)
-                    newp = GridGenerate.fit_new_points(ps[:, :2], ps[:, 2:], [x*xyd, y*xyd])
+                    newp = GridGenerate.fit_new_points(ps[:, :2], ps[:, 2:], [x*xyd, y*xyd], self.degree)
+                    if np.min(newp) < 0 or np.max(newp) > self.xyd * self.shape[0]:
+                        continue
                     self.grid[x, y, 0] = newp[0]
                     self.grid[x, y, 1] = newp[1]
                     self.label[x, y] = 1
-        self.show_grid()
         
     def fix(self, kernel2=10):
         label2 = np.zeros_like(self.label)
@@ -79,21 +80,20 @@ class GridGenerate:
                 part_mesh = self.mesh[x-kernel2:x+kernel2+1, y-kernel2:y+kernel2+1, :]
                 part3 = np.concatenate([part_mesh, part2], axis=2)
                 ps = part3[partl > 0, :].reshape(-1, 4)
-                newp = GridGenerate.fit_new_points(ps[:, :2], ps[:, 2:], [x*self.xyd, y*self.xyd])
+                newp = GridGenerate.fit_new_points(ps[:, :2], ps[:, 2:], [x*self.xyd, y*self.xyd], self.degree)
+                if np.min(newp) < 0 or np.max(newp) > self.xyd * self.shape[0]:
+                    continue
                 self.grid[x, y, 0] = newp[0]
                 self.grid[x, y, 1] = newp[1]
                 label2[x, y] = 1
-
-        self.show_grid()
         self.label = self.label + label2
-        print(np.sum(self.label))
         
     def grid_sample_points(self, points):
         result = []
         phi = self.grid
         xyd = self.xyd
-        imgMaxX = int(self.shape[0] // self.xyd) - 1
-        imgMaxY = int(self.shape[1] // self.xyd) - 1
+        imgMaxX = int(self.shape[0]) - 1
+        imgMaxY = int(self.shape[1]) - 1
         def get_net(xi, yi):
             if xi > imgMaxX:
                 xi = imgMaxX
