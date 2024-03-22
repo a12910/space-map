@@ -49,11 +49,13 @@ class AffineFinderMultiDice(spacemap.AffineFinder):
     @staticmethod
     def show(imgI, imgJ, clas):
         err = AffineFinderMultiDice(clas)
-        ranges = err.compute_range(clas, imgI, imgJ)
+        ranges = err.compute_range(imgI, imgJ)
         Is = []
         Js = []
         for i in range(clas):
-            imgI_, imgJ_ = err.err_part(imgI, imgJ, ranges[i], ranges[i+1])
+            minn, maxx = ranges[i], ranges[i+1]
+            imgI_ = err.filter_part(imgI, minn, maxx)
+            imgJ_ = err.filter_part(imgJ, minn, maxx)
             if imgI_ is not None:
                 Is.append(imgI_)
                 Js.append(imgJ_)
@@ -65,3 +67,4 @@ class AffineFinderMultiDice(spacemap.AffineFinder):
             plt.imshow(imgg)
             plt.show()
             
+    

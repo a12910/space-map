@@ -9,6 +9,7 @@ class AffineFinder:
         self.minItem = None
         
     def err(self, imgI, imgJ):
+        raise Exception("Not Implemented")
         return np.sum(abs(imgI - imgJ))
         
     def add_result(self, index, H: np.array, imgI: np.array, imgJ: np.array):

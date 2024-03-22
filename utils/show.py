@@ -184,6 +184,10 @@ def show_images_form(imgs, shape, titles):
                 axes[ii].set_title(titles[ii])
     plt.show()
     
+def imshow(img, **kwargs):
+    plt.imshow(img, **kwargs)
+    plt.show()
+    
 def show_images_form2(imgs, shape, titles):
     sx, sy = shape
     plt.figure(figsize=(8*sx, 8*sy))    

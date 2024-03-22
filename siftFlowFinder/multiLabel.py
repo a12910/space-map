@@ -1,57 +1,53 @@
 import spacemap
 import numpy as np
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
 
-class AffineFinderMultiLabel(spacemap.AffineFinder):
+class AffineFinderMultiLabelDice(spacemap.AffineFinder):
     def __init__(self, labelI, labelJ, clas=10):
-        super().__init__("MultiLabel")
+        super().__init__("MultiLabelDice")
         self.clas = clas
         self.labelI = labelI
         self.labelJ = labelJ
+        self.clasI = np.zeros(labelI.shape[0])
+        self.clasJ = np.zeros(labelJ.shape[0])
+        self.init_model()
         
-    def err_all(self, imgI, imgJ):
-        ranges = self.compute_range(imgI, imgJ)
-        dices = []
+    def init_model(self):
+        kmeans = KMeans(n_clusters=self.clas)
+        kmeans.fit(self.labelI)
+        self.clasI = kmeans.labels_
+        self.clasJ = kmeans.predict(self.labelJ)
+    
+    def compute(self, dfI, dfJ, show=True):
+        result = 0
+        summ = dfI.shape[0]
         for i in range(self.clas):
-            e = self.err_part(imgI, imgJ, ranges[i], ranges[i+1])
-            dices.append(e)
-        dices2 = []
-        for i in dices:
-            if i is not None:
-                dices2.append(i)
-        if len(dices2) == 0:
-            return 0
-        result = sum(dices2) / len(dices2)
-        return dices, result
-        
-    def err(self, imgI, imgJ):
-        dices, result = self.err_all(imgI, imgJ)
-        return -result
+            dfI_ = dfI[self.clasI == i].copy()
+            dfJ_ = dfJ[self.clasJ == i].copy()
+            imgI_ = spacemap.show_img3(dfI_)
+            imgJ_ = spacemap.show_img3(dfJ_)
+            e = spacemap.err_dice1(imgI_, imgJ_)
+            e = e * dfI_.shape[0] / summ
+            result += e
+        return result
     
-    def compute_range(self, imgI, imgJ):
-        maxx = max(np.max(imgI), np.max(imgJ)) + 1
-        minn = min(np.min(imgI), np.min(imgJ)) - 1
-        step = (maxx - minn) / self.clas
-        ranges = [minn + i * step for i in range(self.clas + 1)]
-        return ranges
-    
-    def err_part(self, imgI, imgJ, minn, maxx):
-        imgI_ = self.filter_part(imgI, minn, maxx)
-        imgJ_ = self.filter_part(imgJ, minn, maxx)
-        if np.sum(imgI_) < 1 and np.sum(imgJ_) < 1:
-            return None
-        return spacemap.err_dice(imgI_, imgJ_)
-    
-    def filter_part(self, img, minn, maxx):
-        img = img.copy()
-        img[img < minn] = 0
-        img[img > maxx] = 0
-        img[img > 0] = 1
-        return img
-
-from sklearn.cluster import KMeans
-def kmeans(data, clas):
-    km = KMeans(n_clusters=clas)
-    km.fit(data)
-    labels = km.labels_
-    return labels
+    def show(self, dfI, dfJ):
+        result = 0
+        summ = dfI.shape[0]
+        imgIs = []
+        imgJs = []
+        for i in range(self.clas):
+            dfI_ = dfI[self.clasI == i].copy()
+            dfJ_ = dfJ[self.clasJ == i].copy()
+            imgI_ = spacemap.show_img3(dfI_)
+            imgJ_ = spacemap.show_img3(dfJ_)
+            imgIs.append(imgI_)
+            imgJs.append(imgJ_)
+            e = spacemap.err_dice1(imgI_, imgJ_)
+            e = e * dfI_.shape[0] / summ
+            result += e
+        imgIs = np.concatenate(imgIs, axis=0)
+        imgJs = np.concatenate(imgJs, axis=0)
+        return result, imgIs, imgJs
     

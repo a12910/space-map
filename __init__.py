@@ -2,7 +2,7 @@
 # from .point_annotator import *
 from .base import *
 from .base2 import *
-from .show import *
+from .utils.show import *
 # from .tfboard import *
 from .slice import Slice, slice_show_align
 from .ldm import torch_LDDMMBase as base
@@ -11,14 +11,16 @@ from .ldm.torch_LDDMM import LDDMM
 from .ldm.torch_LDDMM2D import LDDMM2D, get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
 from .ldm.lddmmFlow import *
 
-from .err import *
+from .utils.err import *
 from .siftFlowFinder.siftFind import *
 
 from .siftFlows import *
 from .siftFlowFinder.siftFlowFinder import *
 from .siftFlowFinder.multiDice import AffineFinderMultiDice
+from .siftFlowFinder.convDice import err_conv_edge, err_edge_dice
 
-from .interest import *
+from .utils.interest import *
+from .utils.fig import *
 
 from .filterBlocks.AffineLOFTR import AffineAlignmentLOFTR, loftr_compute_matches
 from .filterBlocks.AffineLOFTR2 import AffineAlignmentLOFTR2

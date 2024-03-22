@@ -35,3 +35,5 @@ def Error(content):
 def Info(content):
     global L
     L.info(content)
+
+CMAP = "twilight"
