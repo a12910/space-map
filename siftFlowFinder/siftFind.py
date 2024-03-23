@@ -87,13 +87,14 @@ def createHFromPoints2(matches, xyd, method=cv2.RANSAC):
     ptsJ = matches[:, 2:4].reshape(-1, 1, 2)
     ransacReprojThreshold = 4
     # ptsJ -> ptsI
-    H, status =cv2.findHomography(ptsJ,ptsI,
+    H, mask =cv2.findHomography(ptsJ,ptsI,
                                   method,ransacReprojThreshold)
     if H is None:
         return None, None
+    selectMatches = matches[mask.ravel() == 1]
     H1 = H.copy()
-    matchesJ = spacemap.applyH_np(matches[:, 2:4] * xyd, H)
-    matchesI = matches[:, :2] * xyd
+    matchesJ = spacemap.applyH_np(selectMatches[:, 2:4] * xyd, H)
+    matchesI = selectMatches[:, :2] * xyd
     errX, errY = np.mean(matchesI - matchesJ, axis=0)
     H[0, 2] += errX
     H[1, 2] += errY

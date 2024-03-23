@@ -17,7 +17,7 @@ from .siftFlowFinder.siftFind import *
 from .siftFlows import *
 from .siftFlowFinder.siftFlowFinder import *
 from .siftFlowFinder.multiDice import AffineFinderMultiDice
-from .siftFlowFinder.convDice import err_conv_edge, err_edge_dice
+from .siftFlowFinder.convDice import *
 
 from .utils.interest import *
 from .utils.fig import *

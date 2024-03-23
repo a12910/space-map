@@ -69,6 +69,10 @@ class AffineFlowMgr:
         self.AffineH: [(np.array, float, str)] = []
         self.affineFinder = finder
         
+        self.matchr_std = 1.5
+        self.matchr = 200
+        self.glob_count = 100
+        
     def find_matchr(self, minCount=75):
         I = spacemap.show_img3(self.__dfI)
         J = spacemap.show_img3(self.__dfJ)

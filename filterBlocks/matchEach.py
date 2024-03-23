@@ -90,4 +90,3 @@ class MatchEach(spacemap.AffineBlock):
         dfOut = spacemap.applyH_np(dfJ, H)            
         imgJ2 = spacemap.show_img3(dfOut)
         return [i, H, imgI, imgJ2]
-    

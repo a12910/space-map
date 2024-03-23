@@ -5,15 +5,15 @@ import pandas as pd
 class SpaceMapAutoFlow2(spacemap.AffineFlowMgr):
     def __init__(self, dfI: np.array, dfJ: np.array, center=True):
         finder = spacemap.AffineFinderBasic("dice")
-        super().__init__("SpaceMapAutoFlow", dfI, dfJ, finder)
-        self.matchr = 200
+        super().__init__("SpaceMapAutoFlow", dfI, dfJ, finder)        
         self.center = center
+
         
     def run(self):
         if self.center:
             rotate = spacemap.AffineBlockBestRotate()
             self.run_flow(rotate)
-        matches = spacemap.MatchInit(matchr=200)
+        matches = spacemap.MatchInit(matchr=self.matchr)
         xyd = spacemap.XYD
         spacemap.XYD = int(xyd // 2)
         matches.alignment = spacemap.AffineAlignmentLOFTR2()
@@ -21,15 +21,14 @@ class SpaceMapAutoFlow2(spacemap.AffineFlowMgr):
         self.matches = self.matches / 2
         spacemap.XYD = xyd
         if self.center:
-            graph = spacemap.MatchFilterGraph(std=1.5)
+            graph = spacemap.MatchFilterGraph(std=self.matchr_std)
             # graph.show_graph_match = True
             self.run_flow(graph)
             self.run_flow(spacemap.MatchShow())
-        if len(self.matches) > 200:
-            dis = spacemap.XYRANGE[1] // 40
-            glob = spacemap.MatchFilterGlobal(count=200, dis=int(dis))
-            self.run_flow(glob)
-            self.run_flow(spacemap.MatchShow())
+
+        glob = spacemap.MatchFilterGlobal(count=self.glob_count)
+        self.run_flow(glob)
+        self.run_flow(spacemap.MatchShow())
         
         each = spacemap.MatchEach()
         self.run_flow(each)

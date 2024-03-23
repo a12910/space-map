@@ -11,7 +11,9 @@ class AffineAlignmentLOFTR(spacemap.AffineAlignment):
     def compute(self, imgI, imgJ, matchr):
         return loftr_compute_matches(imgI, imgJ, matchr)
 
-def loftr_compute_matches(imgI, imgJ, matchr):
+def loftr_compute_matches(imgI, imgJ, matchr, device=None):
+    if device is None:
+        device = spacemap.DEVICE
     imgI = np.array(imgI)
     imgJ = np.array(imgJ)
     minn, maxx = imgI.min(), imgI.max()
@@ -27,11 +29,11 @@ def loftr_compute_matches(imgI, imgJ, matchr):
     imgJ = imgJ.reshape((1, *imgJ.shape))
 
     batch = {
-        "image0": torch.tensor(imgI), 
-        "image1": torch.tensor(imgJ)
+        "image0": torch.tensor(imgI, device=device), 
+        "image1": torch.tensor(imgJ, device=device)
     }
 
-    matcher = LoFTR("indoor")
+    matcher = LoFTR("indoor").to(device)
     out = matcher(batch)
     pts1 = out["keypoints0"].cpu().numpy()
     pts2 = out["keypoints1"].cpu().numpy()

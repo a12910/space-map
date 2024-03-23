@@ -15,6 +15,8 @@ IMGCONF = {"raw": 1}
 BASE = "data/flow"
 APPEND = np.array([0, 0])
 
+DEVICE = "cpu"
+
 GLOBAL_STORAGE = {}
 
 def mkdir(path):

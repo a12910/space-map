@@ -17,6 +17,8 @@ mygaussian_3d_torch_selectcenter_meshgrid = base.mygaussian_3d_torch_selectcente
 mygaussian = base.mygaussian
 
 def get_init2D(imgI, imgJ, gpu=None, verbose=100):
+    if gpu is None:
+        gpu = spacemap.DEVICE
     ldm = LDDMM2D(template=imgI,target=imgJ,
                               do_affine=1,do_lddmm=0,
                               a=7,
