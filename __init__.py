@@ -47,3 +47,6 @@ from .compare import *
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
 from .grid import GridGenerate
+
+from .utils.model3d import *
+
