@@ -51,7 +51,7 @@ def show_xy_np(nps: [np.array], labels: [str],
         path = "%s/imgs/showxy%s_%s_%s.png" % (spacemap.BASE, outTag, "-".join(labels), 
                                             str(int(time.time())))
         fig.savefig(path, transparent=transparent)
-        plt.show()
+    plt.show()
 
 def show_xy(dfs: list[pd.DataFrame], labels: list[str], keyx: str or list ="x", keyy: str or list="y", xylim=None, s=1, alpha=0.2):
     nps = []

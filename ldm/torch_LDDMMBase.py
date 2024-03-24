@@ -121,8 +121,8 @@ def grid_sample_points(points, phi, xymax=[4000, 4000], xyd=10, mode="tri"):
             pbottom = get_net(xl, yt + 1) * (1 - xlratio) + get_net(xl + 1, yt + 1) * xlratio
             p = ptop * (1 - ytratio) + pbottom * ytratio
         tx, ty = p[0], p[1]
-        tx -= xyd / 2
-        ty -= xyd / 2
+        # tx -= xyd / 2
+        # ty -= xyd / 2
         result.append([tx, ty])
     result = np.array(result)
     return result
