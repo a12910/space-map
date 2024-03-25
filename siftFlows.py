@@ -53,6 +53,29 @@ class AffineBlock:
             plt.imshow(imgI_)
             plt.show()
         
+def manual_flow(dfI, dfJ):
+    mgr = AffineFlowMgr("ManualFlow", dfI, dfJ)
+    if mgr.center:
+        rotate = spacemap.AffineBlockBestRotate()
+        mgr.run_flow(rotate)
+    matches = spacemap.MatchInit(matchr=mgr.matchr)
+    matches.alignment = spacemap.AffineAlignmentLOFTR()
+    mgr.run_flow(matches)
+    if mgr.center:
+        graph = spacemap.MatchFilterGraph(std=mgr.matchr_std)
+        # graph.show_graph_match = True
+        mgr.run_flow(graph)
+        mgr.run_flow(spacemap.MatchShow())
+    glob = spacemap.MatchFilterGlobal(count=mgr.glob_count)
+    mgr.run_flow(glob)
+    mgr.run_flow(spacemap.MatchShow())
+    
+    each = spacemap.MatchEach()
+    mgr.run_flow(each)
+    mgr.run_flow(spacemap.MatchShow())
+    # H = self.resultH()
+    H = mgr.bestH()
+    return H
 
 class AffineFlowMgr:
     def __init__(self, name, 
@@ -67,10 +90,13 @@ class AffineFlowMgr:
         
         self.initImgC = spacemap.IMGCONF
         self.AffineH: [(np.array, float, str)] = []
+        if finder is None:
+            finder = spacemap.AffineFinderBasic("dice")
         self.affineFinder = finder
         
         self.matchr_std = 1.5
         self.matchr = 200
+        self.center = True
         self.glob_count = 100
         
     def find_matchr(self, minCount=75):

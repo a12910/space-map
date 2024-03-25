@@ -46,6 +46,27 @@ def err_conv_create_edge_weight(imgI, mid, kernel):
     edgeMean = cv2.filter2D(edge, -1, meanKernel) / 128
     return edgeMean
         
+def err_conv_min(imgI, imgJ, kernel):
+    """ 计算相似度最大的区域 """
+    if kernel < 1:
+        kernel = int(imgI.shape[0] * kernel)
+    kernel = int(kernel * 2)
+    sumKernel = np.ones((kernel, kernel))
+    diceIJ = np.array([imgI, imgJ]).min(axis=0)
+    
+    sumDiceIJ = cv2.filter2D(diceIJ, -1, sumKernel)
+    blank = sumDiceIJ < 5
+    sumI = cv2.filter2D(imgI, -1, sumKernel)
+    sumJ = cv2.filter2D(imgJ, -1, sumKernel)
+    sumIJ = sumI + sumJ
+    sumIJ[sumIJ < 0.01] = 0.01
+    
+    diceV = (sumDiceIJ / sumIJ) * 2
+    diceV[np.isnan(diceV)] = 0
+    diceV[np.isinf(diceV)] = 0
+    diceV[blank] = 0
+    return diceV
+        
 def err_conv_edge2(imgI, imgJ, kernel, maxx=0.7, mid=9, edge=None):
     if kernel < 1:
         kernel = int(imgI.shape[0] * kernel)

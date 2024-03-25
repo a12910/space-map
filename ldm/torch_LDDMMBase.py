@@ -49,7 +49,8 @@ def grid_sample(*args,**kwargs):
 def applyPointsByGrid(grid, points):
     xyrange=spacemap.XYRANGE
     xyd=spacemap.XYD
-    return grid_sample_points(points, grid, [xyrange[1], xyrange[3]], xyd, mode="tri")
+    points = grid_sample_points(points, grid, [xyrange[1], xyrange[3]], xyd, mode="tri")
+    return points
 
 def mergeGrid(grid0, grid1):
     xyrange = spacemap.XYRANGE
@@ -121,8 +122,6 @@ def grid_sample_points(points, phi, xymax=[4000, 4000], xyd=10, mode="tri"):
             pbottom = get_net(xl, yt + 1) * (1 - xlratio) + get_net(xl + 1, yt + 1) * xlratio
             p = ptop * (1 - ytratio) + pbottom * ytratio
         tx, ty = p[0], p[1]
-        tx += xyd / 2
-        ty += xyd / 2
         result.append([tx, ty])
     result = np.array(result)
     return result

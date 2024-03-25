@@ -36,6 +36,7 @@ from .mgr.AutoFlow import SpaceMapAutoFlow
 from .mgr.AutoFlow2 import SpaceMapAutoFlow2
 from .filterBlocks.matchFilterLabels import MatchFilterLabels
 from .siftFlowBlocks.AutoScale import AffineBlockAutoScale
+from .siftFlowBlocks.FinalRotate import AffineBlockFinalRotate
 
 # from .siftFlowBlocks.SiftEach import AffineBlockSiftEach
 # from .siftFlowBlocks.SiftNear import AffineBlockSiftNear

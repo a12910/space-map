@@ -17,7 +17,7 @@ mygaussian_3d_torch_selectcenter_meshgrid = base.mygaussian_3d_torch_selectcente
 mygaussian = base.mygaussian
 
 def get_init2D(imgI, imgJ, gpu=None, verbose=100):
-    if gpu is None:
+    if gpu is None and spacemap.DEVICE != "cpu":
         gpu = spacemap.DEVICE
     ldm = LDDMM2D(template=imgI,target=imgJ,
                               do_affine=1,do_lddmm=0,
@@ -521,6 +521,8 @@ class LDDMM2D(base.LDDMMBase):
         # return Pt,phiinv0_gpu, phiinv1_gpu, phiinv2_gpu
         res = Pt[-1]
         # return convert_xy(res)
+        res = np.array(res)
+        res -= xyd / 2
         return res
     
     # apply current transform to new image

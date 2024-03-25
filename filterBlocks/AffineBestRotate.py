@@ -86,12 +86,17 @@ class AffineBlockBestRotate(AffineBlockRotate):
         rotate = self.find_rotate(imgI1, imgJ1, finder)
         spacemap.Info("Best Rotate Find: %s" % str(rotate))
         self.rotate = rotate
+        H12 = self.createH_from_rotate(rotate)
+        H1 = np.dot(H13, np.dot(H12, H11))
+        return H1
+    
+    @staticmethod
+    def createH_from_rotate(rotate):
         r = rotate / 360 * np.pi * 2
         cosr = np.cos(r)
         sinr = np.sin(r)
         H12 = np.array([[cosr, -sinr, 0], [sinr, cosr, 0], [0, 0, 1]])
-        H1 = np.dot(H13, np.dot(H12, H11))
-        return H1
+        return H12
         
     def find_rotate(self, imgI, imgJ, finder: spacemap.AffineFinder):
         w, h = imgI.shape[:2]

@@ -20,7 +20,6 @@ class AffineBlockBestRotateSift(spacemap.AffineBlockBestRotate):
         self.rotate = 0
         
     def find_rotate(self, imgI, imgJ, finder: spacemap.AffineFinder):
-        finder = spacemap.AffineBlockBestRotateSift()
         w, h = imgI.shape[:2]
         imgI_ = np.zeros((w * 2, h * 2))
         imgJ_ = np.zeros((w * 2, h * 2))
@@ -35,5 +34,6 @@ class AffineBlockBestRotateSift(spacemap.AffineBlockBestRotate):
                             min_rotate + self.step2):
             imgJ1 = spacemap.AffineBlockRotate.rotate_img(imgJ_, rotate)
             finder.add_result(rotate, None, imgI_, imgJ1)
+        min_rotate = finder.bestH()
         return finder.bestH()
     
