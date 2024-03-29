@@ -3,26 +3,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def filter_part_df(dfI: np.array, xyrange):
-    minx, maxx, miny, maxy = xyrange
-    dfI = dfI[(dfI["x"] > minx) & (dfI["x"] < maxx) & (dfI["y"] > miny) & (dfI["y"] < maxy)]
-    return dfI
-
-def cmp_filter_part(dfI: np.array, dfJ: np.array, xyrange):
-    minx, maxx, miny, maxy = xyrange
-    dfI = dfI[(dfI[:, 0] > minx) & (dfI[:, 0] < maxx) & (dfI[:, 1] > miny) & (dfI[:, 1] < maxy)]
-    dfJ = dfJ[(dfJ[:, 0] > minx) & (dfJ[:, 0] < maxx) & (dfJ[:, 1] > miny) & (dfJ[:, 1] < maxy)]
-    return dfI, dfJ
-
-def cmp_filter_part_show(dfI: np.array, dfJ: np.array, xy, size, labels, s=1, alpha=0.5, tag="", trans=False):
-    x, y = xy
-    minx, maxx, miny, maxy = x, x+size, y, y+size
-    xyr = [minx, maxx, miny, maxy]
-    dfI = dfI[(dfI[:, 0] > minx) & (dfI[:, 0] < maxx) & (dfI[:, 1] > miny) & (dfI[:, 1] < maxy)]
-    dfJ = dfJ[(dfJ[:, 0] > minx) & (dfJ[:, 0] < maxx) & (dfJ[:, 1] > miny) & (dfJ[:, 1] < maxy)]
-    spacemap.show_xy_np([dfI, dfJ], labels, legend=False, xylim=xyr, s=s, alpha=alpha, outTag=tag, transparent=trans)
-    return dfI, dfJ
-
 def show_cells(df: pd.DataFrame, xyr=None, 
                cells: dict={}, s=1, alpha=0.2, outTag=""):
     df = df.copy()

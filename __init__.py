@@ -18,6 +18,7 @@ from .siftFlows import *
 from .siftFlowFinder.siftFlowFinder import *
 from .siftFlowFinder.multiDice import AffineFinderMultiDice
 from .siftFlowFinder.convDice import *
+from .siftFlowFinder.cellLabel import AffineFinderCellLabelDice
 
 from .utils.interest import *
 from .utils.fig import *
@@ -44,10 +45,13 @@ from .siftFlowBlocks.FinalRotate import AffineBlockFinalRotate
 # from .siftFlowBlocks.SiftPoints import AffineBlockSiftPoint
 # from .siftFlowBlocks.SiftGraph import AffineBlockSiftGraph
 
-from .compare import *
+# from .utils.compare import *
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
-from .grid import GridGenerate
+from .utils.grid import GridGenerate
 
 from .utils.model3d import *
-
+from .utils.output import *
+from .utils.compute import *
+from .utils.show_cells import *
+from .utils import compare as compare

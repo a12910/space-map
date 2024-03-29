@@ -17,6 +17,9 @@ APPEND = np.array([0, 0])
 
 DEVICE = "cpu"
 
+LAYER_START = 0
+LAYER_END = 0
+
 GLOBAL_STORAGE = {}
 
 def mkdir(path):

@@ -138,6 +138,9 @@ class Slice:
         img = np.array(img, dtype=int)
         return img
     
+    def ps(self, dfk):
+        return self.to_points(dfk)
+    
     def to_points(self, dfk):
         df = self.get_df(dfk)
         return np.array(df[["x", "y"]].values)

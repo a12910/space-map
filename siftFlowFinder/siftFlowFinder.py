@@ -11,6 +11,11 @@ class AffineFinder:
     def err(self, imgI, imgJ):
         raise Exception("Not Implemented")
         return np.sum(abs(imgI - imgJ))
+    
+    def err_np(self, npI, npJ):
+        imgI = spacemap.show_img3(npI)
+        imgJ = spacemap.show_img3(npJ)
+        return self.err(imgI, imgJ)
         
     def add_result(self, index, H: np.array, imgI: np.array, imgJ: np.array):
         err = self.err(imgI, imgJ)

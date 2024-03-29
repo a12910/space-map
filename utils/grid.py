@@ -5,7 +5,17 @@ import numpy as np
 import tqdm
 
 class GridGenerate:
-    def __init__(self, shape, xyd, degree=2) -> None:
+    def __init__(self, shape, xyd, degree=1) -> None:
+        """ 从运动的点生成转换网格
+        Args:
+            shape (int, int): 网格的size range//xyd
+            xyd (int): xyd
+            degree (int): 拟合次数 
+        Methods:
+            init_db: 初始化数据库
+            generate: 生成网格
+            fix: 修正网格
+        """
         self.shape = shape
         self.xyd = xyd
         self.grid = np.zeros((shape[0], shape[1], 2))
@@ -41,6 +51,8 @@ class GridGenerate:
         return "%d_%d" % (int(x // self.xyd), int(y // self.xyd))
         
     def init_db(self, pFrom, pTo):
+        pFrom = np.array(pFrom)
+        pTo = np.array(pTo)
         for i in range(len(pFrom)):
             fx, fy = pFrom[i]
             tx, ty = pTo[i]

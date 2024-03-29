@@ -1,12 +1,32 @@
 import spacemap
 import numpy as np
 from PIL import Image
+import tqdm
 
 def model3d_imaris_imgs1(df, start, end, outFolder, prefix="s"):
     spacemap.mkdir(outFolder)
-    for i in range(start, end+1):
+    for i in tqdm.trange(start, end+1):
         xy = df[df["layer"] == i][["x", "y"]].values
         img = spacemap.show_img3(np.array(xy))
         path = "%s/%s_%d.tiff" % (outFolder, prefix, i)
         ii = Image.fromarray(img)
         ii.save(path)
+
+def model3d_generate_grid(rawDF, alignDF, start, end, outFolder, 
+                          prefix="grid"):
+    """ 为每一层生成一个grid """
+    spacemap.mkdir(outFolder)
+    shape = spacemap.XYRANGE[1], spacemap.XYRANGE[3]
+    xyd = spacemap.XYD
+    gridShape = (int(shape[0]/xyd), int(shape[1]/xyd))
+    for i in tqdm.trange(start, end+1):
+        raw = rawDF[rawDF["layer"] == i][["x", "y"]].values
+        align = alignDF[alignDF["layer"] == i][["x", "y"]].values
+        grid = spacemap.GridGenerate(gridShape, xyd, 1)
+        grid.init_db(raw, align)
+        grid.generate()
+        grid.fix()
+        path = "%s/%s_%d.npy" % (outFolder, prefix, i)
+        np.save(path, grid)
+
+# def model3d_align_cellEdge(gridFolder, gridPrefix, start, end, )

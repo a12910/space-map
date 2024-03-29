@@ -34,7 +34,6 @@ class LDMMgrPair:
         spacemap.Info("Finish LDMPair: %s/%s -> %s/%s" % (sJ.index, self.finalKey, sI.index, self.targetIKey))
         points2 = self.ldm.applyThisTransformPoints2D(self.sJ.to_points(self.initJKey))
         points2 = np.array(points2)
-        points2 -= spacemap.XYD // 2
         self.sJ.save_value_points(points2, self.finalKey)
         if show:
             spacemap.Slice.show_align(self.sI, self.sJ, self.targetIKey, self.finalKey)
@@ -63,7 +62,6 @@ class LDMMgrPair:
         spacemap.Info("Finish LDMPair Enhance: %s/%s -> %s/%s" % (sJ.index, self.finalKey, sI.index, self.targetIKey))
         points2 = self.ldm.applyThisTransformPoints2D(sJ.to_points(self.finalKey))
         points2 = np.array(points2)
-        points2 -= spacemap.XYD // 2
         self.sJ.save_value_points(points2, self.enhanceKey)
         if show:
             spacemap.Slice.show_align(sI, sJ, self.targetIKey, self.enhanceKey)
