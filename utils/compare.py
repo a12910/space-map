@@ -25,9 +25,28 @@ def cmp_filter_part_show(dfI: np.array, dfJ: np.array, xy, size, labels, s=1, al
 
 def cmp_imgs(imgs1, imgs2, err: spacemap.AffineFinder):
     result = np.zeros(len(imgs1))
+    if err is None:
+        err = spacemap.AffineFinderBasic("dice")
     for i in range(len(imgs1)):
         result[i] = err.err(imgs1[i], imgs2[i])
     return np.mean(result), result
+
+def cmp_imgs_metric(imgs1, imgs2, err: spacemap.AffineFinder):
+    result = np.zeros((len(imgs1), len(imgs1)))
+    for i in range(len(imgs1)):
+        for j in range(i+1, len(imgs1)):
+            e = err.err(imgs1[i], imgs2[j])
+            result[i, j] = e
+            result[j, i] = e
+    return result
+
+def __generate_imgs(df, start, end):
+    img1s = []
+    for layer in range(start, end):
+        df_ = df[df["layer"] == layer][["x", "y"]].copy()
+        img1 = spacemap.show_img3(np.array(df_.values))
+        img1s.append(img1)
+    return img1s
     
 def cmp_adjacent_layers(df, start, end, err):
     """ start/end 从layer=start到layer=end """
@@ -35,15 +54,8 @@ def cmp_adjacent_layers(df, start, end, err):
 
 def cmp_layers(df1, df2, start, end, err):
     """ start/end 从layer=start到layer=end """
-    img1s = []
-    img2s = []
-    for layer in range(start, end):
-        df1_ = df1[df1["layer"] == layer][["x", "y"]].copy()
-        df2_ = df2[df2["layer"] == layer+1][["x", "y"]].copy()
-        img1 = spacemap.show_img3(np.array(df1_.values))
-        img2 = spacemap.show_img3(np.array(df2_.values))
-        img1s.append(img1)
-        img2s.append(img2)
+    img1s = __generate_imgs(df1, start, end)
+    img2s = __generate_imgs(df2, start+1, end+1)
     return cmp_imgs(img1s, img2s, err)
 
 def convert_label(labels: list, conf=None):
@@ -84,9 +96,35 @@ def cmp_layers_label(df1: pd.DataFrame, df2: pd.DataFrame,
     result = np.sum(errs * count) / np.sum(count)
     return result, err_detail
 
+def cmp_layers_metric(df1: pd.DataFrame, df2: pd.DataFrame,
+                     start: int, end: int, err: spacemap.AffineFinder):
+    if df2 is None:
+        df2 = df1.copy()
+    img1s = __generate_imgs(df1, start, end)
+    img2s = __generate_imgs(df2, start+1, end+1)
+    return cmp_imgs_metric(img1s, img2s, err)
+    
 def merge_label(df, label, start, end):
     df1 = df.copy()
     df1["cell_type"] = ""
     for i in range(start, end+1):
         df1.loc[df1["layer"] == i, "cell_type"] = label[label["layer"] == i]["cell_type"]
     return df1
+
+def compare_workflow(dfs: dict[str:pd.DataFrame], start, end, err: spacemap.AffineFinder=None):
+    if err is None:
+        err = spacemap.AffineFinderBasic("dice")
+    result = np.zeros((len(dfs), end-start))
+    keys = list(dfs.keys())
+    target = dfs.get("target", None)
+    for i, k in enumerate(keys):
+        df = dfs[k]
+        if target is not None:
+            result[i] = cmp_layers(df, target, start, end, err)[1]
+        else:
+            result[i] = cmp_adjacent_layers(df, start, end, err)[1]
+    result = result.T
+    df = pd.DataFrame(result, columns=keys)
+    return df
+    
+# 36, 37

@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import tqdm
 
-def model3d_imaris_imgs1(df, start, end, outFolder, prefix="s"):
+def generate_imgs_basic(df, start, end, outFolder, prefix="s"):
     spacemap.mkdir(outFolder)
     for i in tqdm.trange(start, end+1):
         xy = df[df["layer"] == i][["x", "y"]].values
@@ -12,7 +12,7 @@ def model3d_imaris_imgs1(df, start, end, outFolder, prefix="s"):
         ii = Image.fromarray(img)
         ii.save(path)
 
-def model3d_generate_grid(rawDF, alignDF, start, end, outFolder, 
+def generate_grid(rawDF, alignDF, start, end, outFolder, 
                           prefix="grid"):
     """ 为每一层生成一个grid """
     spacemap.mkdir(outFolder)
@@ -28,5 +28,3 @@ def model3d_generate_grid(rawDF, alignDF, start, end, outFolder,
         grid.fix()
         path = "%s/%s_%d.npy" % (outFolder, prefix, i)
         np.save(path, grid)
-
-# def model3d_align_cellEdge(gridFolder, gridPrefix, start, end, )

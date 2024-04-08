@@ -20,8 +20,8 @@ from .siftFlowFinder.multiDice import AffineFinderMultiDice
 from .siftFlowFinder.convDice import *
 from .siftFlowFinder.cellLabel import AffineFinderCellLabelDice
 
-from .utils.interest import *
-from .utils.fig import *
+from .utils import interest as interest
+from .utils import fig as fig
 
 from .filterBlocks.AffineLOFTR import AffineAlignmentLOFTR, loftr_compute_matches
 from .filterBlocks.AffineLOFTR2 import AffineAlignmentLOFTR2
@@ -50,8 +50,9 @@ from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
 from .utils.grid import GridGenerate
 
-from .utils.model3d import *
-from .utils.output import *
+from .utils import model3d as model3d
+from .utils import imaris as imaris
+from .utils import output as output
+from .utils import compare as compare
 from .utils.compute import *
 from .utils.show_cells import *
-from .utils import compare as compare
