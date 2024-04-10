@@ -125,6 +125,10 @@ def show_img3(values: np.array, imgConf=None):
         img[ix-kernel: ix+kernel+1, iy-kernel:iy+kernel+1] += 1
     
     density = imgConf.get("density", 0)
+    gauss = imgConf.get("gauss", 0)
+    if gauss > 0:
+        k = int(img.shape[0] * gauss) if gauss < 1 else int(gauss)
+        img = cv2.GaussianBlur(img, (k, k), 0)
     if density > 0:
         d = 2 * int(density) + 1
         density_limit = imgConf.get("density_limit", 0)

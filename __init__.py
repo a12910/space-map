@@ -25,7 +25,8 @@ from .utils import fig as fig
 
 from .filterBlocks.AffineLOFTR import AffineAlignmentLOFTR, loftr_compute_matches
 from .filterBlocks.AffineLOFTR2 import AffineAlignmentLOFTR2
-from .filterBlocks.AffineBestRotate import AffineBlockRotate, AffineBlockBestRotate
+from .filterBlocks.AffineRotate import AffineBlockRotate
+from .filterBlocks.AffineBestRotate import AffineBlockBestRotate
 from .siftFlowBlocks.RotateSift import AffineBlockBestRotateSift, AffineBlockMoveCenter
 from .filterBlocks.matchInit import MatchInit
 from .filterBlocks.matchFilterGraph import MatchFilterGraph
@@ -54,5 +55,7 @@ from .utils import model3d as model3d
 from .utils import imaris as imaris
 from .utils import output as output
 from .utils import compare as compare
+from .utils import compute as compute
+
 from .utils.compute import *
 from .utils.show_cells import *
