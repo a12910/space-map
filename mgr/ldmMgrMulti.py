@@ -14,7 +14,7 @@ class LDMMgrMulti:
         self.gpu=gpu
         self.finalKey = Slice.finalKey
         self.enhanceKey = Slice.enhanceKey
-        self.err = spacemap.AffineFinderMultiDice(10)
+        self.err = spacemap.find.default()
         self.verbose = 100
         self.finalErr = 0.01
         self.enhanceErr = 0.01

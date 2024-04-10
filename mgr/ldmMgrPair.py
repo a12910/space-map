@@ -18,7 +18,7 @@ class LDMMgrPair:
         self.enhanceErr = 0.01
         self.verbose = 100
         self.gpu = gpu
-        self.err = spacemap.AffineFinderMultiDice(10)
+        self.err = spacemap.find.default()
         self.ldm = None
         self.emode = False
         

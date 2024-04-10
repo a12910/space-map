@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-class MatchFilterLabels(spacemap.AffineBlock):
+class FilterLabels(spacemap.AffineBlock):
     def __init__(self, labelI: np.array, 
                  labelJ: np.array, std):
-        super().__init__("MatchFilterLabels")
+        super().__init__("FilterLabels")
         self.update_matches = True
         self.labelI = labelI
         self.labelJ = labelJ

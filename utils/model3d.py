@@ -22,7 +22,7 @@ def generate_grid(rawDF, alignDF, start, end, outFolder,
     for i in tqdm.trange(start, end+1):
         raw = rawDF[rawDF["layer"] == i][["x", "y"]].values
         align = alignDF[alignDF["layer"] == i][["x", "y"]].values
-        grid = spacemap.GridGenerate(gridShape, xyd, 1)
+        grid = spacemap.grid.GridGenerate(gridShape, xyd, 1)
         grid.init_db(raw, align)
         grid.generate()
         grid.fix()

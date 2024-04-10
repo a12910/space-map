@@ -2,9 +2,9 @@ import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
 
-class MatchFilterGraphPart(spacemap.AffineBlock):
+class FilterGraphPart(spacemap.AffineBlock):
     def __init__(self, std):
-        super().__init__("MatchFilterGraphPart")
+        super().__init__("FilterGraphPart")
         self.update_matches = True
         self.std = std
         self.show_graph_match = False

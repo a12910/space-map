@@ -5,7 +5,6 @@ from tqdm import tqdm
 from multiprocessing import Pool
 import os
 
-
 class MatchEachMatches(spacemap.AffineBlock):
     """ 仅选择最佳特征点 """
     def __init__(self):
@@ -26,14 +25,14 @@ class MatchEachMatches(spacemap.AffineBlock):
     def compute_each_match(self, matches, minMatch):
         xyd = spacemap.XYD
         spacemap.Info("SiftEachM Get Matches %d" % len(matches))
-        finder = spacemap.AffineFinderBasic("blank")
+        finder = spacemap.find.default()
         
         if minMatch == -1:
             minMatch = len(matches)
         matches = np.array(matches)
         for i in tqdm(range(minMatch, len(matches)+1), desc="Compute Each Match"):
             matchesi = matches[:i]
-            H, _ = spacemap.createHFromPoints2(matchesi, xyd)
+            H, _ = spacemap.matches.createHFromPoints2(matchesi, xyd)
             matchesJ = spacemap.applyH_np(matchesi[:, 2:4] * xyd, H)
             matchesI = matchesi[:, :2] * xyd
             errX, errY = np.mean(matchesI - matchesJ, axis=0)

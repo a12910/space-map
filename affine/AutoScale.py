@@ -2,7 +2,7 @@ import spacemap
 import cv2
 import numpy as np
     
-class AffineBlockAutoScale(spacemap.AffineBlock):
+class AutoScale(spacemap.AffineBlock):
     def __init__(self):
         """ 用于计算可能的放大缩小比例 """
         super().__init__("AutoScale")

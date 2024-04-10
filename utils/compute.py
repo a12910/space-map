@@ -2,6 +2,13 @@ import cv2
 import spacemap
 import numpy as np
 
+import matplotlib.pyplot as plt
+import scipy.signal as ss
+
+def conv_2d(img, kernel):
+    img1 = ss.convolve2d(img, kernel, mode="same")
+    return img1
+
 def rotate_img(imgJ, rotate, center=None):
     """ rotate: int
         center: int, int/img 

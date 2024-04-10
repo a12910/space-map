@@ -2,7 +2,7 @@ import cv2
 import spacemap
 import numpy as np
 
-class AffineBestGrad(spacemap.AffineBlock):
+class AutoGrad(spacemap.AffineBlock):
     def __init__(self) -> None:
         super().__init__("BestGrad")
         self.update_matches = False

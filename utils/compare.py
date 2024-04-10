@@ -26,7 +26,7 @@ def cmp_filter_part_show(dfI: np.array, dfJ: np.array, xy, size, labels, s=1, al
 def cmp_imgs(imgs1, imgs2, err: spacemap.AffineFinder):
     result = np.zeros(len(imgs1))
     if err is None:
-        err = spacemap.AffineFinderBasic("dice")
+        err = spacemap.find.FinderBasic("dice")
     for i in range(len(imgs1)):
         result[i] = err.err(imgs1[i], imgs2[i])
     return np.mean(result), result
@@ -111,9 +111,10 @@ def merge_label(df, label, start, end):
         df1.loc[df1["layer"] == i, "cell_type"] = label[label["layer"] == i]["cell_type"]
     return df1
 
-def compare_workflow(dfs: dict[str:pd.DataFrame], start, end, err: spacemap.AffineFinder=None):
+def compare_workflow(dfs: dict[str:pd.DataFrame], start, end, 
+                     err: spacemap.AffineFinder=None):
     if err is None:
-        err = spacemap.AffineFinderBasic("dice")
+        err = spacemap.find.default()
     result = np.zeros((len(dfs), end-start))
     keys = list(dfs.keys())
     target = dfs.get("target", None)

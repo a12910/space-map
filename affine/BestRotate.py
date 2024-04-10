@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import spacemap
     
-class AffineBlockBestRotate(spacemap.AffineBlockRotate):
+class BestRotate(spacemap.AffineBlock):
     def __init__(self, step1=5, step2=0.2) -> None:
         super().__init__("BestRotate")
         self.step1 = step1
@@ -53,13 +53,13 @@ class AffineBlockBestRotate(spacemap.AffineBlockRotate):
         imgI_[int(w // 2): int(w // 2 + w), int(h // 2): int(h // 2 + h)] = imgI
         imgJ_[int(w // 2): int(w // 2 + w), int(h // 2): int(h // 2 + h)] = imgJ
         for rotate in range(0, 360, self.step1):
-            imgJ1 = spacemap.AffineBlockRotate.rotate_img(imgJ_, rotate)
+            imgJ1 = spacemap.compute.rotate_img(imgJ_, rotate)
             finder.add_result(rotate, None, imgI_, imgJ1)
         min_rotate = finder.best()[0]
         finder.clear()
         for rotate_ in range(int((min_rotate - self.step1) // self.step2), int((min_rotate + self.step1)//self.step2) + 1):
             rotate = rotate_ * self.step2
-            imgJ1 = spacemap.AffineBlockRotate.rotate_img(imgJ_, rotate)
+            imgJ1 = spacemap.compute.rotate_img(imgJ_, rotate)
             finder.add_result(rotate, None, imgI_, imgJ1)
         return finder.best()[0] # rotate
     

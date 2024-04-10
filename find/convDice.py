@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 def err_conv_edge(imgI, imgJ, kernel, maxx=0.7):
-    err = spacemap.err_dice
+    err = spacemap,err.err_dice
     xx, yy = imgI.shape
     errI = np.zeros((xx, yy))
     count = 0
@@ -135,9 +135,9 @@ def err_edge_dice(imgI, imgJ, kernel, maxx=0.7):
     inter = iii.min(axis=0).sum()
     return (2 * inter + 0.001) / (ii.sum() + ij.sum() + 0.001), edge
 
-class AffineFinderEdgeDice(spacemap.AffineFinder):
+class ConvDice(spacemap.AffineFinder):
     def __init__(self, mid=9, kernel=10):
-        super().__init__("AffineFinderEdgeDice")
+        super().__init__("AffineFinderConvDice")
         self.mid = mid
         self.kernel = kernel
         self.edge = None
@@ -151,3 +151,4 @@ class AffineFinderEdgeDice(spacemap.AffineFinder):
     def clear(self):
         self.edge = None
         return super().clear()
+    

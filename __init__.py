@@ -2,7 +2,7 @@
 # from .point_annotator import *
 from .base import *
 from .base2 import *
-from .utils.show import *
+
 # from .tfboard import *
 from .slice import Slice, slice_show_align
 from .ldm import torch_LDDMMBase as base
@@ -11,51 +11,29 @@ from .ldm.torch_LDDMM import LDDMM
 from .ldm.torch_LDDMM2D import LDDMM2D, get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
 from .ldm.lddmmFlow import *
 
-from .utils.err import *
-from .siftFlowFinder.siftFind import *
-
-from .siftFlows import *
-from .siftFlowFinder.siftFlowFinder import *
-from .siftFlowFinder.multiDice import AffineFinderMultiDice
-from .siftFlowFinder.convDice import *
-from .siftFlowFinder.cellLabel import AffineFinderCellLabelDice
+from .utils.show import *
+from .utils import err as err
 
 from .utils import interest as interest
 from .utils import fig as fig
 
-from .filterBlocks.AffineLOFTR import AffineAlignmentLOFTR, loftr_compute_matches
-from .filterBlocks.AffineLOFTR2 import AffineAlignmentLOFTR2
-from .filterBlocks.AffineRotate import AffineBlockRotate
-from .filterBlocks.AffineBestRotate import AffineBlockBestRotate
-from .siftFlowBlocks.RotateSift import AffineBlockBestRotateSift, AffineBlockMoveCenter
-from .filterBlocks.matchInit import MatchInit
-from .filterBlocks.matchFilterGraph import MatchFilterGraph
-from .filterBlocks.matchEach import MatchEach, MatchShow
-from .filterBlocks.matchEach2 import MatchEachImg
-from .filterBlocks.matchEachMatches import MatchEachMatches
-from .filterBlocks.matchFilterGlobal import MatchFilterGlobal
+from .flowBase import *
+from .flowMgr import AffineFlowMgr
+
+from . import matches
+from . import affine
+from . import find
+
 from .mgr.AutoFlow import SpaceMapAutoFlow
 from .mgr.AutoFlow2 import SpaceMapAutoFlow2
-from .filterBlocks.matchFilterLabels import MatchFilterLabels
-from .siftFlowBlocks.AutoScale import AffineBlockAutoScale
-from .siftFlowBlocks.FinalRotate import AffineBlockFinalRotate
 
-# from .siftFlowBlocks.SiftEach import AffineBlockSiftEach
-# from .siftFlowBlocks.SiftNear import AffineBlockSiftNear
-# from .siftFlowBlocks.Scale import AffineBlockScale
-# from .siftFlowBlocks.SiftPoints import AffineBlockSiftPoint
-# from .siftFlowBlocks.SiftGraph import AffineBlockSiftGraph
-
-# from .utils.compare import *
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
-from .utils.grid import GridGenerate
 
+from .utils import grid as grid
 from .utils import model3d as model3d
 from .utils import imaris as imaris
 from .utils import output as output
 from .utils import compare as compare
 from .utils import compute as compute
 
-from .utils.compute import *
-from .utils.show_cells import *

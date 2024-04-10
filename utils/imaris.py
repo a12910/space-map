@@ -42,7 +42,7 @@ class ModelGenerate:
             spacemap.Info("Prepare grid %d" % i)
             raw = dfRaw[dfRaw["layer"] == i][["x", "y"]].values
             align = dfAlign[dfAlign["layer"] == i][["x", "y"]].values
-            grid = spacemap.GridGenerate(self.grid_shape, 
+            grid = spacemap.grid.GridGenerate(self.grid_shape, 
                                          self.grid_xyd, 1)
             grid.init_db(raw, align)
             grid.generate()
@@ -68,7 +68,7 @@ class ModelGenerate:
                 gridPath = "%s/grid/grid_%.2d.npy" % (self.baseFolder, index)
                 grid = np.load(gridPath)
                 points = np.array(df[[self.edgeKeyX, self.edgeKeyY]].values)
-                gen = spacemap.GridGenerate(self.gridShape, self.gridXYD)
+                gen = spacemap.grid.GridGenerate(self.gridShape, self.gridXYD)
                 gen.grid = grid
                 points2 = gen.grid_sample_points(points)
                 df["x"] = points2[:, 0]

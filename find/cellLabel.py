@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 
-class AffineFinderCellLabelDice(spacemap.AffineFinder):
+class CellLabelDice(spacemap.AffineFinder):
     def __init__(self, labelI: np.array, labelJ: np.array):
         super().__init__("CellLabelDice")
         self.labelI = labelI
@@ -34,7 +34,7 @@ class AffineFinderCellLabelDice(spacemap.AffineFinder):
             dfJ_ = dfJ[self.labelI == i].copy()
             imgI_ = spacemap.show_img3(dfI_)
             imgJ_ = spacemap.show_img3(dfJ_)
-            e = spacemap.err_dice1(imgI_, imgJ_)
+            e = spacemap.err.err_dice1(imgI_, imgJ_)
             e = e * dfI_.shape[0] / summ
             result += e
         return result
@@ -51,7 +51,7 @@ class AffineFinderCellLabelDice(spacemap.AffineFinder):
             imgJ_ = spacemap.show_img3(dfJ_)
             imgIs.append(imgI_)
             imgJs.append(imgJ_)
-            e = spacemap.err_dice1(imgI_, imgJ_)
+            e = spacemap.err.err_dice1(imgI_, imgJ_)
             e = e * dfI_.shape[0] / summ
             result += e
         imgIs = np.concatenate(imgIs, axis=0)

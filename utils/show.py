@@ -5,10 +5,6 @@ import numpy as np
 import spacemap
 import cv2
 
-def conv_2d(img, kernel):
-    img1 = ss.convolve2d(img, kernel, mode="same")
-    return img1
-
 def show_img_labels(xy: np.array, labels: np.array):
     xyr = spacemap.XYRANGE
     xyd = spacemap.XYD
@@ -53,7 +49,9 @@ def show_xy_np(nps: [np.array], labels: [str],
         fig.savefig(path, transparent=transparent)
     plt.show()
 
-def show_xy(dfs: list[pd.DataFrame], labels: list[str], keyx: str or list ="x", keyy: str or list="y", xylim=None, s=1, alpha=0.2):
+def show_xy(dfs: list[pd.DataFrame], labels: list[str], 
+            keyx: str or list ="x", keyy: str or list="y", 
+            xylim=None, s=1, alpha=0.2):
     nps = []
     for i in range(len(dfs)):
         df = dfs[i]
@@ -140,22 +138,12 @@ def show_img3(values: np.array, imgConf=None):
         img[img1 < density_limit_] = 0    
     softKernel = imgConf.get("soft_kernel", 0)
     if softKernel > 0:
-        img1 = spacemap.compute_interest_area(img, softKernel)
+        img1 = spacemap.interest.compute_interest_area(img, softKernel)
         img += img1
     if mid > 0:
         img = cv2.medianBlur(img.astype(np.float32), mid)
     return img
 
-def plot_hist(img):
-    img = np.array(img, dtype=np.uint8)
-    grayHist = cv2.calcHist([img], [0], None, [256], [0, 256])
-    plt.plot(range(256), grayHist, 'r', linewidth=1.5, c='red')
-    y_maxValue = np.max(grayHist)
-    plt.axis([0, 255, 0, y_maxValue]) # x和y的范围
-    plt.xlabel("gray Level")
-    plt.ylabel("Number Of Pixels")
-    plt.show()
-    
 def img_norm(imgI, imgJ):
     imgConf = spacemap.IMGCONF
     clahe = imgConf.get("clahe", 0)
@@ -174,7 +162,8 @@ def img_norm(imgI, imgJ):
 
 def show_images_form(imgs, shape, titles):
     sx, sy = shape
-    fig, axes = plt.subplots(shape[0], shape[1], figsize=(12*shape[1], 12*shape[0]))
+    fig, axes = plt.subplots(shape[0], shape[1], 
+                             figsize=(12*shape[1], 12*shape[0]))
     for i in range(shape[0]):
         for j in range(shape[1]):
             ii = i*shape[1] + j

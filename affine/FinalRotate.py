@@ -2,7 +2,7 @@ import numpy as np
 from numpy.core.multiarray import array as array
 import spacemap
 
-class AffineBlockFinalRotate(spacemap.AffineBlock):
+class FinalRotate(spacemap.AffineBlock):
     def __init__(self) -> None:
         super().__init__("FinalRotate")
         self.kernel = 9
@@ -27,7 +27,7 @@ class AffineBlockFinalRotate(spacemap.AffineBlock):
         finder.clear()
         for rotate_ in range(-int(self.kernel / self.step2), int(self.kernel / self.step2)):
             rotate = rotate_ * self.step2
-            imgJ3 = spacemap.AffineBlockRotate.rotate_img(imgJ2, rotate)
+            imgJ3 = spacemap.compute.rotate_img(imgJ2, rotate)
             finder.add_result(rotate, None, imgI2, imgJ3)
         H2 = finder.bestH()
         H3 = np.array([[1, 0, x_-center_x], [0, 1, y_-center_y], [0, 0, 1]])

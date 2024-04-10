@@ -1,10 +1,11 @@
 
 from kornia.feature import LoFTR
 import torch
+import spacemap.matches
 import spacemap
 import numpy as np
 
-class AffineAlignmentLOFTR2(spacemap.AffineAlignment):
+class LOFTR2(spacemap.AffineAlignment):
     def __init__(self):
         super().__init__()
         
@@ -44,4 +45,4 @@ class AffineAlignmentLOFTR2(spacemap.AffineAlignment):
         return np.array(results)
     
     def compute_part(self, imgI, imgJ, matchr):
-        return spacemap.loftr_compute_matches(imgI, imgJ, matchr)
+        return spacemap.matches.loftr_compute_matches(imgI, imgJ, matchr)

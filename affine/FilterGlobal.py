@@ -2,9 +2,9 @@ import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
 
-class MatchFilterGlobal(spacemap.AffineBlock):
+class FilterGlobal(spacemap.AffineBlock):
     def __init__(self, count=200):
-        super().__init__("MatchFilterGlobal")
+        super().__init__("FilterGlobal")
         self.update_matches = True
         self.count = count
         self.dis = 2

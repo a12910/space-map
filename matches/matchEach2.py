@@ -58,7 +58,7 @@ class MatchEachImg(spacemap.AffineBlock):
         spacemap.XYRANGE = xyr
         spacemap.IMGCONF = imgC
         matchesi = matches[:i]
-        H, H2 = spacemap.createHFromPoints2(matchesi, xyd)
+        H, H2 = spacemap.matches.createHFromPoints2(matchesi, xyd)
         if H is None:
             return None
         imgI_ = np.array(imgI * 16, dtype=np.uint8)

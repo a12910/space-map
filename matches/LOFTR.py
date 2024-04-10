@@ -4,7 +4,7 @@ import torch
 import spacemap
 import numpy as np
 
-class AffineAlignmentLOFTR(spacemap.AffineAlignment):
+class LOFTR(spacemap.AffineAlignment):
     def __init__(self):
         super().__init__()
         

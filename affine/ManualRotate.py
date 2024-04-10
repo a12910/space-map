@@ -2,10 +2,10 @@ import numpy as np
 import cv2
 import spacemap
 
-class AffineBlockRotate(spacemap.AffineBlock):
+class ManualRotate(spacemap.AffineBlock):
     def __init__(self, name=None, rotate=0, moveX=0, moveY=0, ratio=1.0) -> None:
         if name is None:
-            name = "Rotate"
+            name = "ManualRotate"
         super().__init__(name)
         self.rotate = rotate
         self.moveX = moveX

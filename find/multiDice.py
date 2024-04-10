@@ -2,7 +2,7 @@ import spacemap
 import numpy as np
 import matplotlib.pyplot as plt
 
-class AffineFinderMultiDice(spacemap.AffineFinder):
+class MultiDice(spacemap.AffineFinder):
     def __init__(self, clas=10):
         super().__init__("MultiDice")
         self.clas = clas
@@ -48,7 +48,7 @@ class AffineFinderMultiDice(spacemap.AffineFinder):
     
     @staticmethod
     def show(imgI, imgJ, clas):
-        err = AffineFinderMultiDice(clas)
+        err = MultiDice(clas)
         ranges = err.compute_range(imgI, imgJ)
         Is = []
         Js = []

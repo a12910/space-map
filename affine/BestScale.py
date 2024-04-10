@@ -2,8 +2,7 @@ import spacemap
 import cv2
 import numpy as np
 
-
-class AffineBlockScale(spacemap.AffineBlock):
+class BestScale(spacemap.AffineBlock):
     def __init__(self, minS, maxS):
         super().__init__("Scale")
         self.minS = minS
