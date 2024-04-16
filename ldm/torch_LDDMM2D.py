@@ -1956,9 +1956,9 @@ class LDDMM2D(base.LDDMMBase):
         return
     
     # parse input transforms
-    def parseInputVTransforms(self,vt0,vt1,vt2):
-        varlist = [vt0,vt1,vt2]
-        namelist = ['vt0','vt1','vt2']
+    def parseInputVTransforms(self,vt0,vt1):
+        varlist = [vt0,vt1]
+        namelist = ['vt0','vt1']
         for i in range(len(varlist)):
             if varlist[i] is not None:
                 if not isinstance(varlist[i],list):
@@ -1983,9 +1983,6 @@ class LDDMM2D(base.LDDMMBase):
                 elif i == 1:
                     self.vt1 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt1 assigned.')
-                elif i == 2:
-                    self.vt2 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
-                    print('Custom vt2 assigned.')
             
         return 1
     
@@ -2008,11 +2005,11 @@ class LDDMM2D(base.LDDMMBase):
     # save transforms to numpy arrays
     def outputTransforms(self):
         if hasattr(self,'affineA') and hasattr(self,'vt0'):
-            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], [x.cpu().numpy() for x in self.vt2], self.affineA.cpu().numpy()
+            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], self.affineA.cpu().numpy()
         elif hasattr(self,'affineA'):
             return self.affineA.cpu().numpy()
         elif hasattr(self,'vt0'):
-            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], [x.cpu().numpy() for x in self.vt2]
+            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1]
         else:
             print('ERROR: no LDDMM or linear transforms to output.')
     
@@ -2032,7 +2029,7 @@ class LDDMM2D(base.LDDMMBase):
                 nib.save(outimg,self.params['outdir'] + 'deformed_template_ch' + str(i) + '.img')
     
     # load transforms from numpy arrays into object
-    def loadTransforms(self,vt0=None, vt1=None, vt2=None, affineA=None):
+    def loadTransforms(self,vt0=None, vt1=None, affineA=None):
         # check parameters
         flag = self._checkParameters()
         if flag==-1:
@@ -2049,8 +2046,8 @@ class LDDMM2D(base.LDDMMBase):
         # initialize initialize
         self.initializeVariables2d()
         
-        varlist = [vt0,vt1,vt2]
-        namelist = ['vt0','vt1','vt2']
+        varlist = [vt0,vt1]
+        namelist = ['vt0','vt1']
         for i in range(len(varlist)):
             if varlist[i] is not None:
                 if not isinstance(varlist[i],list):
@@ -2075,9 +2072,6 @@ class LDDMM2D(base.LDDMMBase):
                 elif i == 1:
                     self.vt1 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt1 assigned.')
-                elif i == 2:
-                    self.vt2 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
-                    print('Custom vt2 assigned.')
         
         if affineA is not None:
             if not isinstance(affineA,(np.ndarray, torch.Tensor)):
@@ -2095,7 +2089,7 @@ class LDDMM2D(base.LDDMMBase):
             
     
     # convenience function
-    def run(self, restart=True, vt0=None, vt1=None, vt2=None, affineA=None, save_template=False):
+    def run(self, restart=True, vt0=None, vt1=None, affineA=None, save_template=False):
         # check parameters
         
         if self.willUpdate is not None:
@@ -2117,7 +2111,7 @@ class LDDMM2D(base.LDDMMBase):
         self.initializeVariables2d()
         
         # check for initializing transforms
-        flag = self.parseInputVTransforms(vt0,vt1,vt2)
+        flag = self.parseInputVTransforms(vt0,vt1)
         if flag == -1:
             print('ERROR: problem with input velocity fields.')
             return

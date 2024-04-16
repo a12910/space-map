@@ -5,7 +5,7 @@ import numpy as np
 class AutoGrad(spacemap.AffineBlock):
     def __init__(self) -> None:
         super().__init__("BestGrad")
-        self.update_matches = False
+        self.updateMatches = False
         self.showGrad = False
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):

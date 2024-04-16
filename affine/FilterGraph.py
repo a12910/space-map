@@ -5,7 +5,7 @@ import numpy as np
 class FilterGraph(spacemap.AffineBlock):
     def __init__(self, std):
         super().__init__("FilterGraph")
-        self.update_matches = True
+        self.updateMatches = True
         self.std = std
         self.show_graph_match = False
         self.history = []

@@ -7,7 +7,7 @@ class FilterLabels(spacemap.AffineBlock):
     def __init__(self, labelI: np.array, 
                  labelJ: np.array, std):
         super().__init__("FilterLabels")
-        self.update_matches = True
+        self.updateMatches = True
         self.labelI = labelI
         self.labelJ = labelJ
         self.std = std

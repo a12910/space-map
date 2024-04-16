@@ -8,3 +8,5 @@ from .MoveCenter import MoveCenter
 from .AutoScale import AutoScale
 from .FinalRotate import FinalRotate
 from .BestScale import BestScale
+from .AutoGradImg import AutoGradImg
+from .ImgPairInit import ImgPairInit

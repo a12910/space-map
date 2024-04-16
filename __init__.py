@@ -13,12 +13,14 @@ from .ldm.lddmmFlow import *
 
 from .utils.show import *
 from .utils import err as err
-
 from .utils import interest as interest
 from .utils import fig as fig
+from .utils import he_img as he_img
+from .utils import compute as compute
 
 from .flowBase import *
-from .flowMgr import AffineFlowMgr
+from .mgr.flowMgr import AffineFlowMgr, AffineFlowMgrBase
+from .mgr.flowMgrImg import AffineFlowMgrImg
 
 from . import matches
 from . import affine
@@ -35,5 +37,5 @@ from .utils import model3d as model3d
 from .utils import imaris as imaris
 from .utils import output as output
 from .utils import compare as compare
-from .utils import compute as compute
+
 

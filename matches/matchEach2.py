@@ -7,10 +7,9 @@ import os
 import cv2
 
 class MatchEachImg(spacemap.AffineBlock):
-    """ 基于RANSAC算法直接优化Img """
     def __init__(self):
         super().__init__("MatchEach")
-        self.update_matches = True
+        self.updateMatches = True
         self.minMatch = 4
         self.showMatch = False
         

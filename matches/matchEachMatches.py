@@ -9,7 +9,7 @@ class MatchEachMatches(spacemap.AffineBlock):
     """ 仅选择最佳特征点 """
     def __init__(self):
         super().__init__("MatchEachMatches")
-        self.update_matches = True
+        self.updateMatches = True
         self.minMatch = 4
         self.showMatch = False
         

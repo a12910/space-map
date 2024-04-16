@@ -44,6 +44,14 @@ def siftFindMatchr(imgI, imgJ, method='sift'):
                 result[matchr] += 1
     return result
 
+def autoSetMatchr(I, J, minCount):
+    matchrs = spacemap.matches.siftFindMatchr(I, J)
+    for match_ in range(6):
+        i = 0.7 + match_ * 0.05
+        if matchrs[i] > minCount:
+            return i
+    return 1.0
+
 def siftImageAlignment(imgI,imgJ, matchr=0.75, method='sift'):
     """ [[ptIx, ptIy, ptJx, ptJy, distance]] """
     kp1,des1 = __sift_kp(imgI, method)

@@ -19,12 +19,13 @@ def generate_grid(rawDF, alignDF, start, end, outFolder,
     shape = spacemap.XYRANGE[1], spacemap.XYRANGE[3]
     xyd = spacemap.XYD
     gridShape = (int(shape[0]/xyd), int(shape[1]/xyd))
-    for i in tqdm.trange(start, end+1):
+    for i in range(start, end+1):
+        spacemap.Info("Generate grid for layer %d" % i)
         raw = rawDF[rawDF["layer"] == i][["x", "y"]].values
         align = alignDF[alignDF["layer"] == i][["x", "y"]].values
         grid = spacemap.grid.GridGenerate(gridShape, xyd, 1)
         grid.init_db(raw, align)
         grid.generate()
         grid.fix()
-        path = "%s/%s_%d.npy" % (outFolder, prefix, i)
+        path = "%s/%s_%.2d.npy" % (outFolder, prefix, i)
         np.save(path, grid)

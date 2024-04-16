@@ -1,3 +1,4 @@
+from numpy.core.multiarray import array as array
 import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,9 +6,12 @@ import numpy as np
 class FilterGlobal(spacemap.AffineBlock):
     def __init__(self, count=200):
         super().__init__("FilterGlobal")
-        self.update_matches = True
+        self.updateMatches = True
         self.count = count
         self.dis = 2
+        
+    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+        return self.compute(None, None, finder)
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         matches1 = self.matches.copy()

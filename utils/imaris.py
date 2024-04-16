@@ -36,14 +36,14 @@ class ModelGenerate:
         spacemap.mkdir(folder)
         
         for i in range(self.start, self.end+1):
-            path = "%s/grid_%d.npy" % (folder, i)
+            path = "%s/grid_%.2d.npy" % (folder, i)
             if os.path.exists(path) and not force:
                 continue
             spacemap.Info("Prepare grid %d" % i)
             raw = dfRaw[dfRaw["layer"] == i][["x", "y"]].values
             align = dfAlign[dfAlign["layer"] == i][["x", "y"]].values
-            grid = spacemap.grid.GridGenerate(self.grid_shape, 
-                                         self.grid_xyd, 1)
+            grid = spacemap.grid.GridGenerate(self.gridShape, 
+                                         self.gridXYD, 1)
             grid.init_db(raw, align)
             grid.generate()
             grid.fix()
@@ -51,17 +51,17 @@ class ModelGenerate:
             np.save(path, grid)
         spacemap.Info("Prepare grid done")
 
-    def prepare_edge(self, edgeFolder, force=False):
+    def prepare_edge(self, edgeFolder, force=False, noGrid=False):
         folder = self.baseFolder + "/edge"
         spacemap.mkdir(folder)
         
         for index in range(self.start, self.end+1):
-            path = "%s/edge/align_edge_%d.csv" % (folder, index)
+            path = "%s/edge/align_edge_%d.csv" % (self.baseFolder, index)
             if os.path.exists(path) and not force:
                 continue
             spacemap.Info("Prepare edge %d" % index)
             df = pd.read_csv("%s/%d.csv.gz" % (edgeFolder, index))
-            if index == self.start:
+            if index == self.start or noGrid:
                 df["x"] = df[self.edgeKeyX]
                 df["y"] = df[self.edgeKeyY]
             else:
@@ -132,7 +132,7 @@ class ModelGenerate:
         if cDB is None:
             cDB = self.celllDB
         
-        for layer in tqdm.trange(self.genStart, self.genEnd):
+        for layer in range(self.genStart, self.genEnd+1):
             spacemap.Info("Generate layer %d" % layer)
             edgeDB = self.__get_layer_db(layer)
             

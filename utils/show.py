@@ -160,10 +160,10 @@ def img_norm(imgI, imgJ):
         imgJ = clahe.apply(imgJ_)
     return imgI, imgJ
 
-def show_images_form(imgs, shape, titles):
+def show_images_form(imgs, shape, titles, size=12):
     sx, sy = shape
     fig, axes = plt.subplots(shape[0], shape[1], 
-                             figsize=(12*shape[1], 12*shape[0]))
+                             figsize=(size*shape[1], size*shape[0]))
     for i in range(shape[0]):
         for j in range(shape[1]):
             ii = i*shape[1] + j

@@ -8,25 +8,27 @@ class AffineAlignment:
         pass
     
     def compute(self, imgI, imgJ, matchr):
-        return spacemap.siftImageAlignment(imgI, imgJ, matchr=matchr)
+        return spacemap.matches.siftImageAlignment(imgI, imgJ, matchr=matchr)
 
 class AffineBlock:
     def __init__(self, name):
         self.name = name
         self.matches = []
-        self.compute_raw = False
-        self.update_matches = False
+        self.computeRaw = False
+        self.updateMatches = False
         self.alignment = AffineAlignment()
     
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         """ dfI, dfJ -> H """
-        return np.eye(3,3)
+        raise Exception("Not Implemented")
+    
+    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+        """ imgI, imgJ -> H """
+        raise Exception("Not Implemented")
     
     @staticmethod
-    def show_matches(matches, dfI, dfJ, H):
+    def show_matches_img(matches, I, J, H):
         xyd = spacemap.XYD
-        I = spacemap.show_img3(dfI)
-        J = spacemap.show_img3(dfJ)
         plt.figure(figsize=(10,10))
         plt.imshow(np.concatenate((I, J), axis=1))
         for m in matches:
@@ -41,9 +43,14 @@ class AffineBlock:
             for x, y in matchesJ:
                 x_, y_ = int(x / xyd), int(y / xyd)
                 imgI_[x_-1:x_+1, y_-4:y_+4] = 10
-                
             plt.imshow(imgI_)
             plt.show()
+    
+    @staticmethod
+    def show_matches(matches, dfI, dfJ, H):
+        I = spacemap.show_img3(dfI)
+        J = spacemap.show_img3(dfJ)
+        AffineBlock.show_matches_img(matches, I, J, H)
 
 class AffineFinder:
     def __init__(self, name):

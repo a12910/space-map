@@ -6,3 +6,4 @@ from .matchEach import MatchEach
 from .matchEach2 import MatchEachImg
 from .matchEachMatches import MatchEachMatches
 from .matchShow import MatchShow
+from .matchEachImg import MatchEachImg
