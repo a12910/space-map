@@ -5,10 +5,12 @@ import spacemap
 
 class AffineAlignment:
     def __init__(self):
-        pass
+        self.method = "sift"
     
     def compute(self, imgI, imgJ, matchr):
-        return spacemap.matches.siftImageAlignment(imgI, imgJ, matchr=matchr)
+        return spacemap.matches.siftImageAlignment(imgI, imgJ, 
+                                                   matchr=matchr, 
+                                                   method=self.method)
 
 class AffineBlock:
     def __init__(self, name):

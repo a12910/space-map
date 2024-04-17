@@ -21,6 +21,8 @@ def __sift_kp(image: np.array, method='sift'):
         descriptor = cv2.ORB_create()
     elif method == 'akaze':
         descriptor = cv2.AKAZE_create()
+    elif method == 'vgg':
+        descriptor = cv2.xfeatures2d.VGG_create()
     (kps, features) = descriptor.detectAndCompute(gray_image, None)
     return kps, features
 
