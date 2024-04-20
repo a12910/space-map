@@ -4,10 +4,12 @@ import matplotlib.pyplot as plt
 import spacemap
 
 class AffineAlignment:
-    def __init__(self):
-        self.method = "sift"
+    def __init__(self, method="sift"):
+        self.method = method
     
-    def compute(self, imgI, imgJ, matchr):
+    def compute(self, imgI, imgJ, matchr=None):
+        if matchr is None:
+            matchr = 0.75
         return spacemap.matches.siftImageAlignment(imgI, imgJ, 
                                                    matchr=matchr, 
                                                    method=self.method)
@@ -16,8 +18,10 @@ class AffineBlock:
     def __init__(self, name):
         self.name = name
         self.matches = []
+        self.imgIJ = (None, None)
         self.computeRaw = False
         self.updateMatches = False
+        self.updateImg = False
         self.alignment = AffineAlignment()
     
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):

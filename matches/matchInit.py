@@ -10,7 +10,7 @@ class MatchInit(spacemap.AffineBlock):
         if method == "loftr":
             self.alignment = spacemap.matches.LOFTR()
         else:
-            self.alignment = spacemap.AffineAlignment()
+            self.alignment = spacemap.AffineAlignment(method=method)
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         """ dfI, dfJ -> H """

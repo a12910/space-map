@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import spacemap
+import tqdm
 
 def merge_layer_final2raw(rawDF, pointsDF, start, end, outKeys=None, convert=None):
     dfs = []
@@ -19,6 +21,20 @@ def merge_layer_final2raw(rawDF, pointsDF, start, end, outKeys=None, convert=Non
     if outKeys is not None:
         df = df[outKeys]
     return df
+
+def merge_slices_df(start, end, columns, path):
+    dfs = []
+    for key in columns:
+        for index in range(start, end+1):
+            TARGET_S = spacemap.Slice(index, spacemap.BASE)
+            dff = TARGET_S.get_df(key)
+            dff["layer"] = index
+            dff["step"] = key
+            dfs.append(dff)
+    df = pd.concat(dfs)
+    if "/" not in path:
+        path = "%s/outputs/%s.csv.gz" % (spacemap.BASE, path)
+    df.to_csv(path, index=False)
 
 def merge_columns(df1, df2, start, end, keys1, keys2):
     dfs = []

@@ -50,7 +50,7 @@ class MatchEachImg(spacemap.AffineBlock):
     def findBestH(data):
         matches, i, imgI, imgJ = data
         matchesi = matches[:i]
-        H, _ = spacemap.matches.createHFromPoints2(matchesi, 1)
+        _, H = spacemap.matches.createHFromPoints2(matchesi, 1)
         if H is None:
             return []
         imgJ2 = spacemap.he_img.rotate_imgH(imgJ, H)

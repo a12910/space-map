@@ -27,6 +27,7 @@ class GridGenerate:
             self.mesh[i, :, 0] = i * xyd
             self.mesh[:, i, 1] = i * xyd
         self.db = {}
+        self.useTQDM = True
         
     @staticmethod
     def fit_new_points(pFrom, pTo, target, poly_degree):
@@ -63,7 +64,9 @@ class GridGenerate:
             
     def generate(self, kernel=1):
         xyd = self.xyd
-        for x in tqdm.trange(kernel, self.shape[0]-kernel):
+        
+        for x in tqdm.trange(kernel, self.shape[0]-kernel, 
+                             disable=not self.useTQDM):
             for y in range(kernel, self.shape[1]-kernel):
                 lis = []
                 for ix in range(-kernel, kernel+1):
@@ -81,7 +84,8 @@ class GridGenerate:
         
     def fix(self, kernel2=10):
         label2 = np.zeros_like(self.label)
-        for x in tqdm.trange(kernel2, self.shape[0]-kernel2):
+        for x in tqdm.trange(kernel2, self.shape[0]-kernel2,
+                             disable=not self.useTQDM):
             for y in range(kernel2, self.shape[1]-kernel2):
                 if self.label[x, y] > 0:
                     continue

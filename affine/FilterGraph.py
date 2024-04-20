@@ -1,3 +1,4 @@
+from numpy.core.multiarray import array as array
 import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,15 +18,18 @@ class FilterGraph(spacemap.AffineBlock):
         self.matches = matches1
         return None
     
-    def matches_filter(self, matches, stdd, dfI, dfJ):
+    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+        matches = self.matches
+        matches1 = self.matches_filter_img(matches, self.std, imgI, imgJ)
+        spacemap.Info("Graph Filter Matches: %d -> %d" % (len(matches), len(matches1)))
+        self.matches = matches1
+        return None
+    
+    def matches_filter_img(self, matches, stdd, I, J):
         p1s = matches[:, :2]
         p2s = matches[:, 2:4]
         graph_dis = np.sum((p1s - p2s) ** 2, axis=1)
         index = 0
-
-        I = spacemap.show_img3(dfI)
-        J = spacemap.show_img3(dfJ)
-        
         while True:
             maxIndex = np.argmax(graph_dis)
             maxV = graph_dis[maxIndex]
@@ -36,7 +40,7 @@ class FilterGraph(spacemap.AffineBlock):
                 graph_dis[maxIndex] = 0
                 matches1 = matches[graph_dis > 0]
                 if index % 10 == 0 and self.show_graph_match:
-                    print(self.history[-1])
+                    spacemap.Info("Graph Filter Iter Rest: %s" % str(self.history[-1]))
                     plt.figure(figsize=(10,10))
                     plt.imshow(np.concatenate((I, J), axis=1))
                     for m in matches1:
@@ -50,4 +54,9 @@ class FilterGraph(spacemap.AffineBlock):
             
         matches1 = matches[graph_dis > 0]
         return matches1
+    
+    def matches_filter(self, matches, stdd, dfI, dfJ):
+        I = spacemap.show_img3(dfI)
+        J = spacemap.show_img3(dfJ)
+        return self.matches_filter_img(matches, stdd, I, J)
     

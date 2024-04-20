@@ -11,29 +11,40 @@ class Slice:
     align2Key = "align2"
     finalKey = "final"
     enhanceKey = "enhance"
-    def __init__(self, initdf, index, projectf=None, save=True):
-        self.df = initdf
+    
+    def __init__(self, index, projectf=None, first=False, dfMode=True):
         self.dfs = {}
+        self.imgs = {}
         self.index = str(index)
         self.projectf = spacemap.BASE if projectf is None else projectf
+        self.dfMode = dfMode
+        self.data = spacemap.SliceData(index, self.projectf)
+        self.first = first
+        
+    def init_df(self, initdf):
         initdf2 = initdf[["x", "y"]].copy()
         initdf2["x"] += spacemap.APPEND[0]
         initdf2["y"] += spacemap.APPEND[1]
         self.dfs[Slice.rawKey] = initdf2
-        if save:
-            self.save_df()
-    
-    def save_df(self):
-        spacemap.Info("Slice Save DF: %s" % self.index)
-        for key in self.dfs:
-            path = "%s/outputs/%s_%s.csv" % (self.projectf, self.index, key)
-            df = self.dfs[key]
-            df.to_csv(path, index=False)
+        self.save_value_df(initdf2, dfKey=Slice.rawKey)
+        self.dfMode = True
+
+    def init_img(self, img):
+        self.save_value_img(img, Slice.rawKey)
+        self.dfMode = False
+        
+    def save_value_img(self, img, key: str):
+        spacemap.Info("Slice Save-IMG %s %s" % (self.index, key))
+        self.imgs[key] = img
+        path = "%s/imgs/%s_%s.png" % (self.projectf, self.index, key)
+        if len(img.shape) == 2:
+            img = np.stack([img, img, img], axis=-1)
+        plt.imsave(path, img)
                 
-    def save_value(self, df: pd.DataFrame, keys=None, dfKey=None):
+    def save_value_df(self, df: pd.DataFrame, keys=None, dfKey=None):
         keys = ["x", "y"] if keys is None else keys
         dfKey = Slice.align1Key if dfKey is None else dfKey
-        spacemap.Info("LDDMM Save %s %s" % (self.index, dfKey))
+        spacemap.Info("Slice Save-DF %s %s" % (self.index, dfKey))
         df1 = df[keys].copy()
         df1.rename(columns={
             keys[0]: "x",
@@ -45,65 +56,24 @@ class Slice:
             
     def save_value_points(self, points, dfKey):
         df = pd.DataFrame(data=points, columns=["x", "y"])
-        dfKey = Slice.finalKey if dfKey is None else dfKey
-        self.save_value(df, dfKey=dfKey)
+        self.save_value_df(df, dfKey=dfKey)
         
-    def saveH(self, H, indexTo):
-        path = "%s/outputs/alignH_%s_%s.npy" % (self.projectf, str(self.index), str(indexTo))
-        np.save(path, H)
+    def ps(self, dfk):
+        return self.to_points(dfk)
     
-    def loadH(self, indexTo):
-        path = "%s/outputs/alignH_%s_%s.npy" % (self.projectf, str(self.index), str(indexTo))
-        if os.path.exists(path):
-            H = np.load(path)
-            H[2, :2] = 0
-            H[2, 2] = 1
-            return H
-        return None
-    
-    def loadGrid(self, indexTo):
-        path = "%s/outputs/grid_%s_%s.npy" % (self.projectf, str(self.index), str(indexTo))
-        if os.path.exists(path):
-            grid = np.load(path)
-            return grid
-        return None
-    
-    def saveGrid(self, grid, indexTo):
-        path = "%s/outputs/grid_%s_%s.npy" % (self.projectf, str(self.index), str(indexTo))
-        np.save(path, grid)
-        
-    def save_labels_df(self, df: pd.DataFrame, labels=None):
-        if labels is None:
-            labels = df.columns
-        data =np.array(df[labels].values)
-        self.save_labels(data)
-        
-    def save_labels(self, data: np.array):
-        path = "%s/outputs/labels_%s.npy" % (self.projectf, str(self.index))
-        np.save(path, data)
-        
-    def load_labels(self):
-        path = "%s/outputs/labels_%s.npy" % (self.projectf, str(self.index))
-        if os.path.exists(path):
-            return np.load(path)
-        return None
+    def to_points(self, dfk):
+        return np.array(self.get_df(dfk)[["x", "y"]].values)
     
     def get_df(self, dfKey, keys=None):
         keys = ["x", "y"] if keys is None else keys
-        if isinstance(dfKey, int):
-            if dfKey == 0:
-                dfKey = Slice.rawKey
-            elif dfKey == 1:
-                dfKey = Slice.align1Key
-            else:
-                dfKey = Slice.finalKey
         if dfKey not in self.dfs:
             path = "%s/outputs/%s_%s.csv" % (self.projectf, self.index, dfKey)
             if os.path.exists(path):
                 df = pd.read_csv(path)
                 self.dfs[dfKey] = df
             else:
-                dfKey = Slice.rawKey
+                spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
+                return self.get_df(Slice.rawKey, keys=keys)
         df = self.dfs[dfKey].copy()
         df.rename(columns={
             "x": keys[0],
@@ -111,66 +81,69 @@ class Slice:
         }, inplace=True)
         return df
     
-    def create_img2(self, dfk: str):
-        points = self.to_points(dfk)
-        img = spacemap.show_img3(points)
-        img = np.array(img, dtype=int)
-        return img
-            
-    def create_img(self, force: bool, tag: str, dfk: str):
-        imgConf = spacemap.IMGCONF
-        enhance = imgConf.get("kernel", 0)
-        mid = imgConf.get("mid", 0)
-        raw = imgConf.get("raw", 0)
-        
-        wid = spacemap.XYRANGE[1] // spacemap.XYD
-        tagg = "%s_%s_w%se%sm%sr%s.png" % (tag, self.index, str(wid), str(enhance), str(mid), str(raw))
-        path = self.projectf + "/imgs/" + tagg
-        if os.path.exists(path) and not force:
-            img = plt.imread(path)
-            if len(img.shape) > 2:
-                img = img[:, :, 1]
-        else:
-            spacemap.Info("Slice Create Img: %s-%s df-%s %s" % (self.index, tag, dfk, tagg))
-            points = self.to_points(dfk)
+    def get_img(self, dfKey, mchannel=False):
+        xyd = spacemap.XYD
+        xyr = spacemap.XYRANGE
+        shape = (int(xyr[1]/xyd), int(xyr[3]/xyd))
+        if dfKey not in self.imgs:
+            path = "%s/imgs/%s_%s.png" % (self.projectf, self.index, dfKey)
+            if os.path.exists(path):
+                img = plt.imread(path)
+                self.imgs[dfKey] = img
+            else:
+                spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
+                return self.get_img(Slice.rawKey, mchannel=mchannel)
+        img = self.imgs[dfKey]
+        if len(img.shape) == 3 and not mchannel:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        elif len(img.shape) == 2 and mchannel:
+            img = np.stack([img, img, img], axis=2)
+        img = cv2.resize(img, shape)
+        return img        
+    
+    def create_img(self, dfk: str, useDF=None, mchannel=False):
+        if (useDF is None and self.dfMode) or useDF == True:
+            points = self.ps(dfk)
             img = spacemap.show_img3(points)
-            plt.imsave(path, img)
-        img = np.array(img, dtype=int)
-        return img
-    
-    def ps(self, dfk):
-        return self.to_points(dfk)
-    
-    def to_points(self, dfk):
-        df = self.get_df(dfk)
-        return np.array(df[["x", "y"]].values)
-    
-    def ldm_path(self, npy=False):
-        if not npy:
-            return self.projectf + "/outputs/ldm_%s.json" % self.index
+            if mchannel:
+                img = np.stack([img, img, img], axis=2)
+            return img
+        elif (useDF is None and not self.dfMode) or useDF == False:
+            img = self.get_img(dfk, mchannel=mchannel)
+            return img
         else:
-            return self.projectf + "/outputs/ldm_%s" % self.index
+            raise Exception("Invalid useDF")
         
-    def applyH(self, fromDF, H, toDF):
-        points = self.to_points(fromDF)
-        points2 = spacemap.applyH_np(points, H)
-        self.save_value_points(points2, toDF)
-        
+    def applyH(self, fromDF, H, toDF, forIMG=False):
+        if forIMG is None or forIMG == False:
+            points = self.to_points(fromDF)
+            points2 = spacemap.applyH_np(points, H)
+            self.save_value_points(points2, toDF)
+        if forIMG is None or forIMG == True:
+            img = self.get_img(fromDF, mchannel=True)
+            img = spacemap.he_img.rotate_imgH(img, H)
+            self.save_value_img(img, toDF)
     
     @staticmethod
-    def show_align(sI, sJ, keyI=None, keyJ=None):
-        slice_show_align(sI, sJ, keyI, keyJ)
+    def show_align(sI, sJ, keyI=None, keyJ=None, forIMG=False):
+        slice_show_align(sI, sJ, keyI, keyJ, forIMG)
         
 def slice_show_align(sI: Slice, sJ: Slice, 
-                     keyI=None, keyJ=None):
+                     keyI=None, keyJ=None, forIMG=False):
     
     keyI = Slice.finalKey if keyI is None else keyI
     keyJ = Slice.rawKey if keyJ is None else keyJ
     spacemap.Info("Slice Align: %s-%s %s-%s" % (sI.index, keyI, sJ.index, keyJ))
-    dfI = sI.get_df(keyI)
-    dfJ = sJ.get_df(keyJ)
-    spacemap.show_xy([dfI, dfJ], 
-                    ["Target_" + str(sI.index), "New_" + str(sJ.index)], 
-                    keyx="x", 
-                    keyy="y", s=0.2, alpha=0.3)
+    if forIMG:
+        imgI = sI.get_img(keyI)
+        imgJ = sJ.get_img(keyJ)
+        spacemap.show_images_form([imgI, imgJ, abs(imgI-imgJ)], (1, 3), 
+                                  [sI.index, sJ.index, "DIFF"], size=6)
+    else:
+        dfI = sI.get_df(keyI)
+        dfJ = sJ.get_df(keyJ)
+        spacemap.show_xy([dfI, dfJ], 
+                        ["Target_" + str(sI.index), "New_" + str(sJ.index)], 
+                        keyx="x", 
+                        keyy="y", s=0.2, alpha=0.3)
     

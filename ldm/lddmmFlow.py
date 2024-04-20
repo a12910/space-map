@@ -29,8 +29,12 @@ def lddmm_init(imgI, imgJ, verbose=100, gpu_number=None) -> spacemap.LDDMM:
     return ldm
 
 def lddmm_init2D(imgI, imgJ, gpu=None, verbose=100):
+    if len(imgI.shape) > 2:
+        imgI = np.mean(imgI[:, :, :3], axis=2)
+    if len(imgJ.shape) > 2:
+        imgJ = np.mean(imgJ[:, :, :3], axis=2)
     ldm = spacemap.LDDMM2D(template=imgI,target=imgJ,
-                              do_affine=1,do_lddmm=1,
+                              do_affine=1,do_lddmm=0,
                               a=7,
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
@@ -83,16 +87,21 @@ def lddmm_main2(ldm, err=0.1):
     ldm.run()
     return ldm
 
-def lddmm_run(df, index, index2, fromKey, toKey, outputs, 
-              gpu=None, verbose=100, err=0.1, show=False):
+from spacemap import Slice
+def lddmm_run(index, index2, projectF,
+              baseFromKey, baseToKey, dfMode=True,
+              gridSave=None, imgMChannel=False,
+              outputs=None, gpu=None,
+              verbose=100, err=0.1, show=False, saveGrid=False):
     spacemap.Info("Start Index %d to %d" % (index2, index))
-    TARGET_S = Slice(df[df["layer"] == index], index, save=False)
-    imgI1 = TARGET_S.create_img2(toKey)
-    NEW_S = Slice(df[df["layer"] == index2], index2, save=False)
-    imgJ2 = NEW_S.create_img2(fromKey)
+    TARGET_S = Slice(index, projectF, dfMode=dfMode)
+    imgI1 = TARGET_S.create_img(baseFromKey, 
+                                useDF=dfMode)
+    NEW_S = Slice(index2, projectF, dfMode=dfMode)
+    imgJ2 = NEW_S.create_img(baseFromKey, useDF=dfMode)
     
     ldm = spacemap.LDDMM2D(template=imgI1,target=imgJ2,
-                              do_affine=1,do_lddmm=1,
+                              do_affine=1,do_lddmm=0,
                               a=7,
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
@@ -103,20 +112,38 @@ def lddmm_run(df, index, index2, fromKey, toKey, outputs,
                               show_init=False)
     if outputs is not None:
         ldm.loadTransforms(*outputs)
-        
-    ldm.setParams('target_err_skip', err)
-    ldm.setParams('epsilon', 1000)
-    ldm.setParams('niter', 20000)
-    ldm.setParams('do_lddmm', 1)
-    ldm.run()
-    ldm.setParams('epsilon', 1)
-    ldm.setParams('niter', 20000)
-    ldm.run()
+        ldm.setParams('target_err_skip', err)
+        ldm.setParams('epsilon', 1000)
+        ldm.setParams('niter', 20000)
+        ldm.setParams('do_lddmm', 1)
+        ldm.run()
+        ldm.setParams('epsilon', 1)
+        ldm.setParams('niter', 20000)
+        ldm.run()
+    else:
+        spacemap.lddmm_main(ldm)
         
     outputs = ldm.outputTransforms()
-    points2 = ldm.applyThisTransformPoints2D(NEW_S.to_points(fromKey))
-    NEW_S.save_value_points(points2, dfKey=toKey)
+    if gridSave is None:
+        gridSave = [(baseFromKey, baseToKey, dfMode)]
+    for fromKey, toKey, dfm in gridSave:
+        if dfm:
+            points2 = ldm.applyThisTransformPoints2D(NEW_S.to_points(fromKey))
+            NEW_S.save_value_points(points2, dfKey=toKey)
+        else:
+            if imgMChannel:
+                imgJ2_ = NEW_S.create_img(fromKey, useDF=dfm,
+                                          imgMChannel=imgMChannel)
+                imgJ3 = np.zeros_like(imgJ2_)
+                for i in range(imgJ2_.shape[2]):
+                    imgJ3[:,:,i] = ldm.applyThisTransform2d(imgJ2_[:,:,i])
+            else:
+                imgJ3 = ldm.applyThisTransform2d(imgJ2)
+            NEW_S.save_value_img(imgJ3, toKey)
+    if saveGrid:
+        grid = ldm.generateTransFromGrid()
+        NEW_S.data.saveGrid(grid, index, tag=toKey)
     if show:
-        Slice.show_align(TARGET_S, NEW_S, keyI=toKey, keyJ=toKey)
+        Slice.show_align(TARGET_S, NEW_S, keyI=toKey, keyJ=toKey, forIMG= not dfMode)
         plt.show()
     return outputs

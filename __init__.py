@@ -3,6 +3,9 @@
 from .base import *
 from .base2 import *
 
+from .utils import he_img as he_img
+
+from .sliceData import SliceData
 # from .tfboard import *
 from .slice import Slice, slice_show_align
 from .ldm import torch_LDDMMBase as base
@@ -15,7 +18,6 @@ from .utils.show import *
 from .utils import err as err
 from .utils import interest as interest
 from .utils import fig as fig
-from .utils import he_img as he_img
 from .utils import compute as compute
 
 from .flowBase import *

@@ -19,10 +19,14 @@ class AffineFlowMgrImg(spacemap.AffineFlowMgrBase):
         self.affineFinder.clear()
         if flow.updateMatches:
             flow.matches = np.array(self.matches)
+        if flow.updateImg:
+            flow.imgIJ = (self.imgI, self.imgJ)
         self.affineFinder.clear()
         H = flow.compute_img(self.imgI, self.imgJ, self.affineFinder)
         if flow.updateMatches:
             self.matches = np.array(flow.matches)
+        if flow.updateImg:
+            self.imgI, self.imgJ = flow.imgIJ
         if H is not None:
             self.imgJ = spacemap.he_img.rotate_imgH(self.imgJ, H)
             err = self.current_err(show=showErr)

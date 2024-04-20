@@ -7,8 +7,21 @@ import numpy as np
 class LOFTR(spacemap.AffineAlignment):
     def __init__(self):
         super().__init__()
+        self.multiChannel = True
         
-    def compute(self, imgI, imgJ, matchr):
+    def compute(self, imgI, imgJ, matchr=None):
+        if matchr is None:
+            matchr = 0.95
+        if len(imgI.shape) == 3 and self.multiChannel:
+            matches = []
+            for i in range(imgI.shape[2]):
+                matches_ = loftr_compute_matches(imgI[:, :, i], imgJ[:, :, i], matchr)
+                matches += list(matches_)
+            matches.sort(key=lambda x: x[-1], reverse=True)
+            return np.array(matches)
+        elif len(imgI.shape) == 3:
+            imgI = imgI.mean(axis=2)
+            imgJ = imgJ.mean(axis=2)
         return loftr_compute_matches(imgI, imgJ, matchr)
 
 def loftr_compute_matches(imgI, imgJ, matchr, device=None):

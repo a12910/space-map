@@ -3,6 +3,8 @@ import numpy as np
 from PIL import Image
 import tqdm
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
+import os
 
 def generate_imgs_basic(df, start, end, outFolder, prefix="s"):
     spacemap.mkdir(outFolder)
@@ -14,22 +16,33 @@ def generate_imgs_basic(df, start, end, outFolder, prefix="s"):
         ii.save(path)
 
 def generate_grid(rawDF, alignDF, start, end, outFolder, 
-                          prefix="grid"):
+                          prefix="grid", multiprocess=True):
     """ 为每一层生成一个grid """
     spacemap.mkdir(outFolder)
     shape = spacemap.XYRANGE[1], spacemap.XYRANGE[3]
     xyd = spacemap.XYD
     gridShape = (int(shape[0]/xyd), int(shape[1]/xyd))
+    
+    data = []
     for i in range(start, end+1):
-        spacemap.Info("Generate grid for layer %d" % i)
         raw = rawDF[rawDF["layer"] == i][["x", "y"]].values
         align = alignDF[alignDF["layer"] == i][["x", "y"]].values
-        grid = spacemap.grid.GridGenerate(gridShape, xyd, 1)
-        grid.init_db(raw, align)
-        grid.generate()
-        grid.fix()
-        path = "%s/%s_%.2d.npy" % (outFolder, prefix, i)
-        np.save(path, grid)
+        data.append((raw, align, xyd, gridShape, outFolder, "%s_%.2d" % (prefix, i)))
+    cpu = os.cpu_count() if multiprocess else 1
+    with Pool(cpu) as p:
+        p.map(__generate_grid, data)
+    spacemap.Info("Generate grid finish")
+        
+def __generate_grid(pack):
+    raw, align, xyd, gridShape, outFolder, prefix = pack
+    spacemap.Info("Generate grid for layer %s" % prefix)
+    grid = spacemap.grid.GridGenerate(gridShape, xyd, 1)
+    grid.useTQDM = False
+    grid.init_db(raw, align)
+    grid.generate()
+    grid.fix()
+    path = "%s/%s.npy" % (outFolder, prefix)
+    np.save(path, grid.grid)
 
 def compute_err_from_folder(baseF, start, end, filename, err=None):
     if err is None:
@@ -46,3 +59,37 @@ def compute_err_from_folder(baseF, start, end, filename, err=None):
         img2 = imgs[i+1]
         err_result[i-start] = err.computeI(img1, img2, show=False)
     return err_result, err_result.mean()
+
+
+import torch
+import torch.nn.functional as F
+
+def grid_sample_img(img_, grid_, targetSize=None, exchange=True):
+    # img: HxWx3, grid: HxWx2
+    # use torch grid_sample to sample img with grid
+    
+    if exchange:
+        grid = grid_.copy()
+        grid[:, :, 0] = grid_[:, :, 1]
+        grid[:, :, 1] = grid_[:, :, 0]
+    grid_ = grid
+    
+    img = img_.copy()
+    if len(img.shape) == 2:
+        img = np.stack([img, img, img], axis=2)
+        
+    img = img.astype(np.float64)
+    img = torch.tensor(img).permute(2, 0, 1).unsqueeze(0)
+    # grid 插值到与img相同尺寸
+    if targetSize is None:
+        targetSize = img_.shape[:2]
+        
+    grid = torch.tensor(grid_).permute(2, 0, 1).unsqueeze(0)
+    grid = F.interpolate(grid, targetSize, mode='bilinear', align_corners=True)
+    grid = grid.permute(0, 2, 3, 1)
+    
+    img2 = torch.nn.functional.grid_sample(img, grid, align_corners=True)
+    img2 = img2.squeeze().permute(1, 2, 0).numpy().astype(np.uint8)
+    return img2
+
+

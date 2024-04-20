@@ -37,7 +37,7 @@ class MultiDice(spacemap.AffineFinder):
         imgJ_ = self.filter_part(imgJ, minn, maxx)
         if np.sum(imgI_) < 1 and np.sum(imgJ_) < 1:
             return None, None
-        return [spacemap.err_dice(imgI_, imgJ_), np.sum(imgI_) + np.sum(imgJ_)]
+        return [spacemap.err.err_dice(imgI_, imgJ_), np.sum(imgI_) + np.sum(imgJ_)]
     
     def filter_part(self, img, minn, maxx):
         img = img.copy()

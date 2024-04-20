@@ -92,6 +92,7 @@ def siftImageAlignment2(img1,img2, k, matchr=0.75, method='sift'):
     return matches2
 
 def createHFromPoints2(matches, xyd, method=cv2.RANSAC):
+    """ H: df, H1: img """
     matches = np.array(matches, dtype=np.float32)
     ptsI = matches[:, :2].reshape(-1, 1, 2)
     ptsJ = matches[:, 2:4].reshape(-1, 1, 2)

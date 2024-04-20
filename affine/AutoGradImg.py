@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from spacemap import he_img
 
 class AutoGradImg(spacemap.AffineBlock):
-    def __init__(self, sort=None):
+    def __init__(self, sort=None, scale=None):
         super().__init__("BestGradImg")
         self.updateMatches = False
         self.showGrad = False
@@ -15,18 +15,24 @@ class AutoGradImg(spacemap.AffineBlock):
         self.sort = ["X", "Y", "R", "S"] if sort is None else sort
         
         self.initDis = 0.3
-        self.initSkip = 4
+        self.initSkip = 20
         self.multiDis = 0.5
-        self.multiSkip = 0.5
+        self.finalErr = 1e-5
+        
+        self.scale = scale
         
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
         dis = self.initDis
         skip = self.initSkip
-        lastErr = 0
+        lastErr = None
         iter = 0
         if finder is not None:
             self.finder = finder
-        
+            
+        if self.scale is not None:
+            imgI = cv2.resize(imgI, None, fx=self.scale, fy=self.scale)
+            imgJ = cv2.resize(imgJ, None, fx=self.scale, fy=self.scale)
+            
         imgJ_ = imgJ.copy() # last step
         
         while True:
@@ -52,12 +58,12 @@ class AutoGradImg(spacemap.AffineBlock):
                     if sH is not None:
                         self.H = np.dot(sH, self.H)
                         imgJ_ = he_img.rotate_imgH(imgJ, self.H)
-    
+            if err is None:
+                break
             spacemap.Info("Iter: %d Grad Find: err=%.5f" % (iter, err))
             dis = dis * self.multiDis
-            skip = skip * self.multiDis
             
-            if abs(lastErr - err) < 1e-5:
+            if lastErr is not None and abs(lastErr - err) < self.finalErr:
                 break
             lastErr = err 
             if self.showGrad:
@@ -65,7 +71,7 @@ class AutoGradImg(spacemap.AffineBlock):
                 plt.imshow(abs(imgI - imgJ2))
                 plt.colorbar()
                 plt.show()
-            
+                
         return self.H
     
     def find_best(self, imgI: np.array, imgJ: np.array, imgFunc, dis, skip=1):
@@ -93,10 +99,12 @@ class AutoGradImg(spacemap.AffineBlock):
                 imgJ_[v:, :] = imgJ[:-v, :]
             return imgJ_
         dis = int(dis * imgI.shape[0])
+        skip = dis / skip
         if skip < 1:
             skip = 1
+        skip = int(skip)
         if (dis / skip) < 3:
-            return None, 1, 0
+            return None, None, 0
         skip = int(skip)
         
         v, err, count = self.find_best(imgI, imgJ, moveX, dis, skip)
@@ -116,13 +124,12 @@ class AutoGradImg(spacemap.AffineBlock):
             return imgJ_
         
         dis = int(dis * imgI.shape[0])
-        if dis < 3:
-            return None, 1, 0
-    
+        skip = dis / skip
         if skip < 1:
             skip = 1
         skip = int(skip)
-        
+        if (dis / skip) < 3:
+            return None, None, 0
         v, err, count = self.find_best(imgI, imgJ, moveY, dis, skip)
         H = np.eye(3)
         H[1, 2] = v
@@ -131,10 +138,11 @@ class AutoGradImg(spacemap.AffineBlock):
     def find_bestRotate(self, imgI: np.array, imgJ: np.array, dis, skip=1):
         midX, midY = he_img.img_center(imgJ)
         dis = int(dis * 360 * 2)
+        skip = dis / skip
         if dis > 360:
             dis = 360
         if dis < 3:
-            return None, 1, 0
+            return None, None, 0
         if skip > 1:
             skip = 1
         
@@ -149,9 +157,9 @@ class AutoGradImg(spacemap.AffineBlock):
     def find_bestScale(self, imgI: np.array, imgJ: np.array, dis, skip=1):
         midX, midY = he_img.img_center(imgJ)
         dis = dis * 0.5
-        skip = skip * 0.01
-        if dis / skip < 3:
-            return None, 1, 0
+        skip = dis / skip
+        if (skip * imgI.shape[0]) < 1:
+            return None, None, 0
         def scale(imgJ, v, imgJ_):
             imgJ_, _ = he_img.rotate_img(imgJ, 0, (midX, midY), v+1)
             return imgJ_

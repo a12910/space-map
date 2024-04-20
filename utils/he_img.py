@@ -89,7 +89,8 @@ def img_center(imgJ, base=False):
     if base:
         imgJ = imgJ.copy()
         imgJ[imgJ > np.min(imgJ)] = 255
-        
+    if len(imgJ.shape) > 2:
+        imgJ = cv2.cvtColor(imgJ, cv2.COLOR_BGR2GRAY)
     Xs = np.sum(imgJ, axis=1)
     Ys = np.sum(imgJ, axis=0)
     dd = np.array(range(imgJ.shape[0]))
@@ -287,6 +288,20 @@ def xenium_save_alignment_metric(H: np.array, path):
         f.write("%f,%f,%f\n" % (H[1, 0], H[1, 1], H[1, 2]))
         f.write("0,0,1")
         
+def multiply_HH(Hs):
+    h0 = np.eye(3)
+    for h in Hs:
+        h0 = np.dot(h, h0)
+    return h0
+
+def multiply_HMH(Hs):
+    m0 = np.eye(3)
+    for h in Hs:
+        m = convert_H_to_M(h)
+        m0 = np.multiply(m0, m)
+    h0 = convert_M_to_H(m0)
+    return h0
+        
 def xenium_generate_alignemnt_H(genH: np.array, 
                                 rawImgShape: np.array, 
                                 sampleShape: np.array, 
@@ -301,12 +316,6 @@ def xenium_generate_alignemnt_H(genH: np.array,
         M[:2] = np.array([[H[1, 1], H[1, 0], H[1, 2]], 
                           [H[0, 1], H[0, 0], H[0, 2]]])
         return M
-    
-    def multiply_HH(Hs):
-        h0 = np.eye(3)
-        for h in Hs:
-            h0 = np.dot(h, h0)
-        return h0
     
     H00 = np.eye(3)
     H00[0, 0] = -1
