@@ -165,6 +165,8 @@ def auto_scale(imgI, imgJ):
 def fill_square(img, size=None):
     length = max(img.shape[:2])
     img2 = np.zeros((length, length))
+    if len(img.shape) == 3:
+        img2 = np.zeros((length, length, img.shape[2]))
     sizex = min(img.shape[1], length)
     sizey = min(img.shape[0], length)
     img2[:sizey, :sizex] = img[:sizey, :sizex]

@@ -88,15 +88,17 @@ def lddmm_main2(ldm, err=0.1):
     return ldm
 
 from spacemap import Slice
-def lddmm_run(index, index2, projectF,
+def lddmm_run(index, index2, projectF, 
               baseFromKey, baseToKey, dfMode=True,
+              targetFromKey=None,
               gridSave=None, imgMChannel=False,
               outputs=None, gpu=None,
               verbose=100, err=0.1, show=False, saveGrid=False):
     spacemap.Info("Start Index %d to %d" % (index2, index))
+    if targetFromKey is None:
+        targetFromKey = baseToKey
     TARGET_S = Slice(index, projectF, dfMode=dfMode)
-    imgI1 = TARGET_S.create_img(baseFromKey, 
-                                useDF=dfMode)
+    imgI1 = TARGET_S.create_img(baseToKey, useDF=dfMode)
     NEW_S = Slice(index2, projectF, dfMode=dfMode)
     imgJ2 = NEW_S.create_img(baseFromKey, useDF=dfMode)
     
@@ -106,7 +108,7 @@ def lddmm_run(index, index2, projectF,
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
                               gpu_number=gpu,
-                              target_err=0.1,
+                              target_err=err,
                               verbose=verbose,
                               target_step=20000,
                               show_init=False)
@@ -121,7 +123,7 @@ def lddmm_run(index, index2, projectF,
         ldm.setParams('niter', 20000)
         ldm.run()
     else:
-        spacemap.lddmm_main(ldm)
+        spacemap.lddmm_main(ldm, err)
         
     outputs = ldm.outputTransforms()
     if gridSave is None:
@@ -133,12 +135,12 @@ def lddmm_run(index, index2, projectF,
         else:
             if imgMChannel:
                 imgJ2_ = NEW_S.create_img(fromKey, useDF=dfm,
-                                          imgMChannel=imgMChannel)
+                                          mchannel=imgMChannel)
                 imgJ3 = np.zeros_like(imgJ2_)
                 for i in range(imgJ2_.shape[2]):
-                    imgJ3[:,:,i] = ldm.applyThisTransform2d(imgJ2_[:,:,i])
+                    imgJ3[:,:,i] = ldm.applyThisTransform2d(imgJ2_[:,:,i])[0][-1].cpu()
             else:
-                imgJ3 = ldm.applyThisTransform2d(imgJ2)
+                imgJ3 = ldm.applyThisTransform2d(imgJ2)[0][-1].cpu()
             NEW_S.save_value_img(imgJ3, toKey)
     if saveGrid:
         grid = ldm.generateTransFromGrid()
@@ -147,3 +149,4 @@ def lddmm_run(index, index2, projectF,
         Slice.show_align(TARGET_S, NEW_S, keyI=toKey, keyJ=toKey, forIMG= not dfMode)
         plt.show()
     return outputs
+

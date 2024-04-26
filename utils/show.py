@@ -181,6 +181,15 @@ def imshow(img, **kwargs):
     plt.imshow(img, **kwargs)
     plt.show()
     
+def imsave(path, img: np.array):
+    if np.mean(img) < 1.0:
+        img[img >= 1.0] = 1.0
+        img[img <= 0.0] = 0.0
+    else:
+        img = img.astype(np.uint8)
+    plt.imsave(path, img)
+            
+    
 def show_images_form2(imgs, shape, titles):
     sx, sy = shape
     plt.figure(figsize=(8*sx, 8*sy))    
@@ -193,3 +202,23 @@ def show_images_form2(imgs, shape, titles):
             plt.imshow(imgs[ii])
             plt.title(titles[ii])
     plt.show()
+    
+def show_compare_img(imgI, imgJ, size=6):
+    def __process(imgI):
+        if len(imgI.shape) > 2 and imgI.shape[2] > 3:
+            imgI = imgI[:, :, 3]
+        if len(imgI.shape) != 3:
+            imgI = np.stack([imgI, imgI, imgI], axis=2)
+        if np.max(imgI) <= 1.0:
+            imgI = np.array(imgI * 255)
+        imgI = np.array(imgI, dtype=np.uint8)
+        return imgI
+    imgI = __process(imgI)
+    imgJ = __process(imgJ)            
+    if imgJ.shape != imgI.shape:
+        imgJ = cv2.resize(imgJ, imgI.shape)
+        
+    diff = np.abs(imgI - imgJ)
+    show_images_form([imgI, imgJ, diff], (1, 3), ["I", "J", "Diff"], size=size)
+    return imgI, imgJ
+    

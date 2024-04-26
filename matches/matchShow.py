@@ -62,8 +62,7 @@ class ImgDiffShow(spacemap.AffineBlock):
     @staticmethod
     def process(imgI, imgJ):
         def __process(imgI):
-            
-            if len(imgI.shape) and imgI.shape[2] > 3:
+            if len(imgI.shape) > 2 and imgI.shape[2] > 3:
                 imgI = imgI[:, :, 3]
             if len(imgI.shape) != 3:
                 imgI = np.stack([imgI, imgI, imgI], axis=2)

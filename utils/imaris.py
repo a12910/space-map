@@ -89,7 +89,7 @@ class ModelGenerate:
             edges[cid] = g
         return edges
     
-    def __get_layer_db(self, layer: int):
+    def _get_layer_db(self, layer: int):
         if layer in self.edgeCache:
             return self.edgeCache[layer]
         path = "%s/edge/align_edge_%d.csv" % (self.baseFolder, layer)
@@ -134,7 +134,7 @@ class ModelGenerate:
         
         for layer in range(self.genStart, self.genEnd+1):
             spacemap.Info("Generate layer %d" % layer)
-            edgeDB = self.__get_layer_db(layer)
+            edgeDB = self._get_layer_db(layer)
             
             img = np.zeros((*self.genShape, 3), dtype=np.uint8)
             

@@ -39,7 +39,7 @@ class Slice:
         path = "%s/imgs/%s_%s.png" % (self.projectf, self.index, key)
         if len(img.shape) == 2:
             img = np.stack([img, img, img], axis=-1)
-        plt.imsave(path, img)
+        spacemap.imsave(path, img)
                 
     def save_value_df(self, df: pd.DataFrame, keys=None, dfKey=None):
         keys = ["x", "y"] if keys is None else keys
@@ -90,6 +90,8 @@ class Slice:
             if os.path.exists(path):
                 img = plt.imread(path)
                 self.imgs[dfKey] = img
+            elif dfKey == Slice.rawKey:
+                raise Exception("Raw Image not found")
             else:
                 spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
                 return self.get_img(Slice.rawKey, mchannel=mchannel)

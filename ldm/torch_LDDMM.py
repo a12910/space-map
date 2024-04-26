@@ -457,6 +457,7 @@ class LDDMM(base.LDDMMBase):
         self.initializer_flags['cc'] = 0
         self.initializer_flags['we'] = 0
         self.initializer_flags['v_scale'] = 0
+        self.sgd_maskiter = 0
     
     
     # initialize lddmm variables
@@ -2723,6 +2724,7 @@ class LDDMM(base.LDDMMBase):
     
     # convenience function
     def run(self, restart=True, vt0=None, vt1=None, vt2=None, affineA=None, save_template=False):
+        self.sgd_maskiter = 0
         # check parameters
         flag = self._checkParameters()
         if flag==-1:

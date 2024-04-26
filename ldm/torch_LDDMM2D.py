@@ -311,8 +311,11 @@ class LDDMM2D(base.LDDMMBase):
                 for ii in range(len(self.I)):
                     # NOTE: you cannot use pointers / list multiplication for cuda tensors if you want actual copies
                     #self.It.append(torch.tensor(self.I[:,:,:]).type(self.params['dtype']).cuda())
+                    # UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+#   self.It[ii][i] = torch.tensor(self.I[ii][:,:].clone().detach()).type(self.params['dtype'])
+                    
                     for i in range(self.params['nt']+1):
-                        self.It[ii][i] = torch.tensor(self.I[ii][:,:].clone().detach()).type(self.params['dtype'])
+                        self.It[ii][i] = self.I[ii][:,:].clone().detach().type(self.params['dtype'])
         
         # affine parameters
         if not hasattr(self,'affineA') and self.initializer_flags['affine'] == 1: # we never automatically reset affine variables
@@ -477,11 +480,12 @@ class LDDMM2D(base.LDDMMBase):
                                     ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
                                      (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
                                 padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
-                phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),
-                                                        torch.stack(
-                                                            ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
-                                                             (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
-                                                        padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
+                phiinv1_gpu = torch.squeeze(
+                    grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),
+                                torch.stack(
+                                    ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
+                                    (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
+                                    padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
             
             if t == self.params['nt']-1 and \
                 (self.params['do_affine'] > 0  or \
@@ -565,6 +569,7 @@ class LDDMM2D(base.LDDMMBase):
         
         phiinv0_gpu = self.X0.clone()
         phiinv1_gpu = self.X1.clone()
+        I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
         # TODO: evaluate memory vs speed for precomputing Xs, Ys, Zs
         for t in range(nt):
             # update phiinv using method of characteristics
@@ -573,7 +578,7 @@ class LDDMM2D(base.LDDMMBase):
                 phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
             
             if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
-                phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized(self.affineA,phiinv0_gpu,phiinv1_gpu)
+                phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
         
         # deform the image
         # TODO: do I actually need to send phiinv to gpu here?
@@ -583,7 +588,7 @@ class LDDMM2D(base.LDDMMBase):
             It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
         
         del phiinv0_gpu,phiinv1_gpu
-        return It
+        return It.cpu().numpy()
     
     # deform template forward
     def forwardDeformation2d(self):
@@ -592,11 +597,23 @@ class LDDMM2D(base.LDDMMBase):
         for t in range(self.params['nt']):
             # update phiinv using method of characteristics
             if self.params['do_lddmm'] == 1 or hasattr(self, 'vt0'):
-                phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
-                phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt) 
+                phiinv0_gpu = torch.squeeze(
+                    grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(
+                        ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
+                         (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
+                        padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
+                phiinv1_gpu = torch.squeeze(
+                    grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),
+                                torch.stack(
+                                    ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
+                                     (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
+                                padding_mode='border')) + (self.X1-self.vt1[t]*self.dt) 
             
             # do affine transforms
-            if t == self.params['nt']-1 and (self.params['do_affine'] > 0 or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
+            if t == self.params['nt']-1 and \
+                (self.params['do_affine'] > 0 or \
+                    (hasattr(self, 'affineA') and not \
+                        torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
                 if self.params['checkaffinestep'] == 1:
                     # new diffeo with old affine
                     # this doesn't match up with EAll even when vt is identity

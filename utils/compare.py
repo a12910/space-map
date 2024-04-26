@@ -40,6 +40,25 @@ def cmp_imgs_metric(imgs1, imgs2, err: spacemap.AffineFinder):
             result[j, i] = e
     return result
 
+def cmp_imgs_LXYC(imgs: np.array, err=None):
+    """ 按照layer*width*height*channel对img进行比较 
+        然后按照channel进行加权 
+    """
+    if err is None:
+        err = spacemap.find.default()
+    maxx = imgs.shape[3]
+    err_result = np.zeros((imgs.shape[0]-1, maxx), dtype=float)
+    for i in range(maxx):
+        imgs1 = imgs[:, :, :, i]
+        _, err1 = cmp_imgs(imgs1[:-1], imgs1[1:], err)
+        err_result[:, i] = err1
+    err_count = np.sum(imgs, axis=(0, 1, 2))
+    all_count = np.sum(err_count)
+    err_count = err_count / all_count
+    err_result1 = np.mean(err_result, axis=0)
+    err_result1 = err_result1 * err_count
+    return err_result1, np.sum(err_result1)
+
 def __generate_imgs(df, start, end):
     img1s = []
     for layer in range(start, end):
@@ -58,7 +77,8 @@ def cmp_layers(df1, df2, start, end, err):
     img2s = __generate_imgs(df2, start+1, end+1)
     return cmp_imgs(img1s, img2s, err)
 
-def convert_label(labels: list, conf=None):
+def convert_label_to_id(labels: list, conf=None):
+    """ 将label标签转化为序号 """
     if conf is None:
         conf = {}
     maxx = len(conf.values()) 
@@ -74,13 +94,19 @@ def convert_label(labels: list, conf=None):
     return result, conf
 
 def cmp_layers_label(df1: pd.DataFrame, df2: pd.DataFrame, 
-                     start: int, end: int, err: spacemap.AffineFinder):
+                     start: int, end: int, err: spacemap.AffineFinder=None, label: pd.DataFrame=None):
+    """ 根据celltype对相邻层进行比较 """
     if df2 is None:
         df2 = df1.copy()
+    if label is not None:
+        df1 = merge_label(df1, label, start, end)
+        df2 = merge_label(df2, label, start+1, end+1)
+    if err is None:
+        err = spacemap.find.default()
     labelI = df1["cell_type"].values.tolist()
     labelJ = df2["cell_type"].values.tolist()
-    clasI, conf = convert_label(labelI)
-    clasJ, conf = convert_label(labelJ, conf)
+    clasI, conf = convert_label_to_id(labelI)
+    clasJ, conf = convert_label_to_id(labelJ, conf)
     clas = len(conf.values())
     
     err_detail = np.zeros((clas, end-start))
@@ -98,6 +124,7 @@ def cmp_layers_label(df1: pd.DataFrame, df2: pd.DataFrame,
 
 def cmp_layers_metric(df1: pd.DataFrame, df2: pd.DataFrame,
                      start: int, end: int, err: spacemap.AffineFinder):
+    """ 比较多层之间的相似度 """
     if df2 is None:
         df2 = df1.copy()
     img1s = __generate_imgs(df1, start, end)
@@ -105,6 +132,7 @@ def cmp_layers_metric(df1: pd.DataFrame, df2: pd.DataFrame,
     return cmp_imgs_metric(img1s, img2s, err)
     
 def merge_label(df, label, start, end):
+    """ 将来自label的cell_type合并到df中 """
     df1 = df.copy()
     df1["cell_type"] = ""
     for i in range(start, end+1):
@@ -113,6 +141,7 @@ def merge_label(df, label, start, end):
 
 def compare_workflow(dfs: dict[str:pd.DataFrame], start, end, 
                      err: spacemap.AffineFinder=None):
+    """ 比较不同df之间相邻层的评分 """
     if err is None:
         err = spacemap.find.default()
     result = np.zeros((len(dfs), end-start))
