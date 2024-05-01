@@ -17,11 +17,12 @@ mygaussian_3d_torch_selectcenter_meshgrid = base.mygaussian_3d_torch_selectcente
 mygaussian = base.mygaussian
 
 def get_init2D(imgI, imgJ, gpu=None, verbose=100):
+    """ img: J -> I """
     if gpu is None and spacemap.DEVICE != "cpu":
         gpu = spacemap.DEVICE
-    ldm = LDDMM2D(template=imgI,target=imgJ,
+    ldm = LDDMM2D(template=imgJ,target=imgI,
                               do_affine=1,do_lddmm=0,
-                              a=7,
+                              nt=3,
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
                               gpu_number=gpu,
@@ -564,12 +565,44 @@ class LDDMM2D(base.LDDMMBase):
 
     # apply current transform to new image
     def applyThisTransformNT2d(self, I, interpmode='bilinear',dtype='torch.FloatTensor',nt=None):
+        
+        I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
+        grid = self.generateTransFormGridImg(dtype=dtype,nt=nt,cpu=False)
+        It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode=interpmode))
+        return It.cpu().numpy()
+        
+        # if nt == None:
+        #     nt = self.params['nt']
+        
+        # phiinv0_gpu = self.X0.clone()
+        # phiinv1_gpu = self.X1.clone()
+        # I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
+        # # TODO: evaluate memory vs speed for precomputing Xs, Ys, Zs
+        # for t in range(nt):
+        #     # update phiinv using method of characteristics
+        #     if self.params['do_lddmm'] == 1 or hasattr(self,'vt0'):
+        #         phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
+        #         phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
+            
+        #     if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
+        #         phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
+        
+        # # deform the image
+        # # TODO: do I actually need to send phiinv to gpu here?
+        # if self.params['v_scale'] != 1.0:
+        #     It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
+        # else:
+        #     It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
+        
+        # del phiinv0_gpu,phiinv1_gpu
+        # return It.cpu().numpy()
+    
+    def generateTransFormGridImg(self, dtype='torch.FloatTensor',nt=None,cpu=True):
         if nt == None:
             nt = self.params['nt']
         
         phiinv0_gpu = self.X0.clone()
         phiinv1_gpu = self.X1.clone()
-        I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
         # TODO: evaluate memory vs speed for precomputing Xs, Ys, Zs
         for t in range(nt):
             # update phiinv using method of characteristics
@@ -579,16 +612,14 @@ class LDDMM2D(base.LDDMMBase):
             
             if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
                 phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
-        
-        # deform the image
-        # TODO: do I actually need to send phiinv to gpu here?
         if self.params['v_scale'] != 1.0:
-            It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
+            grid = torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0)
         else:
-            It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
-        
+            grid = torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0)        
         del phiinv0_gpu,phiinv1_gpu
-        return It.cpu().numpy()
+        if cpu:
+            return grid.cpu().numpy()
+        return grid
     
     # deform template forward
     def forwardDeformation2d(self):

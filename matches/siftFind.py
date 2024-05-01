@@ -6,25 +6,40 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import os
 
-def __sift_kp(image: np.array, method='sift'):
-    maxx, minn = np.max(image), np.min(image)
-    gray_image = (image - minn) * 255 / (maxx - minn)
-    gray_image = gray_image.astype(np.uint8)
-    
+def __sift_kp(image: np.array, method='sift', scale=False):
+    if scale:
+        maxx, minn = np.max(image), np.min(image)
+        gray_image = (image - minn) * 255 / (maxx - minn)
+        gray_image = gray_image.astype(np.uint8)
+    else:
+        if image.max() > 1.1:
+            gray_image = image.astype(np.uint8)
+        else:
+            gray_image = (image * 255).astype(np.uint8)
+            gray_image[gray_image > 255] = 255
     if method == 'sift':
         descriptor = cv2.SIFT_create()
     elif method == 'surf':
-        descriptor = cv2.xfeatures2d.SURF_create()  # OpenCV4以上不可用
-    elif method == 'brisk':
-        descriptor = cv2.BRISK_create()
+        # OpenCV4以上不可用
+        descriptor = cv2.xfeatures2d.SURF_create()  
     elif method == 'orb':
         descriptor = cv2.ORB_create()
-    elif method == 'akaze':
-        descriptor = cv2.AKAZE_create()
-    elif method == 'vgg':
-        descriptor = cv2.xfeatures2d.VGG_create()
-    (kps, features) = descriptor.detectAndCompute(gray_image, None)
-    return kps, features
+    elif method == 'sift_vgg':
+        descriptor = cv2.SIFT_create()
+    elif method == "orb_vgg":
+        descriptor = cv2.ORB_create()
+        # elif method == "surf_vgg":
+        # descriptor = cv2.xfeatures2d.SURF_create()
+    else:
+        raise Exception("Unknown method")
+    
+    if method in ["sift", "surf", "orb"]:
+        (kps, features) = descriptor.detectAndCompute(gray_image, None)
+        return kps, features
+    else:
+        kps = descriptor.detect(gray_image)
+        kps, features = descriptor.compute(gray_image, kps)
+        return kps, features
 
 def match_des(des1, des2, k):
     bf = cv2.BFMatcher()
@@ -54,22 +69,23 @@ def autoSetMatchr(I, J, minCount):
             return i
     return 1.0
 
-def siftImageAlignment(imgI,imgJ, matchr=0.75, method='sift'):
+def siftImageAlignment(imgI,imgJ, matchr=0.75, method='sift', scale=False):
     """ [[ptIx, ptIy, ptJx, ptJy, distance]] """
-    kp1,des1 = __sift_kp(imgI, method)
-    kp2,des2 = __sift_kp(imgJ, method)
+    kp1,des1 = __sift_kp(imgI, method, scale)
+    kp2,des2 = __sift_kp(imgJ, method, scale)
     bf = cv2.BFMatcher()
     matches = bf.knnMatch(des1, des2, k=2)
     matches2 = []
-    for match in matches:
-        m, n = match[0], match[1]
+    for mat in matches:
+        m, n = mat[0], mat[1]
         if m.distance > matchr * n.distance:
             continue
         pI1, pI2 = m.queryIdx, m.trainIdx
         pt1, pt2 = kp1[pI1].pt, kp2[pI2].pt
         # ptI, ptJ, dis
-        matches2.append([pt1[1], pt1[0], pt2[1], pt2[0], m.distance])
-    matches2.sort(key=lambda x: x[-1])
+        matches2.append([pt1[1], pt1[0], pt2[1], pt2[0], 1000/m.distance])
+    # 距离从小到大
+    matches2.sort(key=lambda x: x[-1], reverse=True)
     return np.array(matches2)
 
 def siftImageAlignment2(img1,img2, k, matchr=0.75, method='sift'):

@@ -3,9 +3,9 @@ import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
 
-class FilterGlobal(spacemap.AffineBlock):
+class FilterGlobalImg(spacemap.AffineBlock):
     def __init__(self, count=200):
-        super().__init__("FilterGlobal")
+        super().__init__("FilterGlobalImg")
         self.updateMatches = True
         self.count = count
         self.dis = 2

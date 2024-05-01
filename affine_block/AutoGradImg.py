@@ -16,7 +16,7 @@ class AutoGradImg(spacemap.AffineBlock):
         
         self.initDis = 0.3
         self.initSkip = 20
-        self.multiDis = 0.5
+        self.multiDis = 0.8
         self.finalErr = 1e-5
         
         self.scale = scale
@@ -61,10 +61,14 @@ class AutoGradImg(spacemap.AffineBlock):
             if err is None:
                 break
             spacemap.Info("Iter: %d Grad Find: err=%.5f" % (iter, err))
-            dis = dis * self.multiDis
+            
             
             if lastErr is not None and abs(lastErr - err) < self.finalErr:
                 break
+            if lastErr is not None and lastErr < err:
+                dis = dis / (self.multiDis + 0.1)
+            else:
+                dis = dis * self.multiDis
             lastErr = err 
             if self.showGrad:
                 imgJ2 = imgJ_[:imgI.shape[0], :imgI.shape[1]]

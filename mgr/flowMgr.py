@@ -28,6 +28,12 @@ class AffineFlowMgrBase:
             finalH[2, 2] = 1
         return finalH
     
+    def resultH_np(self):
+        return self.resultH()
+    
+    def resultH_img(self):
+        return self.resultH()
+    
     def best(self, show=True):
         finalH = np.eye(3, 3)
         minErr = 1000

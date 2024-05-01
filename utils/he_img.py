@@ -338,3 +338,15 @@ def xenium_generate_alignemnt_H(genH: np.array,
 
     HH = multiply_HH([H00, H10, HH, H11, H2])
     return HH
+
+def split_he_background_otsu(img):
+    if len(img.shape) == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if img.max() < 2.0:
+        img = img * 255
+    img = img.astype(np.uint8)
+    thresh, binarized_image = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    image_ = img.copy()
+    image_[binarized_image > 0] = 0
+    return binarized_image, image_

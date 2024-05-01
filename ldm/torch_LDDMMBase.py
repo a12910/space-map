@@ -63,6 +63,40 @@ def mergeGrid(grid0, grid1):
     points2 = applyPointsByGrid(grid1, points1)
     grid = generateGridFromPoints(points2)
     return grid
+
+def mergeImgGrid(grid0, grid1):
+    # 此时，distorted_image2就是先后使用grid1和grid2扭曲后的图像
+    # 如果需要合并grid1和grid2为一个单独的grid3，可以这样计算：
+    import torch.nn.functional as F
+    grid0 = torch.tensor(grid0).type(torch.FloatTensor)
+    grid1 = torch.tensor(grid1).type(torch.FloatTensor)
+    grid01 = F.grid_sample(grid0.permute(0, 3, 1, 2), 
+                           grid1, mode='bilinear', 
+                           padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
+    return grid01.cpu().numpy()
+
+def applyImgByGrid(img_, grid):
+    import torch.nn.functional as F
+    import torch
+    # img = img_.copy()
+    # if len(img.shape) == 3:
+    #     img = img[np.newaxis, :, :, :]
+    # if len(img.shape) == 2:
+    #     img = img[np.newaxis, np.newaxis, :, :]
+    # img = torch.tensor(img).type(torch.FloatTensor)
+    # grid = torch.tensor(grid).type(torch.FloatTensor)
+    # distorted_image = F.grid_sample(img.permute(0, 3, 1, 2), 
+    #                                 grid, mode='bilinear', 
+    #                                 padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
+    # if len(img_.shape) == 3:
+    #     distorted_image = distorted_image[0]
+    # if len(img_.shape) == 2:
+    #     distorted_image = distorted_image[0, 0]
+    # return distorted_image.cpu().numpy()
+    I = torch.tensor(img_).type(torch.FloatTensor)
+    grid = torch.tensor(grid).type(torch.FloatTensor)
+    It = torch.squeeze(F.grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode='bilinear', align_corners=True))
+    return It.cpu().numpy()
     
 def generateGridFromPoints(points):
     xyrange = spacemap.XYRANGE

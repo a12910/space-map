@@ -20,6 +20,7 @@ class Slice:
         self.dfMode = dfMode
         self.data = spacemap.SliceData(index, self.projectf)
         self.first = first
+        self.heImg = False
         
     def init_df(self, initdf):
         initdf2 = initdf[["x", "y"]].copy()
@@ -51,7 +52,7 @@ class Slice:
             keys[1]: "y"
         }, inplace=True)
         self.dfs[dfKey] = df1
-        path = "%s/outputs/%s_%s.csv" % (self.projectf, self.index, dfKey)
+        path = "%s/outputs/%s_%s.csv.gz" % (self.projectf, self.index, dfKey)
         df1.to_csv(path, index=False)
             
     def save_value_points(self, points, dfKey):
@@ -68,8 +69,12 @@ class Slice:
         keys = ["x", "y"] if keys is None else keys
         if dfKey not in self.dfs:
             path = "%s/outputs/%s_%s.csv" % (self.projectf, self.index, dfKey)
+            path2 = path + ".gz"
             if os.path.exists(path):
                 df = pd.read_csv(path)
+                self.dfs[dfKey] = df
+            elif os.path.exists(path2):
+                df = pd.read_csv(path2)
                 self.dfs[dfKey] = df
             else:
                 spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
@@ -81,7 +86,7 @@ class Slice:
         }, inplace=True)
         return df
     
-    def get_img(self, dfKey, mchannel=False):
+    def get_img(self, dfKey, mchannel=False, scale=True, he=None):
         xyd = spacemap.XYD
         xyr = spacemap.XYRANGE
         shape = (int(xyr[1]/xyd), int(xyr[3]/xyd))
@@ -97,13 +102,17 @@ class Slice:
                 return self.get_img(Slice.rawKey, mchannel=mchannel)
         img = self.imgs[dfKey]
         if len(img.shape) == 3 and not mchannel:
-            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            img = img[:, :, :3]
+            img = img.mean(axis=2)
         elif len(img.shape) == 2 and mchannel:
             img = np.stack([img, img, img], axis=2)
-        img = cv2.resize(img, shape)
+        if scale:
+            img = cv2.resize(img, shape)
+        if (self.heImg and he is None) or he == True:
+            _, img = spacemap.he_img.split_he_background_otsu(img)
         return img        
     
-    def create_img(self, dfk: str, useDF=None, mchannel=False):
+    def create_img(self, dfk: str, useDF=None, mchannel=False, he=False):
         if (useDF is None and self.dfMode) or useDF == True:
             points = self.ps(dfk)
             img = spacemap.show_img3(points)
@@ -111,7 +120,7 @@ class Slice:
                 img = np.stack([img, img, img], axis=2)
             return img
         elif (useDF is None and not self.dfMode) or useDF == False:
-            img = self.get_img(dfk, mchannel=mchannel)
+            img = self.get_img(dfk, mchannel=mchannel, he=he)
             return img
         else:
             raise Exception("Invalid useDF")
@@ -122,25 +131,31 @@ class Slice:
             points2 = spacemap.applyH_np(points, H)
             self.save_value_points(points2, toDF)
         if forIMG is None or forIMG == True:
-            img = self.get_img(fromDF, mchannel=True)
+            img = self.get_img(fromDF, mchannel=True, scale=False)
+            shape = img.shape[0]
+            ishape = spacemap.XYRANGE[1] / spacemap.XYD
+            ratio = shape / ishape
+            H = H.copy()
+            H[0, 2] *= ratio
+            H[1, 2] *= ratio
             img = spacemap.he_img.rotate_imgH(img, H)
             self.save_value_img(img, toDF)
     
     @staticmethod
-    def show_align(sI, sJ, keyI=None, keyJ=None, forIMG=False):
-        slice_show_align(sI, sJ, keyI, keyJ, forIMG)
+    def show_align(sI, sJ, keyI=None, keyJ=None, forIMG=False, imgHE=False):
+        slice_show_align(sI, sJ, keyI, keyJ, forIMG, imgHE=imgHE)
         
 def slice_show_align(sI: Slice, sJ: Slice, 
-                     keyI=None, keyJ=None, forIMG=False):
+                     keyI=None, keyJ=None, forIMG=False, imgHE=False):
     
     keyI = Slice.finalKey if keyI is None else keyI
     keyJ = Slice.rawKey if keyJ is None else keyJ
     spacemap.Info("Slice Align: %s-%s %s-%s" % (sI.index, keyI, sJ.index, keyJ))
     if forIMG:
-        imgI = sI.get_img(keyI)
-        imgJ = sJ.get_img(keyJ)
-        spacemap.show_images_form([imgI, imgJ, abs(imgI-imgJ)], (1, 3), 
-                                  [sI.index, sJ.index, "DIFF"], size=6)
+        imgI = sI.get_img(keyI, he=imgHE)
+        imgJ = sJ.get_img(keyJ, he=imgHE)
+        spacemap.show_compare_channel(imgI, imgJ, titleI=sI.index, titleJ=sJ.index)
+
     else:
         dfI = sI.get_df(keyI)
         dfJ = sJ.get_df(keyJ)

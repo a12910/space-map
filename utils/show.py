@@ -203,14 +203,17 @@ def show_images_form2(imgs, shape, titles):
             plt.title(titles[ii])
     plt.show()
     
-def show_compare_img(imgI, imgJ, size=6):
+def show_compare_img(imgI, imgJ, size=6, titleI="I", titleJ="J"):
     def __process(imgI):
         if len(imgI.shape) > 2 and imgI.shape[2] > 3:
             imgI = imgI[:, :, 3]
         if len(imgI.shape) != 3:
             imgI = np.stack([imgI, imgI, imgI], axis=2)
-        if np.max(imgI) <= 1.0:
-            imgI = np.array(imgI * 255)
+        minn, maxx = np.min(imgI), np.max(imgI)
+        if minn == maxx:
+            return imgI
+        imgI = (imgI - minn) / (maxx - minn)
+        imgI = np.array(imgI * 255)
         imgI = np.array(imgI, dtype=np.uint8)
         return imgI
     imgI = __process(imgI)
@@ -218,7 +221,34 @@ def show_compare_img(imgI, imgJ, size=6):
     if imgJ.shape != imgI.shape:
         imgJ = cv2.resize(imgJ, imgI.shape)
         
-    diff = np.abs(imgI - imgJ)
-    show_images_form([imgI, imgJ, diff], (1, 3), ["I", "J", "Diff"], size=size)
+    diff = imgI - imgJ
+    show_images_form([imgI, imgJ, diff], (1, 3), [titleI, titleJ, "Diff"], size=size)
+    return imgI, imgJ
+
+def show_compare_channel(imgI, imgJ, size=6, titleI="I", titleJ="J"):
+    def __process(imgI):
+        if len(imgI.shape) > 2:
+            if imgI.shape[2] > 3:
+                imgI = imgI[:, :, :3]
+            imgI = imgI.mean(axis=2)
+        minn, maxx = np.min(imgI), np.max(imgI)
+        if minn == maxx:
+            return imgI
+        imgI = (imgI - minn) / (maxx - minn)
+        imgI = np.array(imgI * 255)
+        imgI = np.array(imgI, dtype=np.uint8)
+        return imgI
+    imgI = __process(imgI)
+    imgJ = __process(imgJ)            
+    if imgJ.shape != imgI.shape:
+        imgJ = cv2.resize(imgJ, imgI.shape)
+    imgIJ = np.zeros((imgI.shape[0], imgI.shape[1], 3), dtype=np.uint8)
+    # imgIJ[:, :, 2] = imgI
+    imgJ[imgJ > 0] = 255
+    imgI[imgI > 0] = 255
+    imgIJ[:, :, 1] = imgJ 
+    imgIJ[:, :, 0] = imgI
+    plt.imshow(imgIJ)
+    plt.show()
     return imgI, imgJ
     

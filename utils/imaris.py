@@ -31,6 +31,13 @@ class ModelGenerate:
         self.genSaveThub = False
         self.genPrefix = "d"
         
+    def params(self, shape, xyd, full):
+        self.genShape = shape
+        self.genXYD = xyd
+        if full:
+            self.genCellSize = None
+            self.genRatio = None
+        
     def prepare_grid(self, dfRaw, dfAlign, force=False):
         folder = self.baseFolder + "/grid"
         spacemap.mkdir(folder)
@@ -81,7 +88,8 @@ class ModelGenerate:
         edges_group = edgesDF.groupby("cell_id")
         edges = {}
         for cid, group in edges_group:
-            g = np.array(group[(group["x"] > 200) & (group["y"] > 200) & (group["x"] < 3800) & (group["y"] < 3800)][["x", "y"]].values)
+            # g = np.array(group[(group["x"] > 200) & (group["y"] > 200) & (group["x"] < 3800) & (group["y"] < 3800)][["x", "y"]].values)
+            g = np.array(group[["x", "y"]].values, dtype=np.int32)
             if g.shape[0] < 3:
                 continue
             if np.sum(g.max(axis=0) - g.min(axis=0)) > 200:
@@ -149,8 +157,8 @@ class ModelGenerate:
                 
                 center = np.array(cell[1:])
                 edges = np.array(edges)
-                edgeDis = np.sum(abs(edges - center), axis=1)
                 if self.genCellSize is not None:
+                    edgeDis = np.sum(abs(edges - center), axis=1)
                     bigDis = edgeDis[edgeDis > self.genCellSize]
                     bigEdge = edges[edgeDis > self.genCellSize].copy()
                     bigEdge = center + (bigEdge - center) * self.genCellSize / bigDis[:, np.newaxis]

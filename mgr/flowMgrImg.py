@@ -33,6 +33,13 @@ class AffineFlowMgrImg(spacemap.AffineFlowMgrBase):
             self.AffineH.append((H, err, flow.name))
         return self.imgI, self.imgJ
     
+    def resultH_np(self):
+        H = self.resultH()
+        xyd = spacemap.XYD
+        H[0, 2] *= xyd
+        H[1, 2] *= xyd
+        return H
+    
     def current_err(self, show=True):
         return self.affineFinder.computeI(self.imgI, self.imgJ, show=show)
     

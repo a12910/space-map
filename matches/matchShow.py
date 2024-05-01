@@ -55,40 +55,4 @@ class MatchShow(spacemap.AffineBlock):
         plt.imshow(imgI_)
         plt.show()
         
-class ImgDiffShow(spacemap.AffineBlock):
-    def __init__(self):
-        super().__init__("ImgDiffShow")
-        
-    @staticmethod
-    def process(imgI, imgJ):
-        def __process(imgI):
-            if len(imgI.shape) > 2 and imgI.shape[2] > 3:
-                imgI = imgI[:, :, 3]
-            if len(imgI.shape) != 3:
-                imgI = np.stack([imgI, imgI, imgI], axis=2)
-            if np.max(imgI) <= 1.0:
-                imgI = np.array(imgI * 255)
-            imgI = np.array(imgI, dtype=np.uint8)
-            return imgI
-        imgI = __process(imgI)
-        imgJ = __process(imgJ)            
-        if imgJ.shape != imgI.shape:
-            imgJ = cv2.resize(imgJ, imgI.shape)
-        return imgI, imgJ
-            
-    @staticmethod
-    def show(imgI, imgJ):
-        imgI, imgJ = ImgDiffShow.process(imgI, imgJ)
-        diff = np.abs(imgI - imgJ)
-        spacemap.show_images_form([imgI, imgJ, diff], (1, 3), ["I", "J", "Diff"], size=6)
-        return imgI, imgJ
-        
-    def compute(self, dfI: np.array, dfJ: np.array, finder=None):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
-        return self.compute_img(imgI, imgJ, finder)
-    
-    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
-        ImgDiffShow.show(imgI, imgJ)
-        return None
     

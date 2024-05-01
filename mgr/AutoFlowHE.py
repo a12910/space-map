@@ -2,16 +2,16 @@ import numpy as np
 import spacemap
 import pandas as pd
 
-class AutoFlowImg(spacemap.AffineFlowMgrImg):
+class AutoFlowHE(spacemap.AffineFlowMgrImg):
     def __init__(self, imgI: np.array, imgJ: np.array, finder=None):
-        super().__init__("AutoFlowImg", imgI, imgJ, finder)
+        super().__init__("AutoFlowHE", imgI, imgJ, finder)
         
     def run(self):
         # if self.center:
         #     rotate = spacemap.affine.AutoGradImg()
         #     rotate.showGrad = True
         #     self.run_flow(rotate)
-        matches = spacemap.matches.MatchInit(matchr=self.matchr, method="loftr")
+        matches = spacemap.matches.MatchInit(matchr=self.matchr, method="sift")
         # matches.alignment = spacemap.matches.LOFTR()
 
         self.run_flow(matches)
