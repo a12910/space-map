@@ -1796,6 +1796,8 @@ class LDDMM2D(base.LDDMMBase):
     def registration(self):
         historyErr = np.zeros(100)
         shape = len(self.params["template"])
+        minErr = None
+        minOutputs = None
         
         for it in range(self.params['niter']):
 
@@ -1831,6 +1833,9 @@ class LDDMM2D(base.LDDMMBase):
             
             ERR = EM.item() / (shape * shape) 
             
+            if minErr is None or ERR < minErr:
+                minErr = ERR
+                minOutputs = self.outputTransforms()
             
             verbose = int(self.params['verbose'])
             if verbose > 0 and it % verbose == 0:
@@ -1858,6 +1863,12 @@ class LDDMM2D(base.LDDMMBase):
             if abs(lastErr -  ERR) < self.params["target_err_skip"] and it > len(historyErr):
                 print('Early termination: Target Err Skip: %.4f reached. %.2f' % (float(ERR), self.params["target_err_skip"]))
                 break
+            if ERR > np.mean(historyErr) and it > len(historyErr) * 5:
+                print('Early termination: Err Larger: %.4f then history. %.4f' % (float(ERR), historyErr[it % len(historyErr + 1)]))
+                self.loadTransforms(*minOutputs)
+                print('Early termination: Reload minOutputs %.4f' % (float(minErr)))
+                break
+            
             historyErr[it % len(historyErr)] = ERR
             
             if it == self.params['niter']-1 or (
@@ -2055,9 +2066,9 @@ class LDDMM2D(base.LDDMMBase):
         if hasattr(self,'affineA') and hasattr(self,'vt0'):
             return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], self.affineA.cpu().numpy()
         elif hasattr(self,'affineA'):
-            return self.affineA.cpu().numpy()
+            return None, None, self.affineA.cpu().numpy()
         elif hasattr(self,'vt0'):
-            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1]
+            return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], None
         else:
             print('ERROR: no LDDMM or linear transforms to output.')
     

@@ -51,9 +51,13 @@ def to_imgH(H: np.array):
     H[1, 2] = H[1, 2] / xyd
     return H
 
-def apply_img_by_Grid(img_, grid):
+def apply_img_by_Grid(img_: np.array, grid: np.array):
     I = torch.tensor(img_).type(torch.FloatTensor)
     grid = torch.tensor(grid).type(torch.FloatTensor)
+    if grid.shape[:2] != img_.shape[:2]:
+        upscaled_grid = F.interpolate(grid.permute(0, 3, 1, 2), 
+                                      size=img_.shape[:2], mode='bilinear', align_corners=True)
+        grid = upscaled_grid.permute(0, 2, 3, 1)
     It = torch.squeeze(F.grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode='bilinear', align_corners=True))
     return It.cpu().numpy()
 

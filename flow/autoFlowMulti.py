@@ -100,8 +100,8 @@ class AutoFlowMulti:
             sI = self.slices[i]
             sJ = self.slices[i+1]
             spacemap.Info("LDMMgrMulti: Start LDM %d/%d %s->%s" % (i+1, len(self.slices), sJ.index, sI.index))
-            imgI1 = sI.get_img(self.alignKey)
-            imgJ2 = sJ.get_img(self.alignKey)
+            imgI1 = sI.get_img(self.alignKey, he=self.heImg)
+            imgJ2 = sJ.get_img(self.alignKey, he=self.heImg)
             
             ldm = spacemap.registration.LDDMMRegistration()
             ldm.gpu = self.gpu
@@ -113,27 +113,33 @@ class AutoFlowMulti:
             sJ.data.saveGrid(grid, sI.index, "img")
             imgJ3 = ldm.apply_img(imgJ2)
             self.show_err(imgI1, imgJ2, imgJ3, sJ.index)
-            sJ.save_value_img(imgJ3, self.finalKey)
             if show:
-                self.show_align(sI, sJ, self.alignKey, self.finalKey)
+                self._apply_grid(sJ, self.alignKey, self.ldmKey, grid)
+                self.show_align(sI, sJ, self.alignKey, self.ldmKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Pair")
+        
+    def _apply_grid(self, S: Slice, fromKey, toKey, grid):
+        imgJ2_ = S.get_img(fromKey, mchannel=True, scale=False)
+        imgJ3_ = np.zeros_like(imgJ2_)
+        for i in range(imgJ2_.shape[2]):
+            imgJ3_[:, :, i] = spacemap.img.apply_img_by_Grid(imgJ2_[:, :, i], grid)
+        S.save_value_img(imgJ3_, toKey)
     
     def ldm_merge(self, show=False):
         spacemap.Info("LDMMgrMulti: Start LDM Merge")
+        key = "img"
         INIT_S = self.slices[0]
         for i in range(len(self.slices) - 1):
             sI = self.slices[i]
             sJ = self.slices[i+1]
-            newG = sJ.data.loadGrid(sI.index, "img")
+            newG = sJ.data.loadGrid(sI.index, key)
             if i > 0:
-                lastG = sI.data.loadGrid(INIT_S.index, "img")
+                lastG = sI.data.loadGrid(INIT_S.index, key)
                 newG = spacemap.mergeImgGrid(newG, lastG)
-                sJ.data.saveGrid(newG, INIT_S.index, "img")
-            imgJ1 = sJ.get_img(self.alignKey)
-            imgJ2 = spacemap.applyPointsByGrid(newG, imgJ1)
-            sJ.save_value_img(imgJ2, self.ldmKey)
+                sJ.data.saveGrid(newG, INIT_S.index, key)
+            self._apply_grid(sJ, self.alignKey, self.ldmKey, newG)
             if show:
-                Slice.show_align(sI, sJ, self.finalKey, self.finalKey)
+                Slice.show_align(sI, sJ, self.ldmKey, self.ldmKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Merge")
         
     def ldm_fix(self, show=False):
@@ -149,13 +155,12 @@ class AutoFlowMulti:
                 imgJ2 = sI.get_img(self.ldmKey)
                 sI.save_value_img(imgJ2, self.finalKey)
                 continue
-            imgI = sI.get_img(self.finalKey)
-            imgJ = sJ.get_img(self.ldmKey)
+            imgI = sI.get_img(self.finalKey, he=self.heImg)
+            imgJ = sJ.get_img(self.ldmKey, he=self.heImg)
             mgr.load_img(imgI, imgJ)
             mgr.run()
-            imgJ2 = mgr.apply_img(imgJ)
-            sJ.save_value_img(imgJ2, self.finalKey)
             grid = mgr.generate_img_grid()
+            self._apply_grid(sJ, self.ldmKey, self.finalKey, grid)
             sJ.data.saveGrid(grid, initI, "fix")
             if show:
                 Slice.show_align(sI, sJ, self.finalKey, self.finalKey)
