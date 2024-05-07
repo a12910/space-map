@@ -20,6 +20,7 @@ import numpy as np
 class AutoFlowMulti:
     def __init__(self, slices: list[Slice], 
                  initJKey=Slice.rawKey,
+                 alignMethod=None,
                  gpu=None):
         self.slices = slices
         self.initJKey = initJKey
@@ -33,6 +34,7 @@ class AutoFlowMulti:
         self.finalErr = 0.1
         self.enhanceErr = 0.01
         self.heImg = False
+        self.alignMethod = alignMethod
         
         self.applyDF = False
         self.applyImg = False
@@ -42,41 +44,50 @@ class AutoFlowMulti:
         e2 = self.err.computeI(imgI, imgJ3, False)
         spacemap.Info("Err LDMPairMulti %s: %.5f->%.5f" % (tag, e1, e2))
         
-    def affine_pair(self, show=False):
-        spacemap.Info("LDMMgrMulti: Start Affine Pair")
+    def affine(self, show=False, affine=True, merge=True):
+        spacemap.Info("LDMMgrMulti: Start Affine Pair&Merge")
+        method = self.alignMethod
+        if method is None:
+            method = "sift_vgg"
+            
+        initS = self.slices[0]
+        key = "cell"
+            
         for i in range(len(self.slices) - 1):
             S1 = self.slices[i]
             S2 = self.slices[i+1]
             spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
-            img1 = S1.create_img(self.initJKey, useDF=False, he=self.heImg)
-            img2 = S2.create_img(self.initJKey, useDF=False, he=self.heImg)
-            mgr = spacemap.affine_block.AutoAffineImgGrad(img1, img2, show=show)
-            mgr.run()
-            H = mgr.resultH_img()
-            S2.data.saveH(H, S1.index)
-        spacemap.Info("LDMMgrMulti: Finish Affine Pair")
+            if affine:
+                img1 = S1.create_img(self.initJKey, useDF=False, 
+                                     he=self.heImg)
+                img2 = S2.create_img(self.initJKey, useDF=False, 
+                                     he=self.heImg)
+                mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
+                mgr.run()
+                H21 = mgr.resultH_img()
+                S2.data.saveH(H21, S1.index, key)
+            if merge:
+                H21 = S2.data.loadH(S1.index, key)
+                if i == 0:
+                    H1i = np.eye(3)
+                else:
+                    H1i = S1.data.loadH(initS.index, key)
+                H2i = np.dot(H1i, H21)
+                S2.data.saveH(H2i, initS.index, key)
+                S2.applyH(self.initJKey, H2i, self.alignKey, forIMG=True)
+                if self.applyDF:
+                    H2i_np = spacemap.img.to_npH(H2i)
+                    S2.applyH(self.initJKey, H2i_np, self.alignKey, forIMG=False)
+            if show:
+                self.show_align(S1, S2, self.alignKey, self.alignKey)
+            
+        spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
+        
+    def affine_pair(self, show=False):
+        self.affine(affine=True, merge=False, show=show)
             
     def affine_merge(self, show=False):
-        spacemap.Info("LDMMgrMulti: Start Merge Affine")
-        initS = self.slices[0]
-        key = "cell"
-        for i in range(0, len(self.slices) - 1):
-            S1 = self.slices[i]
-            S2 = self.slices[i+1]
-            H21 = S2.data.loadH(S1.index, key)
-            if i == 0:
-                H1i = np.eye(3)
-            else:
-                H1i = S1.data.loadH(initS.index, key)
-            H2i = np.dot(H1i, H21)
-            S2.data.saveH(H2i, initS.index, key)
-            S2.applyH(self.initJKey, H2i, self.alignKey, forIMG=True)
-            if self.applyDF:
-                H2i_np = spacemap.img.to_npH(H2i)
-                S2.applyH(self.initJKey, H2i_np, self.alignKey, forIMG=False)
-            if show:
-                self.show_align(initS, S2, self.initJKey, self.alignKey)
-        spacemap.Info("LDMMgrMulti: Affine Finished")
+        self.affine(merge=True, affine=False, show=True)
         
     def show_align(self, S1, S2, key1, key2):
         Slice.show_align(S1, S2, key1, key2, forIMG=True, imgHE=self.heImg)

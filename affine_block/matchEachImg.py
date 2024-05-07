@@ -31,7 +31,7 @@ class MatchEachImg(spacemap.AffineBlock):
         matches = np.array(matches)
         
         spacemap.Info("Compute Each Match Start")
-        
+       
         datas = [(matches, i, imgI, imgJ) for i in range(minMatch, len(matches)+1)]
  
         with Pool(os.cpu_count()) as p:
@@ -54,4 +54,5 @@ class MatchEachImg(spacemap.AffineBlock):
         if H is None:
             return []
         imgJ2 = spacemap.he_img.rotate_imgH(imgJ, H)
+        plt.imsave("/Users/hrd/Desktop/ims/%d.jpg" % i, imgJ2)
         return [i, H, imgI, imgJ2]

@@ -28,6 +28,9 @@ class AffineFlowMgrImg(spacemap.AffineFlowMgrBase):
         if flow.updateImg:
             self.imgI, self.imgJ = flow.imgIJ
         if H is not None:
+            # H_ = self.resultH()
+            # H_ = spacemap.he_img.multiply_HH([H_, H])
+            # self.imgJ = spacemap.he_img.rotate_imgH(self.__imgJ, H_)
             self.imgJ = spacemap.he_img.rotate_imgH(self.imgJ, H)
             err = self.current_err(show=showErr)
             self.AffineH.append((H, err, flow.name))

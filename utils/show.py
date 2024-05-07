@@ -244,8 +244,8 @@ def show_compare_channel(imgI, imgJ, size=6, titleI="I", titleJ="J"):
         imgJ = cv2.resize(imgJ, imgI.shape)
     imgIJ = np.zeros((imgI.shape[0], imgI.shape[1], 3), dtype=np.uint8)
     # imgIJ[:, :, 2] = imgI
-    imgJ[imgJ > 0] = 255
-    imgI[imgI > 0] = 255
+    # imgJ[imgJ > 0] = 255
+    # imgI[imgI > 0] = 255
     imgIJ[:, :, 1] = imgJ 
     imgIJ[:, :, 0] = imgI
     plt.imshow(imgIJ)

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import spacemap
 import cv2
+import torch
+import torch.nn.functional as F
 
 def conv_2d(img, kernel):
     img1 = ss.convolve2d(img, kernel, mode="same")
@@ -48,3 +50,18 @@ def to_imgH(H: np.array):
     H[0, 2] = H[0, 2] / xyd
     H[1, 2] = H[1, 2] / xyd
     return H
+
+def apply_img_by_Grid(img_, grid):
+    I = torch.tensor(img_).type(torch.FloatTensor)
+    grid = torch.tensor(grid).type(torch.FloatTensor)
+    It = torch.squeeze(F.grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode='bilinear', align_corners=True))
+    return It.cpu().numpy()
+
+def merge_img_grid(grid0, grid1):
+    # 1. grid0 - 2. grid1
+    grid0 = torch.tensor(grid0).type(torch.FloatTensor)
+    grid1 = torch.tensor(grid1).type(torch.FloatTensor)
+    grid01 = F.grid_sample(grid0.permute(0, 3, 1, 2), 
+                           grid1, mode='bilinear', 
+                           padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
+    return grid01.cpu().numpy()

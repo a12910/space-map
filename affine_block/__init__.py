@@ -1,4 +1,5 @@
 from .AutoGradImg import AutoGradImg
+from .AutoGradImg2 import AutoGradImg2
 from .FilterGlobalImg import FilterGlobalImg
 from .FilterGraphImg import FilterGraphImg
 from .ManualRotateImg import ManualRotateImg

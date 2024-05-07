@@ -1,5 +1,4 @@
 
-from kornia.feature import LoFTR
 import torch
 import spacemap
 import numpy as np
@@ -25,6 +24,7 @@ class LOFTR(spacemap.AffineAlignment):
         return loftr_compute_matches(imgI, imgJ, matchr)
 
 def loftr_compute_matches(imgI, imgJ, matchr, device=None):
+    from kornia.feature import LoFTR
     if device is None:
         device = spacemap.DEVICE
     imgI = np.array(imgI)

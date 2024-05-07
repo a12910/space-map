@@ -1,5 +1,4 @@
 
-from kornia.feature import LoFTR
 import torch
 import spacemap.matches
 import spacemap

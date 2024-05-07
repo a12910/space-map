@@ -1,5 +1,4 @@
 import cv2
-from numpy.core.multiarray import array as array
 import spacemap
 import numpy as np
 import matplotlib.pyplot as plt
