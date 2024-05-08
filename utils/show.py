@@ -187,6 +187,7 @@ def imsave(path, img: np.array):
         img[img <= 0.0] = 0.0
     else:
         img = img.astype(np.uint8)
+    img = img.copy(order='C')
     plt.imsave(path, img)
             
     

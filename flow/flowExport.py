@@ -8,7 +8,7 @@ class FlowExport:
 
     def export_affine_grid(self, affineShape=None):
         if affineShape is None:
-            affineShape = spacemap.XYD
+            affineShape = spacemap.img.get_shape()
         pack = {}
         pack["affine_shape"] = affineShape
         

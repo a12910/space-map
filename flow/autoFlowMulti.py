@@ -120,7 +120,7 @@ class AutoFlowMulti:
         
     def _apply_grid(self, S: Slice, fromKey, toKey, grid):
         imgJ2_ = S.get_img(fromKey, mchannel=True, scale=False)
-        imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_)
+        imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_, grid)
         S.save_value_img(imgJ3_, toKey)
     
     def ldm_merge(self, show=False):
