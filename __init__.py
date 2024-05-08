@@ -5,7 +5,9 @@ from .base2 import *
 
 from .utils import he_img as he_img
 
+from .outputs import Transform, TransformDB
 from .sliceData import SliceData
+
 # from .tfboard import *
 from .slice import Slice, slice_show_align
 from .ldm import torch_LDDMMBase as base

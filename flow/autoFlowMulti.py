@@ -120,9 +120,7 @@ class AutoFlowMulti:
         
     def _apply_grid(self, S: Slice, fromKey, toKey, grid):
         imgJ2_ = S.get_img(fromKey, mchannel=True, scale=False)
-        imgJ3_ = np.zeros_like(imgJ2_)
-        for i in range(imgJ2_.shape[2]):
-            imgJ3_[:, :, i] = spacemap.img.apply_img_by_Grid(imgJ2_[:, :, i], grid)
+        imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_)
         S.save_value_img(imgJ3_, toKey)
     
     def ldm_merge(self, show=False):
@@ -139,7 +137,7 @@ class AutoFlowMulti:
                 sJ.data.saveGrid(newG, INIT_S.index, key)
             self._apply_grid(sJ, self.alignKey, self.ldmKey, newG)
             if show:
-                Slice.show_align(sI, sJ, self.ldmKey, self.ldmKey)
+                self.show_align(sI, sJ, self.ldmKey, self.ldmKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Merge")
         
     def ldm_fix(self, show=False):
@@ -149,12 +147,9 @@ class AutoFlowMulti:
         initI = self.slices[0].index
         
         for i in range(1, len(self.slices) - 1):
+            # 0直接忽略 不保存任何内容 fix
             sI = self.slices[i]
             sJ = self.slices[i+1]
-            if i == 0:
-                imgJ2 = sI.get_img(self.ldmKey)
-                sI.save_value_img(imgJ2, self.finalKey)
-                continue
             imgI = sI.get_img(self.finalKey, he=self.heImg)
             imgJ = sJ.get_img(self.ldmKey, he=self.heImg)
             mgr.load_img(imgI, imgJ)
@@ -163,7 +158,7 @@ class AutoFlowMulti:
             self._apply_grid(sJ, self.ldmKey, self.finalKey, grid)
             sJ.data.saveGrid(grid, initI, "fix")
             if show:
-                Slice.show_align(sI, sJ, self.finalKey, self.finalKey)
+                self.show_align(sI, sJ, self.finalKey, self.finalKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Fix")
         
     def ldm_final(self):
@@ -173,11 +168,52 @@ class AutoFlowMulti:
             sI = self.slices[i]
             sJ = self.slices[i+1]
             if i == 0:
-                grid1 = sI.data.loadGrid(initI, "img")
-                sJ.data.saveGrid(grid1, initI, "final_ldm")
                 continue
             grid = sJ.data.loadGrid(initI, "fix")
             grid1 = sJ.data.loadGrid(initI, "img")
             gridi = spacemap.mergeImgGrid(grid1, grid)
             sJ.data.saveGrid(gridi, initI, "final_ldm")
         spacemap.Info("LDMMgrMulti: Finish LDM Final")
+        
+    def ldm_continue(self, fromKey, toKey, he=False,
+                     affineFirst=False, fromGridKey="final_ldm", toGridKey="continue", affineFirstKey=None, show=False):
+        spacemap.Info("LDMMgrMulti: Start LDM Continue: %s->%s use: %s->%s" % (fromKey, toKey, fromGridKey, toGridKey))
+        
+        mgr = spacemap.registration.LDDMMRegistration()
+        mgr.gpu = self.gpu
+        initI = self.slices[0].index
+        
+        for i in range(len(self.slices) - 1):
+            sI = self.slices[i]
+            sJ = self.slices[i+1]
+            if i == 0:
+                imgI = sI.get_img_raw(fromKey)
+                sI.save_value_img(imgI, toKey)
+                if affineFirstKey is not None:
+                    sI.save_value_img(imgI, affineFirstKey)
+            imgI = sI.get_img(toKey, he=he)
+            imgJ = sJ.get_img(fromKey, he=he)
+            if affineFirst:
+                imgJ = spacemap.img.apply_transform(sJ, imgJ, 
+                                                    affineShape=None, initIndex=initI, gridKey=fromGridKey)
+                if affineFirstKey is not None:
+                    sJ.save_value_img(imgJ, affineFirstKey)
+                    
+            mgr.load_img(imgI, imgJ)
+            mgr.run()
+            
+            grid = mgr.generate_img_grid()
+            imgJ2_ = sJ.get_img_raw(fromKey)
+            imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_)
+            sJ.save_value_img(imgJ3_, toKey)
+            
+            grid = mgr.generate_img_grid()
+            gridOld = sJ.data.loadGrid(initI, fromGridKey)
+            gridNew = spacemap.mergeImgGrid(gridOld, grid)
+            sJ.data.saveGrid(gridNew, initI, toGridKey)
+            if show:
+                self.show_align(sI, sJ, toKey, toKey)
+        
+        
+        spacemap.Info("LDMMgrMulti: Finish LDM Continue: %s->%s use: %s->%s" % (fromKey, toKey, fromGridKey, toGridKey))
+        

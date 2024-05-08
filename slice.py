@@ -86,6 +86,9 @@ class Slice:
         }, inplace=True)
         return df
     
+    def get_img_raw(self, dfKey):
+        return self.get_img(dfKey, mchannel=True, scale=False)
+    
     def get_img(self, dfKey, mchannel=False, scale=True, he=None):
         xyd = spacemap.XYD
         xyr = spacemap.XYRANGE
