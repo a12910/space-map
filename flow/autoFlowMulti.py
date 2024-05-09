@@ -140,14 +140,14 @@ class AutoFlowMulti:
                 self.show_align(sI, sJ, self.ldmKey, self.ldmKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Merge")
         
-    def ldm_fix(self, show=False):
+    def ldm_fix(self, show=False, err=0.1):
         spacemap.Info("LDMMgrMulti: Start LDM Fix")
         mgr = spacemap.registration.LDDMMRegistration()
         mgr.gpu = self.gpu
+        mgr.err = err
         initI = self.slices[0].index
         
-        for i in range(1, len(self.slices) - 1):
-            # 0直接忽略 不保存任何内容 fix
+        for i in range(len(self.slices) - 1):
             sI = self.slices[i]
             sJ = self.slices[i+1]
             imgI = sI.get_img(self.finalKey, he=self.heImg)
@@ -164,11 +164,9 @@ class AutoFlowMulti:
     def ldm_final(self):
         spacemap.Info("LDMMgrMulti: Start LDM Final")
         initI = self.slices[0].index        
-        for i in range(1, len(self.slices) - 1):
+        for i in range(len(self.slices) - 1):
             sI = self.slices[i]
             sJ = self.slices[i+1]
-            if i == 0:
-                continue
             grid = sJ.data.loadGrid(initI, "fix")
             grid1 = sJ.data.loadGrid(initI, "img")
             gridi = spacemap.mergeImgGrid(grid1, grid)

@@ -51,9 +51,9 @@ def rotate_imgM(imgJ, M):
     rotatedI = cv2.warpAffine(imgJ, M, (w, h))
     return rotatedI
 
-def to_npH(H: np.array):
+def to_npH(H: np.array, xyd=None):
     H = H.copy()
-    xyd = spacemap.XYD
+    xyd = xyd if xyd is not None else spacemap.XYD
     H[0, 2] = H[0, 2] * xyd
     H[1, 2] = H[1, 2] * xyd
     return H
@@ -102,6 +102,7 @@ def apply_img_by_grid(img_: np.array, grid: np.array):
     else:
         It = It.permute(1, 2, 0)
     It = It.cpu().numpy()
+    It = It.clip(0, 1)
     return It
 
 # def merge_affine_to_grid(affine: np.array, grid=None, shape=None):

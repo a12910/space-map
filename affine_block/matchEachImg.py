@@ -1,4 +1,3 @@
-from numpy.core.multiarray import array as array
 import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,5 +53,4 @@ class MatchEachImg(spacemap.AffineBlock):
         if H is None:
             return []
         imgJ2 = spacemap.he_img.rotate_imgH(imgJ, H)
-        plt.imsave("/Users/hrd/Desktop/ims/%d.jpg" % i, imgJ2)
         return [i, H, imgI, imgJ2]

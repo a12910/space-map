@@ -65,8 +65,6 @@ def mergeGrid(grid0, grid1):
     return grid
 
 def mergeImgGrid(grid0, grid1):
-    # 此时，distorted_image2就是先后使用grid1和grid2扭曲后的图像
-    # 如果需要合并grid1和grid2为一个单独的grid3，可以这样计算：
     import torch.nn.functional as F
     grid0 = torch.tensor(grid0).type(torch.FloatTensor)
     grid1 = torch.tensor(grid1).type(torch.FloatTensor)

@@ -42,6 +42,7 @@ from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
 
 from .utils import grid as grid
+from .utils import grid3 as points
 from .utils import model3d as model3d
 from .utils import imaris as imaris
 from .utils import output as output

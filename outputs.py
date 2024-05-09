@@ -50,17 +50,17 @@ class TransformDB:
             result.append(img2)
         return result
     
-    def apply_points(self, imgs):
-        """ imgs: count+1 """
+    def apply_points(self, ps, xyd=None):
+        """ ps: count+1 """
         result = []
-        for index in range(1, len(imgs)):
+        result.append(ps[0])
+        for index in range(1, len(ps)):
             affine = self._affine[index-1]
             grid = self._grid[index-1]
-            img = imgs[index]
-            shape = img.shape
-            affine1 = spacemap.img.scale_H(affine, self.affine_shape, shape)
-            img1 = spacemap.img.rotate_imgH(img, affine1)
-            img2 = spacemap.img.apply_img_by_Grid(img1, grid)
-            result.append(img2)
+            p = ps[index]
+            affine1 = spacemap.points.to_npH(affine, xyd=xyd)
+            p1 = spacemap.points.applyH_np(p, affine1)
+            p2, _ = spacemap.points.apply_points_by_grid(grid, p1)
+            result.append(p2)
         return result
     
