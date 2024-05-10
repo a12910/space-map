@@ -49,8 +49,7 @@ def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.001):
             lastErr = l
         else:
             break
-
-    return inverse_grid.data
+    return inverse_grid.data.cpu().numpy()
 
 def grid_sample_points_vectorized(points, phi, xyd=10):
     N = phi.shape[1]

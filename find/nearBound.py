@@ -19,14 +19,10 @@ class NearBoundGenerate:
         spacemap.mkdir(folder)
         spacemap.mkdir(self.dataFolder)
         
-    def connect(self):
-        for i in range(self.count):
-            _ = self.get_data(i, "all")
-        
     def get_data(self, index, key):
         if not index in self.dbs:
             self.dbs[index] = spacemap.find.SimpleKVDB(self.dataFolder + "/%d.db" % index)
-            spacemap.Info("Connect DB: %d" % (index))
+            spacemap.Info("Init DB: %d" % (index))
         db = self.dbs[index]
         key = "%d_%s" % (index, key)
         return spacemap.find.NearBoundCellData(db, key)
@@ -72,18 +68,14 @@ class NearBoundGenerate:
             xy2 = self.db.apply_point(xy, i, self.maxShape)
             df1["x"] = xy2[:, 0]
             df1["y"] = xy2[:, 1]
-            cells = self.get_cell_ids(i)
-            spacemap.Info("Save Raw: %d" % i)
-            for celli, cell in enumerate(cells):
-                data = self.get_data(i, cell)
-                data.save("new_xy", xy2[celli], "np")
-                data.save("raw_xy", xy[celli], "np")
-            df1.to_csv(self.dataFolder + "/raw_%d.csv.gz" % i)
+            df1.to_csv(self.folder + "/raw_%d.csv.gz" % i)
     
     def compute_nearst(self):
+        boundFolder = self.folder + "/bound"
+        spacemap.mkdir(boundFolder)
         ps = []
         for i in range(self.count):
-            pxy = pd.read_csv(self.dataFolder + "/raw_%d.csv.gz" % i)[["x", "y"]].values
+            pxy = pd.read_csv(boundFolder + "/raw_%d.csv.gz" % i)[["x", "y"]].values
             ps.append(pxy)
         
         for i in range(self.count-1):
@@ -92,10 +84,9 @@ class NearBoundGenerate:
             ps1 = ps[i+1]
             nearst = spacemap.find.NearPointErr(10)
             spacemap.Info("Init Nearst: %d" % i)
-            nearst.init_db(ps1)
+            nearst.init_db(ps0)
             spacemap.Info("Search Nearst: %d" % i)
-            result = nearst.search(ps0, maxDis=7)
-            
+            result = nearst.search(ps1, maxDis=7)
             cellids = self.get_cell_ids(i)
             cellids2 = self.get_cell_ids(i+1)
             spacemap.Info("Save Nearst: %d" % i)
@@ -105,36 +96,23 @@ class NearBoundGenerate:
                 data.save("nearst_index", [cell2Index, cellids2[int(cell2Index)]], "lis")
     
     def compute_bound_err(self, data1, 
-                        data2, xyd=1):
-        group1 = data1.load("bound", "np") * xyd
-        group2 = data2.load("bound", "np") * xyd
-        
-        minx1, miny1 = group1.min(axis=0)
-        minx2, miny2 = group2.min(axis=0)
-        maxx1, maxy1 = group1.max(axis=0)
-        maxx2, maxy2 = group2.max(axis=0)
-        if not (minx1 < maxx2 and maxx1 > minx2 and miny1 < maxy2 and maxy1 > miny2):
-            return 0
-        
+                        data2, xyd=2):
+        group1 = data1.load("bound", "np")
+        group2 = data2.load("bound", "np")
+        # link two groups
         groups = np.concatenate([group1, group2], axis=0)
         minXY = np.min(groups, axis=0)
         maxXY = np.max(groups, axis=0)
-        shape = max(maxXY - minXY) + 5
         group1 = group1 - minXY
         group2 = group2 - minXY
-        
-        img1 = np.zeros((shape, shape, 3), dtype=np.uint8)
+        img1 = np.zeros((maxXY[0]-minXY[0], maxXY[1]-minXY[1], 3), dtype=np.uint8)
         img2 = np.zeros_like(img1)
         group1 = group1.astype(np.int32)
         group2 = group2.astype(np.int32)
-    
         img1 = cv2.fillPoly(img1, [group1], (128, 128, 128))
         img2 = cv2.fillPoly(img2, [group2], (128, 128, 128))
-        img12 = np.zeros_like(img1)
-        img12[:, :, 0] = img1[:, :, 0]
-        img12[:, :, 1] = img2[:, :, 1]
         e = spacemap.find.default()
-        return -e.err(img1, img2), img12
+        return -e.err(img1, img2)
     
     def compute_err(self):
         for i in range(self.count-1):
@@ -147,10 +125,10 @@ class NearBoundGenerate:
                 rawCell = self.get_data(i, rawCells[celli])
                 nearstIndex, nearCellID = rawCell.load("nearst_index", "lis")
                 nearCell = self.get_data(i+1, nearCellID)
-                e, _ = self.compute_bound_err(rawCell, nearCell)
+                e = self.compute_bound_err(rawCell, nearCell)
                 result[celli] = e
                 rawCell.save("err", e, "num")
             path = self.dataFolder + "/err_%d.npy" % i
             np.save(path, result)
-            spacemap.Info("Save Err: %d %f" % (i, result.mean()))
+            print(i, result.mean())
         
