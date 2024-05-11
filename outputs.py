@@ -35,6 +35,7 @@ class TransformDB:
         self._affine = pack["affines"]
         self._grid = pack["grids"]
         self.count = len(self._affine)
+        spacemap.Info("TransformDB: %d" % self.count)
         
     def apply_img(self, img, index, useGrid=True):
         if index == 0:

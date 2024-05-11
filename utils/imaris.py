@@ -55,7 +55,7 @@ class ModelGenerate:
             grid.generate()
             grid.fix()
             
-            np.save(path, grid)
+            np.save(path, grid.grid)
         spacemap.Info("Prepare grid done")
 
     def prepare_edge(self, edgeFolder, force=False, noGrid=False):

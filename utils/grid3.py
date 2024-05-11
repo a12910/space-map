@@ -70,14 +70,16 @@ def grid_sample_points_vectorized(points, phi, xyd=10):
     bottom_left = phi[x_index, y_index_plus_one, :]
     bottom_right = phi[x_index_plus_one, y_index_plus_one, :]
 
-    top_interp = (1 - x_ratio)[:, None] * top_left + x_ratio[:, None] * top_right
-    bottom_interp = (1 - x_ratio)[:, None] * bottom_left + x_ratio[:, None] * bottom_right
-    interpolated = (1 - y_ratio)[:, None] * top_interp + y_ratio[:, None] * bottom_interp
+    x_ratio = x_ratio[:, None]
+    y_ratio = y_ratio[:, None]
+    
+    top_interp = (1 - x_ratio) * top_left + x_ratio * top_right
+    bottom_interp = (1 - x_ratio) * bottom_left + x_ratio * bottom_right
+    interpolated = (1 - y_ratio) * top_interp + y_ratio * bottom_interp
 
     interpolated = (interpolated + 1) / 2 * xymax
     interpolated[:, [0, 1]] = interpolated[:, [1, 0]]  # 交换 x, y 坐标
     result = (interpolated - xymax / 2) * ((size - 2) / size) + xymax / 2
-
     return result
 
 def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
