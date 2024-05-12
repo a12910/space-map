@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import tqdm
 import cv2
+from multiprocessing import Pool
+import os
+
+
 
 class NearBoundGenerate:
     def __init__(self, db: spacemap.TransformDB, folder: str, 
@@ -18,6 +22,13 @@ class NearBoundGenerate:
         self.dbs = {}
         spacemap.mkdir(folder)
         spacemap.mkdir(self.dataFolder)
+        
+    def get_data(self, index, key):
+        if not index in self.dbs:
+            self.dbs[index] = spacemap.find.CacheKVDB(self.dataFolder + "/%d" % index)
+        db = self.dbs[index]
+        key = "%d_%s" % (index, key)
+        return spacemap.find.NearBoundCellData(db, key)
         
     def connect(self):
         for i in range(self.count):
@@ -56,14 +67,6 @@ class NearBoundGenerate:
                 data = self.get_data(i, key)
                 data.save("bound", group, "np")
         self.auto_close()
-        
-    def get_data(self, index, key):
-        if not index in self.dbs:
-            self.dbs[index] = spacemap.find.CacheKVDB(self.dataFolder + "/%d" % index)
-            spacemap.Info("Connect DB: %d" % (index))
-        db = self.dbs[index]
-        key = "%d_%s" % (index, key)
-        return spacemap.find.NearBoundCellData(db, key)
     
     def get_cell_ids(self, index):
         df = self.cellDB[self.cellDB["layer"] == (index + self.cFrom)]
@@ -193,7 +196,7 @@ class NearBoundGenerate:
             count = len(rawCells)
             result = np.zeros(count)
             
-            for celli in tqdm.trange(count):
+            for celli in range(count):
                 rawCell = self.get_data(i, rawCells[celli])
                 nearstIndex, nearCellID = rawCell.load("nearst_index", "lis")
                 nearCell = self.get_data(i+1, nearCellID)

@@ -174,35 +174,46 @@ class AutoFlowMulti:
         spacemap.Info("LDMMgrMulti: Finish LDM Final")
         
     def ldm_continue(self, fromKey, toKey, he=False,
-                     affineFirst=False, fromGridKey="final_ldm", toGridKey="continue", affineFirstKey=None, show=False):
+                     affineFirst=False, fromGridKey="final_ldm", toGridKey="continue", affineFirstKey=None, show=False, err=0.01):
         spacemap.Info("LDMMgrMulti: Start LDM Continue: %s->%s use: %s->%s" % (fromKey, toKey, fromGridKey, toGridKey))
         
         mgr = spacemap.registration.LDDMMRegistration()
         mgr.gpu = self.gpu
+        mgr.err = 0.01
         initI = self.slices[0].index
+        slices = self.slices
         
-        for i in range(len(self.slices) - 1):
+        if affineFirst:
+            spacemap.Info("LDMMgrMulti: Start Affine First")
+            if affineFirstKey is None:
+                affineFirstKey = "affineFirstKey"
+            for i in range(len(self.slices) - 1):
+                sI = self.slices[i]
+                imgI = sI.get_img_raw(fromKey)
+                if i == 0:
+                    sI.save_value_img(imgI, affineFirstKey)
+                else:
+                    imgI2 = spacemap.img.apply_transform(sI, imgI, 
+                                        affineShape=None, 
+                                        initIndex=initI, gridKey=fromGridKey)
+                    sI.save_value_img(imgI2, affineFirstKey)
+            fromKey = affineFirstKey
+        
+        for i in range(len(slices) - 1):
+            spacemap.Info("LDMMgrMulti: Continue %d/%d" % (i+1, len(slices)))
             sI = self.slices[i]
-            sJ = self.slices[i+1]
+            sJ = slices[i+1]
             if i == 0:
                 imgI = sI.get_img_raw(fromKey)
                 sI.save_value_img(imgI, toKey)
-                if affineFirstKey is not None:
-                    sI.save_value_img(imgI, affineFirstKey)
             imgI = sI.get_img(toKey, he=he)
             imgJ = sJ.get_img(fromKey, he=he)
-            if affineFirst:
-                imgJ = spacemap.img.apply_transform(sJ, imgJ, 
-                                                    affineShape=None, initIndex=initI, gridKey=fromGridKey)
-                if affineFirstKey is not None:
-                    sJ.save_value_img(imgJ, affineFirstKey)
-                    
             mgr.load_img(imgI, imgJ)
             mgr.run()
             
             grid = mgr.generate_img_grid()
             imgJ2_ = sJ.get_img_raw(fromKey)
-            imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_)
+            imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_, grid)
             sJ.save_value_img(imgJ3_, toKey)
             
             grid = mgr.generate_img_grid()
@@ -211,7 +222,6 @@ class AutoFlowMulti:
             sJ.data.saveGrid(gridNew, initI, toGridKey)
             if show:
                 self.show_align(sI, sJ, toKey, toKey)
-        
         
         spacemap.Info("LDMMgrMulti: Finish LDM Continue: %s->%s use: %s->%s" % (fromKey, toKey, fromGridKey, toGridKey))
         

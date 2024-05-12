@@ -66,16 +66,17 @@ def to_imgH(H: np.array):
     return H
 
 def apply_transform(S: spacemap.Slice, img: np.array, affineShape, 
-                        initIndex, affineKey="cell", gridKey="final_ldm"):
-        affine = S.data.loadH(initIndex, affineKey)
-        grid = S.data.loadGrid(initIndex, gridKey)
-        shape = img.shape
-        if affineShape is None:
-            affineShape = get_shape()
-        affine1 = scale_H(affine, affineShape, shape)
-        img1 = rotate_imgH(img, affine1)
-        img2 = apply_img_by_grid(img1, grid)
-        return img2
+                        initIndex, 
+                        affineKey="cell", gridKey="final_ldm"):
+    affine = S.data.loadH(initIndex, affineKey)
+    grid = S.data.loadGrid(initIndex, gridKey)
+    shape = img.shape
+    if affineShape is None:
+        affineShape = get_shape()
+    affine1 = scale_H(affine, affineShape, shape)
+    img1 = rotate_imgH(img, affine1)
+    img2 = apply_img_by_grid(img1, grid)
+    return img2
 
 def apply_img_by_grid(img_: np.array, grid: np.array):
     import torch

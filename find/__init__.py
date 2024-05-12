@@ -7,3 +7,4 @@ from .multiLabel import MultiLabelDice
 from .nearPoint import NearPointErr
 from .nearBoundCellData import NearBoundCellData, SimpleKVDB, CacheKVDB
 from .nearBound import NearBoundGenerate
+from .nearBoundThread import NearBoundGenerateThread
