@@ -31,12 +31,10 @@ def init_he_pair(imgI: np.array, imgJ: np.array):
     
     return imgI, imgJ3, H
 
-def process_he(img, limit=64):
+def process_he(img):
     img = np.flip(img, axis=1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img[img > limit] = 255
-    img[img <= limit] = 0
-    img = 255 - img
+    _, img = split_he_background_otsu(img)
     img[img > 0] = 255
     return img
 

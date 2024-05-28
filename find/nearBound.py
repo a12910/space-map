@@ -76,6 +76,9 @@ class NearBoundGenerate:
         edges_group = edgesDF.groupby("cell_id")
         edges = {}
         for cid, group in edges_group:
+            if "x" not in group.columns:
+                group["x"] = group["vertex_x"]
+                group["y"] = group["vertex_y"]
             g = np.array(group[["x", "y"]].values, dtype=np.int32)
             if g.shape[0] < 3: continue
             if np.sum(g.max(axis=0) - g.min(axis=0)) > 200: continue
@@ -229,6 +232,7 @@ class NearBoundGenerate:
         count = np.zeros(size)
         for i in lis:
             i = int(i / step)
+            i = min(size-1, max(0, i))
             count[i] += 1
         all = 0
         allCount = len(lis)

@@ -11,6 +11,7 @@ class NearBoundGenerateThread(NearBoundGenerate):
     def __init__(self, db: spacemap.TransformDB, folder: str, 
                  cellDB: pd.DataFrame, cFrom: int, maxShape) -> None:
         super().__init__(db, folder, cellDB, cFrom, maxShape)
+        spacemap.Info("MultiThread: %d" % os.cpu_count())
     
     def get_thread_datas(self, count):
         return [[self, i] for i in range(count)]
