@@ -13,11 +13,13 @@ def _initialize_identity_grid(N, device):
     identity_grid = torch.stack((grid_y, grid_x), dim=-1)  # Shape: [N, N, 2]
     return identity_grid
 
-def _apply_transformation(grid, transformation):
-    """ Apply a transformation to a grid. """
+def _apply_transformation(grid0, grid1):
+    """ Apply a transformation to a grid. 
+        img -> grid0 -> grid1 -> img
+    """
     # Reshape grid to [1, H, W, 2] and transformation to [1, 2, H, W]
-    return nn.functional.grid_sample(transformation.unsqueeze(0).permute(0, 3, 1, 2),
-                                     grid.unsqueeze(0),
+    return nn.functional.grid_sample(grid0.unsqueeze(0).permute(0, 3, 1, 2),
+                                     grid1.unsqueeze(0),
                                      mode='bilinear',
                                      padding_mode='zeros',
                                      align_corners=True).permute(0, 2, 3, 1).squeeze(0)
@@ -50,6 +52,42 @@ def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.001):
         else:
             break
     return inverse_grid.data.cpu().numpy()
+
+def minus_grid_train(grid1, grid2, target, device="cpu", epochs=1000, lr=0.001):
+    """ grid1 + grid2 = target """
+    if grid1 is not None:
+        grid1 = torch.tensor(grid1, dtype=torch.float32, device=device)
+        N = grid2.shape[0]
+    if grid2 is not None:
+        grid2 = torch.tensor(grid2, dtype=torch.float32, device=device)
+        N = grid2.shape[0]
+    
+    target_grid = torch.tensor(target, dtype=torch.float32, device=device)
+    
+    initial_grid = _initialize_identity_grid(N, device)
+    initial_grid = torch.nn.Parameter(initial_grid.clone())
+
+    optimizer = optim.Adam([initial_grid], lr=lr)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.75)
+    loss_fn = nn.MSELoss()
+
+    lastErr = 1.0
+    for epoch in range(epochs):
+        optimizer.zero_grad()
+        if grid1 is not None:
+            transformed_grid = _apply_transformation(grid1, initial_grid)
+        else:
+            transformed_grid = _apply_transformation( initial_grid, grid2)
+        loss = loss_fn(transformed_grid, target_grid)
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+        l = loss.item()
+        if l < lastErr:
+            lastErr = l
+        else:
+            break
+    return initial_grid.data.cpu().numpy()
 
 def grid_sample_points_vectorized(points, phi, xyd=10):
     N = phi.shape[1]

@@ -30,6 +30,13 @@ class GridGenerate:
         self.useTQDM = True
         
     @staticmethod
+    def convert_to_img_grid(grid: np.array, xyd):
+        img = grid / (grid.shape[0] * xyd / 2) - 1
+        img[:, :, 0] = grid[:, :, 0]
+        img[:, :, 1] = grid[:, :, 1]
+        return img
+        
+    @staticmethod
     def fit_new_points(pFrom, pTo, target, poly_degree):
         poly_features = PolynomialFeatures(degree=poly_degree, include_bias=False)
         original_points_poly = poly_features.fit_transform(pFrom)

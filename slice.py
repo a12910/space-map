@@ -113,6 +113,8 @@ class Slice:
             img = cv2.resize(img, shape)
         if (he == True) or (he is None and self.heImg):
             _, img = spacemap.he_img.split_he_background_otsu(img)
+        if spacemap.IMGCONF.get("raw", 0) == 0:
+            img[img > 0] = 1.0
         return img        
     
     def create_img(self, dfk: str, useDF=None, mchannel=False, he=False):

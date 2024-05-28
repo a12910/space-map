@@ -63,7 +63,7 @@ class ModelGenerate:
         spacemap.mkdir(folder)
         
         for index in range(self.start, self.end+1):
-            path = "%s/edge/align_edge_%d.csv" % (self.baseFolder, index)
+            path = "%s/edge/align_edge_%d.csv.gz" % (self.baseFolder, index)
             if os.path.exists(path) and not force:
                 continue
             spacemap.Info("Prepare edge %d" % index)
@@ -80,6 +80,7 @@ class ModelGenerate:
                 points2 = gen.grid_sample_points(points)
                 df["x"] = points2[:, 0]
                 df["y"] = points2[:, 1]
+            df = df[["cell_id", "x", "y"]].copy()
             df.to_csv(path, index=False)
         spacemap.Info("Prepare edge done")
         
@@ -102,6 +103,8 @@ class ModelGenerate:
             return self.edgeCache[layer]
         path = "%s/edge/align_edge_%d.csv" % (self.baseFolder, layer)
         spacemap.Info("load layer %d" % layer)
+        if not os.path.exists(path):
+            path = path + ".gz"
         db = self.parse_edge(pd.read_csv(path))
         self.edgeCache[layer] = db
         return db

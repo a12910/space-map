@@ -65,6 +65,7 @@ def mergeGrid(grid0, grid1):
     return grid
 
 def mergeImgGrid(grid0, grid1):
+    """ img -> grid0 -> grid1 -> img2 """
     import torch.nn.functional as F
     grid0 = torch.tensor(grid0).type(torch.FloatTensor)
     grid1 = torch.tensor(grid1).type(torch.FloatTensor)

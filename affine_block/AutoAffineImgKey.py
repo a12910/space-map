@@ -12,9 +12,9 @@ class AutoAffineImgKey(spacemap.AffineFlowMgrImg):
     def run(self):
         if self.method is None:
             self.method = "sift_vgg"
-        if self.method != "":
+        if self.method != "" and self.method != "only_grad":
             self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method=self.method))
-        if len(self.matches) > 5:
+        if len(self.matches) > 5 and self.method != "only_grad":
             self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
             self.run_flow(spacemap.affine_block.FilterGlobalImg())
             self.run_flow(spacemap.affine_block.MatchEachImg())
