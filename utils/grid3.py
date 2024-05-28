@@ -91,6 +91,7 @@ def minus_grid_train(grid1, grid2, target, device="cpu", epochs=1000, lr=0.001):
 
 def grid_sample_points_vectorized(points, phi, xyd=10):
     N = phi.shape[1]
+    xyd = int(xyd)
     xymax = N * xyd
     size = xymax // xyd - 1
 
