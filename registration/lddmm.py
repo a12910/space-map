@@ -5,6 +5,7 @@ from spacemap import LDDMM2D
 
 class LDDMMRegistration(Registration):
     nt=7
+    verbose=100
     def __init__(self):
         super().__init__("LDDMM")
         self.imgI = None
@@ -28,7 +29,7 @@ class LDDMMRegistration(Registration):
         do_l = 0 if restart else 1
         self.ldm = LDDMM2D(template=self.imgJ, 
                            target=self.imgI, do_affine=1,do_lddmm=do_l, 
-                           nt=LDDMMRegistration.nt,optimizer='adam', sigma=20.0,sigmaR=40.0, gpu_number=self.gpu, target_err=0.1,verbose=100, target_step=20000, show_init=False)
+                           nt=LDDMMRegistration.nt,optimizer='adam', sigma=20.0,sigmaR=40.0, gpu_number=self.gpu, target_err=0.1,verbose=LDDMMRegistration.verbose, target_step=20000, show_init=False)
 
     def load_params_path(self, path):
         path = path + ".npz"

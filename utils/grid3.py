@@ -136,6 +136,8 @@ def grid_sample_points_vectorized(points, phi, xyd=10):
 
 def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
     xyd = xyd if xyd is not None else int(spacemap.XYRANGE[1] // grid.shape[1])
+    if len(grid.shape) == 4:
+        grid = grid.squeeze(0)
     if inv_grid is None:
         inv_grid = inverse_grid_train(grid)
     ps2 = grid_sample_points_vectorized(ps, inv_grid, xyd)
