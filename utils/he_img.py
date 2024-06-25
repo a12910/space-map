@@ -349,3 +349,24 @@ def split_he_background_otsu(img_):
     image_ = img_.copy()
     image_[binarized_image > 0] = 0
     return binarized_image, image_
+
+def split_he_background(img, minArea=2000, maxArea=10000):
+    from skimage import morphology
+    from scipy import ndimage
+    mask, _ = split_he_background_otsu(img)
+    img1 = img.copy()
+    mask1 = 255 - mask
+    bool_mask = mask1.astype(bool)
+    filled_mask = morphology.remove_small_holes(bool_mask, area_threshold=maxArea).astype(np.uint8) * 255
+    labeled_mask, num_features = ndimage.label(filled_mask)
+    cleaned_mask = np.zeros_like(filled_mask)
+    for i in range(1, num_features + 1):
+        component = (labeled_mask == i)
+        if np.sum(component) >= minArea:
+            cleaned_mask[component] = 255
+    if len(img.shape) == 2:
+        img1[cleaned_mask == 0] = 0
+    else:
+        zeros = np.zeros(img.shape[2])
+        img1[cleaned_mask == 0] = zeros
+    return img1

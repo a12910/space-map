@@ -5,7 +5,9 @@ import numpy as np
 import spacemap
 
 def _initialize_identity_grid(N, device):
-    """ Initialize an identity grid for a given size N. """
+    """ Initialize an identity grid for a given size N.
+        NxNx2
+    """
     # Generate a grid of coordinates
     x = torch.linspace(-1, 1, N, device=device)
     y = torch.linspace(-1, 1, N, device=device)
@@ -17,6 +19,14 @@ def _apply_transformation(grid0, grid1):
     """ Apply a transformation to a grid. 
         img -> grid0 -> grid1 -> img
     """
+    if isinstance(grid0, np.ndarray):
+        grid0 = torch.tensor(grid0, dtype=torch.float32)
+    if isinstance(grid1, np.ndarray):
+        grid1 = torch.tensor(grid1, dtype=torch.float32)
+    if len(grid0.shape) == 4:
+        grid0 = grid0.squeeze(0)
+    if len(grid1.shape) == 4:
+        grid1 = grid1.squeeze(0)
     # Reshape grid to [1, H, W, 2] and transformation to [1, 2, H, W]
     return nn.functional.grid_sample(grid0.unsqueeze(0).permute(0, 3, 1, 2),
                                      grid1.unsqueeze(0),

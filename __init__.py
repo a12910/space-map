@@ -21,6 +21,9 @@ from .utils import err as err
 from .utils import interest as interest
 from .utils import fig as fig
 from .utils import compute as compute
+from .utils import img as img
+from .utils import grid3 as points
+from .utils import imaris as imaris
 
 from .flowBase import *
 from .mgr.flowMgr import AffineFlowMgr, AffineFlowMgrBase
@@ -40,14 +43,3 @@ from . import flow
 
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
-
-from .utils import grid as grid
-from .utils import grid3 as points
-from .utils import grid4 as pointsGen
-from .utils import model3d as model3d
-from .utils import imaris as imaris
-from .utils import output as output
-from .utils import compare as compare
-from .utils import img as img
-
-

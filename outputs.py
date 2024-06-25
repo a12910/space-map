@@ -46,6 +46,7 @@ class TransformDB:
     def apply_img(self, img, index, useGrid=True):
         if index == 0:
             return img
+        uint = img.max() > 1.0
         if self._affine is not None:
             affine = self._affine[index-1]
             
@@ -56,8 +57,10 @@ class TransformDB:
             img1 = img
         if useGrid and self._grid is not None:
             grid = self._grid[index-1]
-            img2 = spacemap.img.apply_img_by_grid(img1, grid)
-            return img2
+            img1 = spacemap.img.apply_img_by_grid(img1, grid)
+        if uint:
+            img1 = img1 * 255
+            img1 = img1.astype(np.uint8)
         return img1
     
     def apply_point(self, p, index, maxShape=None, useGrid=True):
