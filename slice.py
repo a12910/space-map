@@ -77,7 +77,7 @@ class Slice:
                 df = pd.read_csv(path2)
                 self.dfs[dfKey] = df
             else:
-                spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
+                spacemap.Info("Slice Load DF %s %s->raw" % (self.index, dfKey))
                 return self.get_df(Slice.rawKey, keys=keys)
         df = self.dfs[dfKey].copy()
         df.rename(columns={

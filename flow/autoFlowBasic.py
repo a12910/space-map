@@ -13,6 +13,7 @@ class AutoFlowBasic:
         self.initJKey = initJKey
         self.alignKey = Slice.align1Key
         self.ldmKey = Slice.align2Key
+        self.continueStart = 0
         self.gpu=gpu
         self.finalKey = Slice.finalKey
         self.enhanceKey = Slice.enhanceKey
@@ -22,7 +23,7 @@ class AutoFlowBasic:
         self.enhanceErr = 0.01
         self.heImg = False
         self.alignMethod = alignMethod
-        
+        self.dfMode = False
         self.applyDF = False
         self.applyImg = False
         
@@ -40,14 +41,14 @@ class AutoFlowBasic:
         initS = self.slices[0]
         key = "cell"
             
-        for i in range(len(self.slices) - 1):
+        for i in range(self.continueStart, len(self.slices) - 1):
             S1 = self.slices[i]
             S2 = self.slices[i+1]
             spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
             if affine:
-                img1 = S1.create_img(self.initJKey, useDF=False, 
+                img1 = S1.create_img(self.initJKey, useDF=self.dfMode, 
                                      he=self.heImg)
-                img2 = S2.create_img(self.initJKey, useDF=False, 
+                img2 = S2.create_img(self.initJKey, useDF=self.dfMode, 
                                      he=self.heImg)
                 mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
                 mgr.run()
@@ -62,7 +63,7 @@ class AutoFlowBasic:
                 H2i = np.dot(H1i, H21)
                 S2.data.saveH(H2i, initS.index, key)
                 S2.applyH(self.initJKey, H2i, self.alignKey, forIMG=True)
-                if self.applyDF:
+                if self.applyDF or self.dfMode:
                     H2i_np = spacemap.img.to_npH(H2i)
                     S2.applyH(self.initJKey, H2i_np, self.alignKey, forIMG=False)
             if show:
@@ -77,18 +78,25 @@ class AutoFlowBasic:
         self.affine(merge=True, affine=False, show=True)
         
     def show_align(self, S1, S2, key1, key2):
-        Slice.show_align(S1, S2, key1, key2, forIMG=True, imgHE=self.heImg)
-        img1 = S1.get_img(key1, he=self.heImg)
-        img2 = S2.get_img(key2, he=self.heImg)
+        img1 = S1.create_img(key1, he=self.heImg, useDF=self.dfMode)
+        img2 = S2.create_img(key2, he=self.heImg, useDF=self.dfMode)
         e = self.err.err(img1, img2)
         spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
-        if self.applyDF:
+        
+        if self.applyDF or self.dfMode:
             Slice.show_align(S1, S2, key1, key2, forIMG=False, imgHE=self.heImg)
+        else:
+            Slice.show_align(S1, S2, key1, key2, forIMG=True, imgHE=self.heImg)
         
     def _apply_grid(self, S: Slice, fromKey, toKey, grid):
-        imgJ2_ = S.get_img(fromKey, mchannel=True, scale=False)
+        imgJ2_ = S.create_img(fromKey, mchannel=True, useDF=self.dfMode)
         imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_, grid)
         S.save_value_img(imgJ3_, toKey)
+        if self.applyDF or self.dfMode:
+            ps = S.to_points(fromKey)
+            ps2, _ = spacemap.points.apply_points_by_grid(grid, ps)
+            # ps2 = spacemap.applyPointsByGrid(grid, ps)
+            S.save_value_points(ps2, toKey)
    
     def ldm_basic_all(self, show=False, err=0.1):
         spacemap.Info("LDMMgrMulti: Start LDM basic all")

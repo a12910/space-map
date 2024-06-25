@@ -142,6 +142,7 @@ def show_img3(values: np.array, imgConf=None):
         img += img1
     if mid > 0:
         img = cv2.medianBlur(img.astype(np.float32), mid)
+    img = img.astype(np.uint8)
     return img
 
 def img_norm(imgI, imgJ):

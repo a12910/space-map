@@ -7,6 +7,7 @@ class MatchInitImg(spacemap.AffineBlock):
         super().__init__("MatchInitImg")
         self.updateMatches = True
         self.matchr = matchr
+        self.method = method
         if method == "loftr":
             self.alignment = spacemap.matches.LOFTR()
         else:
@@ -19,7 +20,7 @@ class MatchInitImg(spacemap.AffineBlock):
         return self.compute_img(imgI, imgJ, finder)
     
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
-        spacemap.Info("Init Matches start")
+        spacemap.Info("Init Matches start %s" % self.method)
         matches = self.alignment.compute(imgI, imgJ, 
                                          matchr=self.matchr) 
         self.matches = matches

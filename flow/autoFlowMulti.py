@@ -31,8 +31,8 @@ class AutoFlowMulti(AutoFlowBasic):
             sI = self.slices[i]
             sJ = self.slices[i+1]
             spacemap.Info("LDMMgrMulti: Start LDM %d/%d %s->%s" % (i+1, len(self.slices), sJ.index, sI.index))
-            imgI1 = sI.get_img(self.alignKey, he=self.heImg)
-            imgJ2 = sJ.get_img(self.alignKey, he=self.heImg)
+            imgI1 = sI.create_img(self.alignKey, he=self.heImg, useDF=self.dfMode)
+            imgJ2 = sJ.create_img(self.alignKey, he=self.heImg, useDF=self.dfMode)
             
             ldm = spacemap.registration.LDDMMRegistration()
             ldm.gpu = self.gpu

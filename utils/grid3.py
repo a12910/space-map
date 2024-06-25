@@ -35,8 +35,11 @@ def _apply_transformation(grid0, grid1):
                                      align_corners=True).permute(0, 2, 3, 1).squeeze(0)
 
 def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.001):
+    """ grid: 1xNxNx2 """
     transformed_grid1 = torch.tensor(grid, dtype=torch.float32, device=device)
-    N = grid.shape[0]
+    if len(transformed_grid1.shape) == 3:
+        transformed_grid1 = transformed_grid1.unsqueeze(0)
+    N = grid.shape[1]
     initial_grid = _initialize_identity_grid(N, device)
     identity_grid = _initialize_identity_grid(N, device)
 
@@ -132,7 +135,7 @@ def grid_sample_points_vectorized(points, phi, xyd=10):
     return result
 
 def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
-    xyd = xyd if xyd is not None else spacemap.XYD
+    xyd = xyd if xyd is not None else int(spacemap.XYRANGE[1] // grid.shape[1])
     if inv_grid is None:
         inv_grid = inverse_grid_train(grid)
     ps2 = grid_sample_points_vectorized(ps, inv_grid, xyd)

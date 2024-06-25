@@ -8,7 +8,7 @@ class FlowExport:
         self.ldmKey = "final_ldm"
         self.affineKey = "cell"
 
-    def export_affine_grid(self, affineShape=None, gridKey1="final_ldm", gridKey2="img"):
+    def export_affine_grid(self, affineShape=None, gridKey1="final_ldm", gridKey2="img", save=None):
         if affineShape is None:
             affineShape = spacemap.img.get_shape()
         pack = {}
@@ -29,6 +29,8 @@ class FlowExport:
         g = np.array(grids)
         pack["affines"] = a
         pack["grids"] = g
+        if save:
+            np.savez_compressed(save, **pack)
         return pack
     
     def export_imgs(self, key, mchannel=True, he=False, scale=False):

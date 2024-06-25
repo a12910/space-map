@@ -74,6 +74,8 @@ def siftImageAlignment(imgI,imgJ, matchr=0.75, method='sift', scale=False):
     kp1,des1 = __sift_kp(imgI, method, scale)
     kp2,des2 = __sift_kp(imgJ, method, scale)
     bf = cv2.BFMatcher()
+    if des1 is None or des2 is None or len(des1) < 2 or len(des2) < 2:
+        return np.array([])
     matches = bf.knnMatch(des1, des2, k=2)
     matches2 = []
     for mat in matches:
