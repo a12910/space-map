@@ -8,7 +8,7 @@ class FlowExport:
         self.ldmKey = "final_ldm"
         self.affineKey = "cell"
 
-    def export_affine_grid(self, affineShape=None):
+    def export_affine_grid(self, affineShape=None, gridKey1="final_ldm", gridKey2="img"):
         if affineShape is None:
             affineShape = spacemap.img.get_shape()
         pack = {}
@@ -19,10 +19,10 @@ class FlowExport:
         initS = self.slices[0].index
         for s in self.slices[1:]:
             print(s.index)
-            affine = s.data.loadH(initS, self.affineKey)
-            grid = s.data.loadGrid(initS, self.ldmKey)
+            affine = s.data.loadH(initS, "cell")
+            grid = s.data.loadGrid(initS, gridKey1)
             if grid is None:
-                grid = s.data.loadGrid(initS, "img")
+                grid = s.data.loadGrid(initS, gridKey2)
             affines.append(affine)
             grids.append(grid[0])
         a = np.array(affines)

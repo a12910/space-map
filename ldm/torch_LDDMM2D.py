@@ -22,7 +22,7 @@ def get_init2D(imgI, imgJ, gpu=None, verbose=100):
         gpu = spacemap.DEVICE
     ldm = LDDMM2D(template=imgJ,target=imgI,
                               do_affine=1,do_lddmm=0,
-                              nt=3,
+                              nt=7,
                               optimizer='adam',
                               sigma=20.0,sigmaR=40.0,
                               gpu_number=gpu,
