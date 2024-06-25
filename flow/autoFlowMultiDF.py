@@ -13,7 +13,7 @@ class AutoFlowMultiDF(AutoFlowBasic):
         
     def _apply_grid(self, S: Slice, fromKey, toKey, grid):
         ps = S.to_points(fromKey)
-        ps2, _ = spacemap.points.apply_points_by_grid(None, grid[0], ps)
+        ps2, _ = spacemap.points.apply_points_by_grid(grid, ps, grid[0])
         S.save_value_points(ps2, toKey)
 
     def ldm_fix_align(self, show=False, err=0.1):

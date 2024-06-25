@@ -98,25 +98,4 @@ class AutoFlowBasic:
             # ps2 = spacemap.applyPointsByGrid(grid, ps)
             S.save_value_points(ps2, toKey)
    
-    def ldm_basic_all(self, show=False, err=0.1):
-        spacemap.Info("LDMMgrMulti: Start LDM basic all")
-        mgr = spacemap.registration.LDDMMRegistration()
-        mgr.gpu = self.gpu
-        mgr.err = err
-        initI = self.slices[0].index
-        
-        gridKey = "final_ldm"
-        for i in range(len(self.slices) - 1):
-            sI = self.slices[i]
-            sJ = self.slices[i+1]
-            imgI = sI.get_img(self.finalKey, he=self.heImg)
-            imgJ = sJ.get_img(self.alignKey, he=self.heImg)
-            mgr.load_img(imgI, imgJ)
-            mgr.run()
-            grid = mgr.generate_img_grid()
-            self._apply_grid(sJ, self.alignKey, gridKey, grid)
-            sJ.data.saveGrid(grid, initI, gridKey)
-            if show:
-                self.show_align(sI, sJ, gridKey, gridKey)
-        spacemap.Info("LDMMgrMulti: Finish basic all")
         
