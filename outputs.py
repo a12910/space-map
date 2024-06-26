@@ -57,8 +57,8 @@ class TransformDB:
         if useGrid and self._grid is not None:
             grid = self._grid[index-1]
             if self.dfGrid:
-                grid1 = spacemap.points.inverse_grid_train(grid)
-                img1 = spacemap.img.apply_img_by_grid(img1, grid1)
+                grid = spacemap.points.inverse_grid_train(grid)
+            img1 = spacemap.img.apply_img_by_grid(img1, grid)
         if uint:
             img1 = img1 * 255
             img1 = img1.astype(np.uint8)

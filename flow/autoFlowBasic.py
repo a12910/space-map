@@ -12,6 +12,9 @@ class AutoFlowBasic:
         self.slices = slices
         self.initJKey = initJKey
         self.alignKey = Slice.align1Key
+        self.pairGridKey = "img"
+        self.fixGridKey = "fix"
+        self.finalGridKey = "final_ldm"
         self.ldmKey = Slice.align2Key
         self.continueStart = 0
         self.gpu=gpu

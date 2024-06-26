@@ -33,7 +33,7 @@ class AutoFlowMulti(AutoFlowBasic):
         mgr.err = err
         initI = self.slices[0].index
         
-        gridKey = "final_ldm"
+        gridKey = self.fixGridKey
         for i in range(len(self.slices) - 1):
             sI = self.slices[i]
             sJ = self.slices[i+1]
@@ -65,7 +65,7 @@ class AutoFlowMulti(AutoFlowBasic):
             ldm.run()
             spacemap.Info("LDMMgrMulti: Finish LDM %d/%d %s->%s" % (i+1, len(self.slices), sJ.index, sI.index))
             grid = ldm.generate_img_grid()
-            sJ.data.saveGrid(grid, sI.index, "img")
+            sJ.data.saveGrid(grid, sI.index, self.pairGridKey)
             imgJ3 = ldm.apply_img(imgJ2)
             self.show_err(imgI1, imgJ2, imgJ3, sJ.index)
             if show:
@@ -106,7 +106,7 @@ class AutoFlowMulti(AutoFlowBasic):
             mgr.run()
             grid = mgr.generate_img_grid()
             self._apply_grid(sJ, self.ldmKey, self.finalKey, grid)
-            sJ.data.saveGrid(grid, initI, "fix")
+            sJ.data.saveGrid(grid, initI, self.fixGridKey)
             if show:
                 self.show_align(sI, sJ, self.finalKey, self.finalKey)
         spacemap.Info("LDMMgrMulti: Finish LDM Fix")
@@ -117,8 +117,8 @@ class AutoFlowMulti(AutoFlowBasic):
         for i in range(len(self.slices) - 1):
             sI = self.slices[i]
             sJ = self.slices[i+1]
-            grid = sJ.data.loadGrid(initI, "fix")
-            grid1 = sJ.data.loadGrid(initI, "img")
+            grid = sJ.data.loadGrid(initI, self.fixGridKey)
+            grid1 = sJ.data.loadGrid(initI, self.pairGridKey)
             gridi = spacemap.mergeImgGrid(grid1, grid)
             sJ.data.saveGrid(gridi, initI, "final_ldm")
         spacemap.Info("LDMMgrMulti: Finish LDM Final")

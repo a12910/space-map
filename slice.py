@@ -77,6 +77,8 @@ class Slice:
                 df = pd.read_csv(path2)
                 self.dfs[dfKey] = df
             else:
+                if dfKey == Slice.rawKey:
+                    raise Exception("no Data")
                 spacemap.Info("Slice Load DF %s %s->raw" % (self.index, dfKey))
                 return self.get_df(Slice.rawKey, keys=keys)
         df = self.dfs[dfKey].copy()

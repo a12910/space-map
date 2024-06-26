@@ -22,7 +22,7 @@ def show_img_labels(xy: np.array, labels: np.array):
     return mapp, mapCount    
 
 def show_xy_np(nps: [np.array], labels: [str], 
-               xylim=None, s=1, alpha=0.2, 
+               xylim=None, s=1, alpha=0.1, 
                legend=True, transparent=False, 
                outTag="", outSave=True):
     fig,ax = plt.subplots()
