@@ -7,6 +7,7 @@ class FlowExport:
         self.slices = slices
         self.ldmKey = "final_ldm"
         self.affineKey = "cell"
+        self.initSlice = slices[0]
 
     def export_affine_grid(self, affineShape=None, gridKey1="final_ldm", gridKey2="img", save=None):
         if affineShape is None:
@@ -16,15 +17,25 @@ class FlowExport:
 
         affines = []
         grids = []
-        initS = self.slices[0].index
-        for s in self.slices[1:]:
+        initS = self.initSlice.index
+        initI = 0
+        for i, s in enumerate(self.slices):
             print(s.index)
-            affine = s.data.loadH(initS, "cell")
+            if s.index == self.initSlice:
+                initI = i
+                affines.append(None)
+                grids.append(None)
+                continue
+            affine = s.data.loadH(initS, self.affineKey)
             grid = s.data.loadGrid(initS, gridKey1)
             if grid is None:
                 grid = s.data.loadGrid(initS, gridKey2)
             affines.append(affine)
             grids.append(grid[0])
+        i1 = (initI+1) % (len(self.slices) - 1)
+        affines[initI] = np.zeros_like(affines[i1])
+        grids[initI] = np.zeros_like(grids[i1])
+        
         a = np.array(affines)
         g = np.array(grids)
         pack["affines"] = a

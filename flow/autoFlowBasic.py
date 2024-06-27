@@ -94,6 +94,10 @@ class AutoFlowBasic:
     def _apply_grid(self, S: Slice, fromKey, toKey, grid):
         imgJ2_ = S.create_img(fromKey, mchannel=True, useDF=self.dfMode)
         imgJ3_ = spacemap.img.apply_img_by_grid(imgJ2_, grid)
+        meanJ2 = np.mean(imgJ2_)
+        meanJ3 = np.mean(imgJ3_)
+        imgJ3_ = imgJ3_ * meanJ2 / meanJ3
+        
         S.save_value_img(imgJ3_, toKey)
         if self.applyDF or self.dfMode:
             ps = S.to_points(fromKey)

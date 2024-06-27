@@ -42,38 +42,60 @@ class TransformDB:
         else:
             raise Exception("TransformDB: No transforms")
         spacemap.Info("TransformDB: %d" % self.count)
+        self.ignoreInit = True
+        if len(self.transforms) == 19:
+            self.ignoreInit = True
+        elif len(self.transforms) == 20:
+            self.ignoreInit = False
+            
+    def __iszero(self, data):
+        return np.sum(np.abs(data)) < 0.1
         
     def apply_img(self, img, index, useGrid=True):
-        if index == 0:
+        
+        if index == 0 and self.ignoreInit:
             return img
+        if self.ignoreInit:
+            index -= 1
         uint = img.max() > 1.0
         if self._affine is not None:
-            affine = self._affine[index-1]
-            shape = img.shape
-            affine1 = spacemap.img.scale_H(affine, self.affine_shape, shape)
-            img1 = spacemap.img.rotate_imgH(img, affine1)
+            affine = self._affine[index]
+            if self.__iszero(affine):
+                img = img
+            else:
+                shape = img.shape
+                affine1 = spacemap.img.scale_H(affine, self.affine_shape, shape)
+                img = spacemap.img.rotate_imgH(img, affine1)
         else:
-            img1 = img
+            img = img
         if useGrid and self._grid is not None:
-            grid = self._grid[index-1]
-            if self.dfGrid:
-                grid = spacemap.points.inverse_grid_train(grid)
-            img1 = spacemap.img.apply_img_by_grid(img1, grid)
+            grid = self._grid[index]
+            if self.__iszero(grid):
+                pass
+            else:
+                if self.dfGrid:
+                    grid = spacemap.points.inverse_grid_train(grid)
+                img = spacemap.img.apply_img_by_grid(img, grid)
         if uint:
-            img1 = img1 * 255
-            img1 = img1.astype(np.uint8)
-        return img1
+            img = img * 255
+            img = img.astype(np.uint8)
+        return img
     
     def apply_point(self, p, index, maxShape=None, useGrid=True):
-        if index == 0:
+        if index == 0 and self.ignoreInit:
             return p
+        if self.ignoreInit:
+            index -= 1
         if maxShape is None:
             maxShape = spacemap.XYRANGE[1]
         
         if self._affine is not None:
             affine = self._affine[index-1]
-            xyd = maxShape / self.affine_shape[0]
-            p = spacemap.points.applyH_np(p, affine, xyd=xyd)
+            if self.__iszero(affine):
+                pass
+            else:
+                xyd = maxShape / self.affine_shape[0]
+                p = spacemap.points.applyH_np(p, affine, xyd=xyd)
         if not useGrid:
             return p
         if self._grid is not None:
