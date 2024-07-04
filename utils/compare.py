@@ -23,7 +23,7 @@ def cmp_filter_part_show(dfI: np.array, dfJ: np.array, xy, size, labels, s=1, al
     spacemap.show_xy_np([dfI, dfJ], labels, legend=False, xylim=xyr, s=s, alpha=alpha, outTag=tag, transparent=trans)
     return dfI, dfJ
 
-def cmp_imgs(imgs1, imgs2, err: spacemap.AffineFinder):
+def cmp_imgs(imgs1, imgs2, err: spacemap.AffineFinder=None):
     result = np.zeros(len(imgs1))
     if err is None:
         err = spacemap.find.FinderBasic("dice")

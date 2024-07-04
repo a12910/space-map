@@ -67,8 +67,14 @@ def mergeGrid(grid0, grid1):
 def mergeImgGrid(grid0, grid1):
     """ img -> grid0 -> grid1 -> img2 """
     import torch.nn.functional as F
-    grid0 = torch.tensor(grid0).type(torch.FloatTensor)
-    grid1 = torch.tensor(grid1).type(torch.FloatTensor)
+    if isinstance(grid0, np.ndarray):
+        grid0 = torch.tensor(grid0).type(torch.FloatTensor)
+    else:
+        grid0 = grid0.clone()
+    if isinstance(grid1, np.ndarray):
+        grid1 = torch.tensor(grid1).type(torch.FloatTensor)
+    else:
+        grid1 = grid1.clone()
     grid01 = F.grid_sample(grid0.permute(0, 3, 1, 2), 
                            grid1, mode='bilinear', 
                            padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)

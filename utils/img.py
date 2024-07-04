@@ -106,6 +106,9 @@ def apply_img_by_grid(img_: np.array, grid: np.array):
         It = It.permute(1, 2, 0)
     It = It.cpu().numpy()
     It = It.clip(0, 1)
+    meanOld = np.mean(img_)
+    meanNew = np.mean(It)
+    It = It * meanOld / meanNew
     if img_.max() > 1.1:
         It = It * 255
         It = It.astype(np.uint8)

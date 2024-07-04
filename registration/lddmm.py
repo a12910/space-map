@@ -4,7 +4,7 @@ import numpy as np
 from spacemap import LDDMM2D
 
 class LDDMMRegistration(Registration):
-    nt=7
+    nt=5
     verbose=100
     def __init__(self):
         super().__init__("LDDMM")

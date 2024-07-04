@@ -23,6 +23,7 @@ from .utils import fig as fig
 from .utils import compute as compute
 from .utils import img as img
 from .utils import grid3 as points
+from .utils import grid_points as grid_points
 from .utils import imaris as imaris
 
 from .flowBase import *
@@ -43,3 +44,5 @@ from . import flow
 
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
+
+from .utils import compare as compare

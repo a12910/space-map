@@ -29,7 +29,6 @@ class Transform:
 
 class TransformDB:
     def __init__(self, path, affineShape) -> None:
-        self.transforms = []
         pack = np.load(path)
         self.affine_shape = pack.get("affine_shape", affineShape) 
         self._affine = pack.get("affines", None)
@@ -43,16 +42,16 @@ class TransformDB:
             raise Exception("TransformDB: No transforms")
         spacemap.Info("TransformDB: %d" % self.count)
         self.ignoreInit = True
-        if len(self.transforms) == 19:
+        if self.count == 19:
             self.ignoreInit = True
-        elif len(self.transforms) == 20:
+        elif self.count == 20:
             self.ignoreInit = False
+        self.useGrid = True
             
     def __iszero(self, data):
-        return np.sum(np.abs(data)) < 0.1
+        return np.sum(np.abs(data)) < 1
         
-    def apply_img(self, img, index, useGrid=True):
-        
+    def apply_img(self, img, index):
         if index == 0 and self.ignoreInit:
             return img
         if self.ignoreInit:
@@ -68,10 +67,11 @@ class TransformDB:
                 img = spacemap.img.rotate_imgH(img, affine1)
         else:
             img = img
-        if useGrid and self._grid is not None:
+        if self.useGrid and self._grid is not None:
             grid = self._grid[index]
             if self.__iszero(grid):
-                pass
+                img = img
+                return img
             else:
                 if self.dfGrid:
                     grid = spacemap.points.inverse_grid_train(grid)
@@ -81,7 +81,7 @@ class TransformDB:
             img = img.astype(np.uint8)
         return img
     
-    def apply_point(self, p, index, maxShape=None, useGrid=True):
+    def apply_point(self, p, index, maxShape=None):
         if index == 0 and self.ignoreInit:
             return p
         if self.ignoreInit:
@@ -96,7 +96,7 @@ class TransformDB:
             else:
                 xyd = maxShape / self.affine_shape[0]
                 p = spacemap.points.applyH_np(p, affine, xyd=xyd)
-        if not useGrid:
+        if not self.useGrid:
             return p
         if self._grid is not None:
             grid = self._grid[index-1]
@@ -110,8 +110,8 @@ class TransformDB:
     def apply_imgs(self, imgs):
         """ imgs: count+1 """
         result = []
-        result.append(imgs[0])
-        for index in tqdm.trange(1, len(imgs)):
+        # result.append(imgs[0])
+        for index in tqdm.trange(len(imgs)):
             img = imgs[index]
             img2 = self.apply_img(img, index)
             result.append(img2)
@@ -120,8 +120,8 @@ class TransformDB:
     def apply_points(self, ps, maxShape=None):
         """ ps: count+1 """
         result = []
-        result.append(ps[0])
-        for index in tqdm.trange(1, len(ps)):
+        # result.append(ps[0])
+        for index in tqdm.trange(len(ps)):
             p = ps[index]
             p2 = self.apply_point(p, index, maxShape=maxShape)
             result.append(p2)

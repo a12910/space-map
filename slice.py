@@ -100,11 +100,15 @@ class Slice:
         if os.path.exists(path):
             img = plt.imread(path)
             self.imgs[dfKey] = img
+        elif self.dfMode:
+            ps = self.to_points(dfKey)
+            img = spacemap.show_img3(ps)
+            return img
         elif dfKey == Slice.rawKey:
             raise Exception("Raw Image not found")
         else:
             spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
-            return self.get_img(Slice.rawKey, mchannel=mchannel, he=he, scale=scale)
+            return self.create_img(Slice.rawKey, mchannel=mchannel, he=he, scale=scale)
         img = self.imgs[dfKey]
         if len(img.shape) == 3 and not mchannel:
             img = img[:, :, :3]
