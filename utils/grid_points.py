@@ -143,7 +143,7 @@ def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10
         if show:
             if epoch % 20 == 0:
                 print(f"Epoch {epoch}, Loss: {loss.item()}")
-    result = target_grid.detach().numpy()
+    result = target_grid.detach().cpu().numpy()
     nan_mask = np.zeros_like(result)
     edgeWidth = int(N * edgeWidthRatio)
     for i in range(2):

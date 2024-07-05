@@ -52,7 +52,7 @@ def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.1, xyd=10):
             lastErr = l
         if epoch % 20 == 0:
             print(f"Epoch {epoch}, Loss: {l}")
-    return inverse_grid1.detach().numpy()
+    return inverse_grid1.detach().cpu().numpy()
 
 def grid_sample_points_vectorized(points, phi, xyd=10):
     N = phi.shape[1]

@@ -71,7 +71,7 @@ class SimpleKVDB:
 
 
 class NearBoundCellData:
-    def __init__(self, db: SimpleKVDB, name):
+    def __init__(self, db: CacheKVDB, name):
         self.name = name
         self.db = db
         

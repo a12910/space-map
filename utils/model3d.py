@@ -92,7 +92,7 @@ def grid_sample_img(img_, grid_, maxx=None, targetSize=None, exchange=True, move
     grid = grid.permute(0, 2, 3, 1)
     
     img2 = torch.nn.functional.grid_sample(img, grid, align_corners=True)
-    img2 = img2.squeeze().permute(1, 2, 0).numpy().astype(np.uint8)
+    img2 = img2.squeeze().permute(1, 2, 0).cpu().numpy().astype(np.uint8)
     if len(img_.shape) == 2:
         img2 = img2[:, :, 0]
     if move is not None:

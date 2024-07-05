@@ -28,7 +28,7 @@ class Transform:
             self.affine = data.get("affine", None)
 
 class TransformDB:
-    def __init__(self, path, affineShape) -> None:
+    def __init__(self, path, affineShape=None, ignoreInit=False) -> None:
         pack = np.load(path)
         self.affine_shape = pack.get("affine_shape", affineShape) 
         self._affine = pack.get("affines", None)
@@ -42,12 +42,14 @@ class TransformDB:
         else:
             raise Exception("TransformDB: No transforms")
         spacemap.Info("TransformDB: %d" % self.count)
-        self.ignoreInit = True
+        self.ignoreInit = ignoreInit
         if self.count == 19:
             self.ignoreInit = True
         elif self.count == 20:
             self.ignoreInit = False
         self.useGrid = True
+        if self.ignoreInit:
+            self.count += 1
             
     def __iszero(self, data):
         return np.sum(np.abs(data)) < 1

@@ -13,7 +13,7 @@ class NearBoundGenerate:
                  cellDB: pd.DataFrame, cFrom: int, maxShape) -> None:
         """ cellDB: cell_id,x,y,layer """
         self.db = db
-        self.count = db.count+1
+        self.count = db.count
         self.folder = folder
         self.cellDB = cellDB
         self.cFrom = cFrom
@@ -24,10 +24,11 @@ class NearBoundGenerate:
         spacemap.mkdir(self.dataFolder)
         
     def get_data(self, index, key):
+        index = str(index)
         if not index in self.dbs:
-            self.dbs[index] = spacemap.find.CacheKVDB(self.dataFolder + "/%d" % index)
+            self.dbs[index] = spacemap.find.CacheKVDB(self.dataFolder + "/%s" % index)
         db = self.dbs[index]
-        key = "%d_%s" % (index, key)
+        key = "%s_%s" % (index, key)
         return spacemap.find.NearBoundCellData(db, key)
         
     def connect(self):
@@ -53,7 +54,7 @@ class NearBoundGenerate:
                 data.save("new_xy", xy2[celli], "np")
                 data.save("raw_xy", xy[celli], "np")
             df2.to_csv(self.dataFolder + "/raw_%d.csv.gz" % i)
-        self.auto_close()
+            self.auto_close()
     
     def load_transform_bound(self, transformBoundPath):
         for i in range(self.count):
@@ -66,7 +67,7 @@ class NearBoundGenerate:
             for key, group in edgeDF.items():
                 data = self.get_data(i, key)
                 data.save("bound", group, "np")
-        self.auto_close()
+            self.auto_close()
     
     def get_cell_ids(self, index):
         df = self.cellDB[self.cellDB["layer"] == (index + self.cFrom)]
@@ -103,7 +104,7 @@ class NearBoundGenerate:
             for key, group in edgeDF.items():
                 data = self.get_data(i, key)
                 data.save("bound", group, "np")
-        self.auto_close()
+            self.auto_close()
                 
     def transform_raw(self):
         for i in range(self.count):
@@ -120,7 +121,7 @@ class NearBoundGenerate:
                 data.save("new_xy", xy2[celli], "np")
                 data.save("raw_xy", xy[celli], "np")
             df1.to_csv(self.dataFolder + "/raw_%d.csv.gz" % i)
-        self.auto_close()
+            self.auto_close()
     
     def compute_nearst(self):
         ps = []
@@ -147,7 +148,7 @@ class NearBoundGenerate:
                 data.save("nearst_index", 
                           [cell2Index, cellids2[int(cell2Index)]], 
                           "lis")
-        self.auto_close()
+            self.auto_close()
     
     def compute_bound_err(self, data1, 
                         data2):
