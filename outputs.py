@@ -33,6 +33,7 @@ class TransformDB:
         self.affine_shape = pack.get("affine_shape", affineShape) 
         self._affine = pack.get("affines", None)
         self._grid = pack.get("grids", None)
+        self._inv_grids = pack.get("inv_grids", None)
         self.dfGrid = pack.get("dfGrid", None) != None
         if self._affine is not None:
             self.count = len(self._affine)
@@ -74,12 +75,18 @@ class TransformDB:
                 return img
             else:
                 if self.dfGrid:
-                    grid = spacemap.points.inverse_grid_train(grid)
+                    grid = self.__get_inv_grid(index, grid)
                 img = spacemap.img.apply_img_by_grid(img, grid)
         if uint:
             img = img * 255
             img = img.astype(np.uint8)
         return img
+    
+    def __get_inv_grid(self, index, grid):
+        if self._inv_grids is not None:
+            inv_grid = self._inv_grids[index]
+            return inv_grid
+        return spacemap.points.inverse_grid_train(grid)
     
     def apply_point(self, p, index, maxShape=None):
         if index == 0 and self.ignoreInit:
@@ -101,7 +108,7 @@ class TransformDB:
         if self._grid is not None:
             grid = self._grid[index-1]
             if not self.dfGrid:
-                grid = spacemap.points.inverse_grid_train(grid)
+                grid = self.__get_inv_grid(index, grid)
             xyd = maxShape / grid.shape[0]
             p, _ = spacemap.points.apply_points_by_grid(grid, p, inv_grid=grid, xyd=xyd)
             return p

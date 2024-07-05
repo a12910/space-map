@@ -99,7 +99,7 @@ def _fill_nan(nan_mask, arr0, v, edge_width):
         )
     return arr
 
-def _interpolate_2d_array(arr, v):
+def _interpolate_2d_array(arr, v, edgeWidth=20):
     # 获取数组的形状
     nrows, ncols = arr.shape
     non_zero_indices = np.argwhere(arr != v)
@@ -110,10 +110,10 @@ def _interpolate_2d_array(arr, v):
 
     nan_mask = np.isnan(interpolated_values)
     interpolated_values[nan_mask] = v
-    interpolated_values = _fill_nan(nan_mask, interpolated_values, v, edge_width=20)
+    interpolated_values = _fill_nan(nan_mask, interpolated_values, v, edge_width=edgeWidth)
     return interpolated_values, nan_mask
 
-def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10, err=1e-3):
+def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10, err=1e-3, edgeWidthRatio=0.03, show=False):
     """ Train a grid to represent the inverse of the input grid. """
     initial_grid = torch.full((N, N, 2), -1.0, dtype=torch.float32, device=device)
     init_points = torch.tensor(ps1, dtype=torch.float32, device=device)
@@ -140,11 +140,37 @@ def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10
             break
         if l <= lastErr:
             lastErr = l
-        if epoch % 20 == 0:
-            print(f"Epoch {epoch}, Loss: {loss.item()}")
+        if show:
+            if epoch % 20 == 0:
+                print(f"Epoch {epoch}, Loss: {loss.item()}")
     result = target_grid.detach().numpy()
     nan_mask = np.zeros_like(result)
+    edgeWidth = int(N * edgeWidthRatio)
     for i in range(2):
-        result[:, :, i], nan_mask[:, :, i]  = _interpolate_2d_array(result[:, :, i], -1)
+        result[:, :, i], nan_mask[:, :, i]  = _interpolate_2d_array(result[:, :, i], -1, edgeWidth=edgeWidth)
     return result, nan_mask
 
+def export_grid_use_points(dfRaw, dfAlign, layerFrom, layerTo, 
+                           N=1000, xyd=4, lr=0., outPath=None):
+    """ 3 - 23 """
+    grids = []
+    inv_grids = []
+    affines = []
+    for index in range(layerFrom, layerTo):
+        ps1 = dfRaw[dfRaw["layer"] == index][["x", "y"]].values
+        ps2 = dfAlign[dfAlign["layer"] == index][["x", "y"]].values
+        
+        grid, _ = points_gen_grid_train(ps2, ps1, N, xyd=xyd, lr=lr)
+        grids.append(grid)
+        inv_grid, _ = points_gen_grid_train(ps1, ps2, N, xyd=xyd, lr=lr)
+        inv_grids.append(inv_grid)
+        affines.append(np.eye(3))
+    pack = {
+        "affine_shape": [400, 400],
+        "affines": affines,
+        "grids": grids,
+        "inv_grids": inv_grids,
+    }
+    if outPath is not None:
+        np.savez_compressed(outPath, **pack)
+    return pack
