@@ -103,6 +103,10 @@ class AutoFlowBasic2:
             
     def affine_merge(self, show=False):
         self.affine(merge=True, affine=False, show=show)
+    
+    @staticmethod
+    def _is_zero(grid):
+        return np.sum(np.abs(grid)) < 0.1
         
     def show_align(self, S1: Slice2, S2: Slice2, useKey, key1, key2):
         img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
@@ -111,6 +115,30 @@ class AutoFlowBasic2:
         spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
         Slice2.show_align(S1, S2, key1, key2, useKey)
         
-    def _apply_grid(self, S: Slice2, fromKey, toKey, grid, inv_grid=None):
-        S.apply_grid(fromKey, toKey, grid, inv_grid)
+    def _apply_grid(self, S: Slice2, fromKey, toKey, grid):
+        grid1 = grid[:, :, :2]
+        inv_grid1 = grid[:, :, 2:]
+        if self._is_zero(grid1):
+            grid1 = None
+        if self._is_zero(inv_grid1):
+            inv_grid1 = None
+        S.apply_grid(fromKey, toKey, grid1, inv_grid1)
         
+    def _merge_grid(self, grid, lastGrid):
+        N = grid.shape[1]
+        if self._is_zero(grid[:, :, :2]):
+            grid1 = grid[:, :, 2:]
+            lastGrid1 = lastGrid[:, :, 2:]
+            grid1 = spacemap.mergeImgGrid(lastGrid1, grid1)
+            grid[:, :, 2:] = grid1.reshape((N, N, 2))
+        else:
+            grid1 = grid[:, :, :2]
+            lastGrid1 = lastGrid[:, :, :2]
+            grid1 = spacemap.mergeImgGrid(grid1, lastGrid1)
+            grid[:, :, :2] = grid1.reshape((N, N, 2))
+        return grid
+        
+    def show(self, useKey, dfKey):
+        count = len(self.slices)
+        for i in range(count - 1):
+            self.show_align(self.slices[i], self.slices[i+1], useKey, dfKey, dfKey)

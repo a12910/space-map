@@ -129,6 +129,7 @@ def to_npH(H: np.array, xyd=None):
     return H
 
 def merge_grid_img(grid0, grid1, xyd=10):
+    """ img -> grid0 -> grid1 """
     device="cpu"
     grid0 = torch.tensor(grid0, dtype=torch.float32, device=device)
     N = grid0.shape[1]

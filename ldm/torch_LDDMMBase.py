@@ -64,21 +64,26 @@ def mergeGrid(grid0, grid1):
     grid = generateGridFromPoints(points2)
     return grid
 
+def _fillGrid(grid):
+    if isinstance(grid, np.ndarray):
+        grid = torch.tensor(grid).type(torch.FloatTensor)
+    else:
+        grid = grid.clone()
+    if len(grid.shape) == 3:
+        grid = grid.unsqueeze(0)
+    return grid
+
 def mergeImgGrid(grid0, grid1):
     """ img -> grid0 -> grid1 -> img2 """
     import torch.nn.functional as F
-    if isinstance(grid0, np.ndarray):
-        grid0 = torch.tensor(grid0).type(torch.FloatTensor)
-    else:
-        grid0 = grid0.clone()
-    if isinstance(grid1, np.ndarray):
-        grid1 = torch.tensor(grid1).type(torch.FloatTensor)
-    else:
-        grid1 = grid1.clone()
+    
+    grid0 = _fillGrid(grid0)
+    grid1 = _fillGrid(grid1)
+    
     grid01 = F.grid_sample(grid0.permute(0, 3, 1, 2), 
                            grid1, mode='bilinear', 
                            padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
-    return grid01.cpu().numpy()
+    return grid01.squeeze(0).cpu().numpy()
 
 def applyImgByGrid(img_, grid):
     import torch.nn.functional as F
@@ -98,8 +103,8 @@ def applyImgByGrid(img_, grid):
     # if len(img_.shape) == 2:
     #     distorted_image = distorted_image[0, 0]
     # return distorted_image.cpu().numpy()
+    grid = _fillGrid(grid)
     I = torch.tensor(img_).type(torch.FloatTensor)
-    grid = torch.tensor(grid).type(torch.FloatTensor)
     It = torch.squeeze(F.grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode='bilinear', align_corners=True))
     return It.cpu().numpy()
     

@@ -62,23 +62,37 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
                 imgI1 = customImgFunc(slices, indexI, fromKeyI)
                 imgJ2 = customImgFunc(slices, indexJ, toKey)
             else:
-                imgI1 = self._create_imgI(indexI, slices, useKey, fromKeyI)
+                imgI1 = sI.create_img(useKey, fromKeyI, 
+                                      mchannel=False, scale=True, fixHe=True)
                 imgJ2 = sJ.create_img(useKey, fromKey, 
                                       mchannel=False, scale=True, fixHe=True)
             if ldm is None:
                 ldm = spacemap.registration.LDDMMRegistration()
                 ldm.gpu = self.gpu
                 ldm.err = finalErr
-            ldm.load_img(imgI1, imgJ2)
-            ldm.run()
-            grid = ldm.generate_img_grid()
-            imgJ3 = ldm.apply_img(imgJ2)
-            self.show_err(imgI1, imgJ2, imgJ3, sJ.index)
-            sJ.data.saveGrid(grid, sI.index, saveGridKey)
+            N = imgI1.shape[1]
+            grid0 = np.zeros((N, N, 4), dtype=np.float32)
+            if useKey == SliceImg.DF:
+                ldm.load_img(imgJ2, imgI1)
+                ldm.run()
+                grid = ldm.generate_img_grid()
+                imgI2 = ldm.apply_img(imgI1)
+                self.show_err(imgJ2, imgI1, imgI2, sJ.index)
+                grid = grid.reshape((N, N, 2))
+                grid0[:, :, 2:] = grid
+            else:
+                ldm.load_img(imgI1, imgJ2)
+                ldm.run()
+                grid = ldm.generate_img_grid()
+                imgJ3 = ldm.apply_img(imgJ2)
+                self.show_err(imgI1, imgJ2, imgJ3, sJ.index)
+                grid = grid.reshape((N, N, 2))
+                grid0[:, :, :2] = grid
+            sJ.data.saveGrid(grid0, sI.index, saveGridKey)
             if not show:
                 return
-            sJ.apply_grid(fromKey, toKey, grid)
-            self.show_align(sI, sJ, useKey, self.alignKey, self.ldmKey)
+            sJ.apply_grid(fromKey, toKey, grid0)
+            self.show_align(sI, sJ, useKey, fromKey, toKey)
                 
         spacemap.Info("LDMMgrMulti: Start LDM Pair")
         self.centerSlice.applyH(fromKey, None, toKey)
@@ -107,6 +121,7 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
             pairGridKey = self.pairGridKey
             
         self.centerSlice.applyH(fromKey, None, toKey)
+        
         def _ldm_merge_pair(indexI, indexJ, slices):
             sI = slices[indexI]
             sJ = slices[indexJ]
@@ -114,16 +129,17 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
             grid = sJ.data.loadGrid(sI.index, pairGridKey)
             if indexI > 0:
                 lastGrid = sI.data.loadGrid(initI, pairGridKey)
-                grid = spacemap.points.merge_grid_img(grid, lastGrid)
+                grid = self._merge_grid(grid, lastGrid)
             self._apply_grid(sJ, fromKey, toKey, grid)
+            sJ.data.saveGrid(grid, initI, pairGridKey)
             if show:
-                self.show_align(sI, sJ, useKey, fromKey, toKey)
+                self.show_align(sI, sJ, useKey, toKey, toKey)
         for i in range(len(self.slices1) - 1):
             _ldm_merge_pair(i, i+1, self.slices1)
         for i in range(len(self.slices2) - 1):
             _ldm_merge_pair(i, i+1, self.slices2)
         spacemap.Info("LDMMgrMulti: Finish LDM Merge")
-    
+        
     def ldm_merge(self, useKey, fromKey, toKey, dfKey1, dfKey2, dfKeyOut):
         spacemap.Info("LDMMgrMulti: Start LDM Merge Pair")
         self.centerSlice.applyH(fromKey, None, toKey)
@@ -133,8 +149,10 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
             initI = self.centerSlice.index
             grid1 = slice.data.loadGrid(initI, dfKey1)
             grid2 = slice.data.loadGrid(initI, dfKey2)
-            gridOut = spacemap.points.merge_grid_img(grid1, grid2)
+            gridOut = self._merge_grid(grid1, grid2)
             self._apply_grid(slice, fromKey, toKey, gridOut)
             slice.data.saveGrid(gridOut, initI, dfKeyOut)
         spacemap.Info("LDMMgrMulti: Finish LDM Merge")
+        
+    
         
