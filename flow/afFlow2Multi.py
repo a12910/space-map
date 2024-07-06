@@ -92,7 +92,7 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
             if not show:
                 return
             sJ.apply_grid(fromKey, toKey, grid0)
-            self.show_align(sI, sJ, useKey, fromKey, toKey)
+            self.show_align(sI, sJ, useKey, fromKeyI, toKey)
                 
         spacemap.Info("LDMMgrMulti: Start LDM Pair")
         self.centerSlice.applyH(fromKey, None, toKey)

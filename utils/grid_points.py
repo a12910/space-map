@@ -59,12 +59,12 @@ def _fill_nan(nan_mask, arr0, v, edge_width):
     grid_x, grid_y = np.meshgrid(np.arange(ncols), np.arange(nrows))
     
     edge_mask = nan_mask.copy()
-    for _ in range(int(edge_mask)):
+    for _ in range(int(edge_width)):
         edge_mask = binary_dilation(edge_mask, structure=structure)
 
     no_nan_mask = 1 - nan_mask
     dilated_nan_mask = no_nan_mask.copy()
-    for _ in range(int(edge_width*2)):
+    for _ in range(int(edge_width)):
         dilated_nan_mask = binary_dilation(dilated_nan_mask, structure=structure)
 
     # nan区
@@ -78,7 +78,7 @@ def _fill_nan(nan_mask, arr0, v, edge_width):
     non_zero_values = arr[arr != v]
     
     # 缩小分辨率
-    scale_size = 100
+    scale_size = 400
     small_arr = resize(arr, (scale_size, scale_size), order=0, preserve_range=True, anti_aliasing=False)
     small_nan_mask = resize(nan_mask, (scale_size, scale_size), order=0, preserve_range=True, anti_aliasing=False).astype(bool)
     
@@ -97,15 +97,15 @@ def _fill_nan(nan_mask, arr0, v, edge_width):
     small_arr[small_dilated_nan_mask] = rbf(small_grid_x[small_dilated_nan_mask], small_grid_y[small_dilated_nan_mask])
     
     # 将结果映射回原始分辨率
-    large_arr = np.full((nrows, ncols), v)
+    # large_arr = np.full((nrows, ncols), v)
     
-    for i in range(scale_size):
-        for j in range(scale_size):
-            factor = no_nan_mask.shape[0] / scale_size
-            original_i = int(i * factor)
-            original_j = int(j * factor)
-            if original_i < nrows and original_j < ncols:
-                large_arr[original_i, original_j] = small_arr[i, j]
+    # for i in range(scale_size):
+    #     for j in range(scale_size):
+    #         factor = no_nan_mask.shape[0] / scale_size
+    #         original_i = int(i * factor)
+    #         original_j = int(j * factor)
+    #         if original_i < nrows and original_j < ncols:
+    #             large_arr[original_i, original_j] = small_arr[i, j]
     large_arr = resize(small_arr, (nrows, ncols), order=0, preserve_range=True, anti_aliasing=False)
     arr[dilated_nan_mask != 0] = large_arr[dilated_nan_mask != 0]
     arr[nan_mask == 0] = arr0[nan_mask == 0]
