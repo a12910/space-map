@@ -10,6 +10,7 @@ from .sliceData import SliceData
 
 # from .tfboard import *
 from .slice import Slice, slice_show_align
+from .slice2 import Slice2, SliceImg
 from .ldm import torch_LDDMMBase as base
 from .ldm.torch_LDDMMBase import saveLDDMM, loadLDDMM, applyPointsByGrid, mergeGrid, grid_sample_points, generateGridFromPoints, mergeImgGrid, applyImgByGrid
 from .ldm.torch_LDDMM import LDDMM

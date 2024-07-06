@@ -2,8 +2,6 @@ import spacemap
 from spacemap import Slice
 import numpy as np
 
-
-
 class AutoFlowBasic:
     def __init__(self, slices: list[Slice], 
                  initJKey=Slice.rawKey,
@@ -47,7 +45,7 @@ class AutoFlowBasic:
         for i in range(self.continueStart, len(self.slices) - 1):
             S1 = self.slices[i]
             S2 = self.slices[i+1]
-            spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
+            spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S2.index, S1.index))
             if affine:
                 img1 = S1.create_img(self.initJKey, useDF=self.dfMode, 
                                      he=self.heImg)
@@ -78,7 +76,7 @@ class AutoFlowBasic:
         self.affine(affine=True, merge=False, show=show)
             
     def affine_merge(self, show=False):
-        self.affine(merge=True, affine=False, show=True)
+        self.affine(merge=True, affine=False, show=show)
         
     def show_align(self, S1, S2, key1, key2):
         img1 = S1.create_img(key1, he=self.heImg, useDF=self.dfMode)

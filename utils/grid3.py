@@ -13,7 +13,7 @@ def _initialize_identity_grid(N, device):
     return identity_grid
 
 
-def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.1, xyd=10):
+def inverse_grid_train(grid, epochs=1000, lr=0.2, xyd=10, err=1e-2, show=False):
     """ Train a grid to represent the inverse of the input grid. """
     if torch.cuda.is_available():
         device = "cuda"
@@ -31,7 +31,7 @@ def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.1, xyd=10):
     inverse_grid1 = torch.nn.Parameter(initial_grid.clone())
 
     optimizer = optim.Adam([inverse_grid1], lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.75)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
     loss_fn = nn.MSELoss()
 
     lastErr = None
@@ -46,11 +46,11 @@ def inverse_grid_train(grid, device="cpu", epochs=1000, lr=0.1, xyd=10):
         l = loss.item()
         if lastErr is None:
             lastErr = l + 100
-        if abs(l - lastErr) < 1e-2:
+        if abs(l - lastErr) < err:
             break
         if l <= lastErr:
             lastErr = l
-        if epoch % 20 == 0:
+        if epoch % 20 == 0 and show:
             print(f"Epoch {epoch}, Loss: {l}")
     return inverse_grid1.detach().cpu().numpy()
 

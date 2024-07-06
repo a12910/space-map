@@ -1,12 +1,24 @@
 import spacemap
 import numpy as np
+import cv2
         
 class FinderBasic(spacemap.AffineFinder):
     def __init__(self, method):
         super().__init__("AffineFinder-" + method)
         self.method = method
         
-    def err(self, imgI, imgJ):
+    def err(self, imgI: np.array, imgJ: np.array):
+        if len(imgI.shape) == 3:
+            if imgI.shape[2] == 4:
+                imgI = imgI[:, :, :3]
+            imgI = np.mean(imgI[:3], axis=2)
+        if len(imgJ.shape) == 3:
+            if imgJ.shape[2] == 4:
+                imgJ = imgJ[:, :, :3]
+            imgJ = np.mean(imgJ[:3], axis=2)
+        if imgI.shape != imgJ.shape:
+            imgJ = cv2.resize(imgJ, imgI.shape[:2])
+        
         if self.method == 'mse':
             return spacemap.err.err_mse(imgI, imgJ)
         elif self.method == 'dice':

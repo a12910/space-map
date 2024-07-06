@@ -40,6 +40,10 @@ class Slice:
         path = "%s/imgs/%s_%s.png" % (self.projectf, self.index, key)
         if len(img.shape) == 2:
             img = np.stack([img, img, img], axis=-1)
+        if len(img.shape) == 3 and img.shape[2] == 4:
+            mask = img[:, :, 3]
+            img = img[:, :, :3]
+            img[mask == 0] = 0
         spacemap.imsave(path, img)
                 
     def save_value_df(self, df: pd.DataFrame, keys=None, dfKey=None):
@@ -108,11 +112,15 @@ class Slice:
             raise Exception("Raw Image not found")
         else:
             spacemap.Info("Slice Load %s %s->raw" % (self.index, dfKey))
-            return self.create_img(Slice.rawKey, mchannel=mchannel, he=he, scale=scale)
+            return self.create_img(Slice.rawKey, mchannel=mchannel, he=he)
         img = self.imgs[dfKey]
         if len(img.shape) == 3 and not mchannel:
             img = img[:, :, :3]
             img = img.mean(axis=2)
+        if mchannel and len(img.shape) == 3 and img.shape[2] == 4:
+            mask = img[:, :, 3]
+            img = img[:, :, :3]
+            img[mask == 0] = 0
         elif len(img.shape) == 2 and mchannel:
             img = np.stack([img, img, img], axis=2)
         if scale:

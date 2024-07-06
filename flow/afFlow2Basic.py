@@ -1,0 +1,116 @@
+import spacemap
+from spacemap import Slice2
+import numpy as np
+
+
+
+class AutoFlowBasic2:
+    def __init__(self, slices: list[Slice2], 
+                 initJKey=Slice2.rawKey,
+                 alignMethod=None,
+                 gpu=None):
+        self.slices: list[Slice2] = slices
+        self.initJKey = initJKey
+        self.alignKey = Slice2.align1Key
+        self.affineKey  ="cell"
+        self.pairGridKey = "img"
+        self.fixGridKey = "fix"
+        self.finalGridKey = "final_ldm"
+        self.ldmKey = Slice2.align2Key
+        self.continueStart = 0
+        self.gpu=gpu
+        self.finalKey = Slice2.finalKey
+        self.enhanceKey = Slice2.enhanceKey
+        self.err = spacemap.find.default()
+        self.verbose = 100
+        self.finalErr = 0.1
+        self.enhanceErr = 0.01
+        self.alignMethod = alignMethod
+        
+    def show_err(self, imgI, imgJ2, imgJ3, tag):
+        e1 = self.err.computeI(imgI, imgJ2, False)
+        e2 = self.err.computeI(imgI, imgJ3, False)
+        spacemap.Info("Err LDMPairMulti %s: %.5f->%.5f" % (tag, e1, e2))
+        
+    def try_raw(self, useKey):
+        S1 = self.slices[0]
+        S2 = self.slices[1]
+        spacemap.Info("TryRaw: raw=0")
+        spacemap.IMGCONF = {"raw": 0}
+        err = spacemap.find.default()
+        imgA1 = S1.create_img(useKey, self.initJKey, fixHe=True)
+        imgA2 = S2.create_img(useKey, self.initJKey, fixHe=True)
+        mgr = spacemap.affine_block.AutoAffineImgKey(imgA1, imgA2, show=False, method=self.alignMethod)
+        mgr.run()
+        H = mgr.resultH_img()
+        imgA3 = spacemap.he_img.rotate_imgH(imgA2, H)
+        e1 = err.err(imgA1, imgA3)
+                
+        spacemap.Info("TryRaw: raw=1")
+        spacemap.IMGCONF = {"raw": 1}
+        imgB1 = S1.create_img(useKey, self.initJKey, fixHe=True)
+        imgB2 = S2.create_img(useKey, self.initJKey, fixHe=True)
+        mgr = spacemap.affine_block.AutoAffineImgKey(imgB1, imgB2, show=False, method=self.alignMethod)
+        mgr.run()
+        H = mgr.resultH_img()
+        imgB3 = spacemap.he_img.rotate_imgH(imgB2, H)
+        e2 = err.err(imgB1, imgB3)
+        spacemap.IMGCONF = {"raw": 0 if e1 < e2 else 1}
+        spacemap.Info("TryRaw choose-%d 0:%f 1:%f" % (spacemap.IMGCONF["raw"], e1, e2))
+        
+    def affine(self, useKey, show=False, affine=True, 
+               merge=True, customImgFunc=None):
+        """ customFunc: (Slice2) -> img"""
+        spacemap.Info("LDMMgrMulti: Start Affine Pair&Merge")
+        method = self.alignMethod
+        if method is None:
+            method = "sift_vgg"
+            
+        initS = self.slices[0]
+        key = self.affineKey
+            
+        for i in range(self.continueStart, len(self.slices) - 1):
+            S1 = self.slices[i]
+            S2 = self.slices[i+1]
+            spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
+            if affine:
+                if customImgFunc is not None:
+                    img1 = customImgFunc(S1)
+                    img2 = customImgFunc(S2)
+                else: 
+                    img1 = S1.create_img(useKey, self.initJKey, fixHe=True)
+                    img2 = S2.create_img(useKey, self.initJKey, fixHe=True)
+                mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
+                mgr.run()
+                H21 = mgr.resultH_img()
+                S2.data.saveH(H21, S1.index, key)
+            if merge:
+                H21 = S2.data.loadH(S1.index, key)
+                if i == 0:
+                    H1i = np.eye(3)
+                else:
+                    H1i = S1.data.loadH(initS.index, key)
+                H2i = np.dot(H1i, H21)
+                S2.data.saveH(H2i, initS.index, key)
+                S2.applyH(self.initJKey, H2i, self.alignKey)
+            if show:
+                self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)
+            
+        spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
+        
+    def affine_pair(self, show=False):
+        self.affine(affine=True, merge=False, show=show)
+            
+    def affine_merge(self, show=False):
+        self.affine(merge=True, affine=False, show=show)
+        
+    def show_align(self, S1: Slice2, S2: Slice2, useKey, key1, key2):
+        img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
+        img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
+        e = self.err.err(img1, img2)
+        spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
+        Slice2.show_align(S1, S2, key1, key2, useKey)
+        
+    def _apply_grid(self, S: Slice2, fromKey, toKey, grid, inv_grid=None):
+        S.apply_grid(fromKey, toKey, grid, inv_grid)
+        
