@@ -1,5 +1,6 @@
 import numpy as np
 import tqdm, json
+import spacemap
 
 def _process_cells(expressions, cell_positions, maxShape, skip, overlap, tqdmShow=True):
     # 减去每种产物的最小值
@@ -49,6 +50,7 @@ def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, sa
     matrixs = {}
     for l in layers:
         xy = dff[dff["layer"] == l][["x", "y"]].values
+        spacemap.Info("Load Layer %d: %d cells" % (l, len(xy)))
         mat = _barcode_load(l, barcodePath)
         mat2 = _process_cells(mat, xy, maxShape, size, overlay, True)
         matrixs[l] = mat2
@@ -73,10 +75,13 @@ def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, sa
         
     if savePath is not None:
         with open(savePath, "w") as f:
-            f.write(json.dumps({
-                "mean": np.mean(distances),
-                "distances": distances
-            }))
-    
+            dis1 = list(map(float, dis[1]))
+            pack = {"mean": float(dis[0]), 
+                "distances": dis1, 
+                "size": size, 
+                "overlay": overlay
+            }
+            f.write(json.dumps(pack))
+    spacemap.Info("Mean Distance: %f" % np.mean(distances))
     # 返回所有层对的平均距离
     return np.mean(distances), distances

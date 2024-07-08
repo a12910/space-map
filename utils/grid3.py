@@ -13,7 +13,7 @@ def _initialize_identity_grid(N, device):
     return identity_grid
 
 
-def inverse_grid_train(grid, epochs=1000, lr=0.2, xyd=10, err=1e-2, show=False):
+def inverse_grid_train(grid, epochs=500, lr=0.2, xyd=10, err=1e-2, show=False, appendPoints=None):
     """ Train a grid to represent the inverse of the input grid. """
     if torch.cuda.is_available():
         device = "cuda"
@@ -31,24 +31,31 @@ def inverse_grid_train(grid, epochs=1000, lr=0.2, xyd=10, err=1e-2, show=False):
     inverse_grid1 = torch.nn.Parameter(initial_grid.clone())
 
     optimizer = optim.Adam([inverse_grid1], lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.75)
     loss_fn = nn.MSELoss()
+    if appendPoints is not None:
+        appendPoints = torch.tensor(appendPoints, dtype=torch.float32, device=device)
 
     lastErr = None
     for epoch in range(epochs):
         optimizer.zero_grad()
         transformed_points1 = grid_sample_points_vectorized(identity_points, grid, xyd)
         transformed_points1 = grid_sample_points_vectorized(transformed_points1, inverse_grid1, xyd)
-        loss = loss_fn(transformed_points1, identity_points)
+        if appendPoints is not None:
+            appendPoints1 = grid_sample_points_vectorized(appendPoints, inverse_grid1, xyd)
+            appendPoints2 = grid_sample_points_vectorized(appendPoints1, grid, xyd)
+            loss = loss_fn(transformed_points1, identity_points) + loss_fn(appendPoints2, appendPoints)
+        else:
+            loss = loss_fn(transformed_points1, identity_points)
         loss.backward()
         optimizer.step()
         scheduler.step()
         l = loss.item()
         if lastErr is None:
             lastErr = l + 100
-        if abs(l - lastErr) < err:
+        if abs(l - lastErr) <= err:
             break
-        if l <= lastErr:
+        if l <= lastErr + err:
             lastErr = l
         if epoch % 20 == 0 and show:
             print(f"Epoch {epoch}, Loss: {l}")
@@ -111,6 +118,7 @@ def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
     if inv_grid is None:
         inv_grid = inverse_grid_train(grid)
     ps2 = grid_sample_points_vectorized(ps, inv_grid, xyd)
+    ps2 = ps2.detach().cpu().numpy()
     return ps2, inv_grid
 
 def applyH_np(df: np.array, H: np.array, xyd=None) -> np.array:

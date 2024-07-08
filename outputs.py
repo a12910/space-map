@@ -34,7 +34,9 @@ class TransformDB:
         self._affine = pack.get("affines", None)
         self._grid = pack.get("grids", None)
         self._inv_grids = pack.get("inv_grids", None)
-        self.dfGrid = pack.get("dfGrid", None) != None
+        dfGrid = pack.get("dfGrid", None) != None
+        if dfGrid:
+            self._inv_grids, self._grid = self._grid, self._inv_grids
         if self._affine is not None:
             self.count = len(self._affine)
         elif self._grid is not None:
@@ -70,25 +72,19 @@ class TransformDB:
                 img = spacemap.img.rotate_imgH(img, affine1)
         else:
             img = img
-        if self.useGrid and self._grid is not None:
-            grid = self._grid[index]
-            if self.__iszero(grid):
-                img = img
-                return img
-            else:
-                if self.dfGrid:
-                    grid = self.__get_inv_grid(index, grid)
+        if self.useGrid: 
+            if self._grid is not None:
+                grid = self._grid[index]
+                if self.__iszero(grid):
+                    img = img
+            elif self._inv_grids is not None:
+                inv_grid = self._inv_grids[index]
+                grid = spacemap.points.inverse_grid_train(inv_grid, xyd=spacemap.XYD)
                 img = spacemap.img.apply_img_by_grid(img, grid)
         if uint:
             img = img * 255
             img = img.astype(np.uint8)
         return img
-    
-    def __get_inv_grid(self, index, grid):
-        if self._inv_grids is not None:
-            inv_grid = self._inv_grids[index]
-            return inv_grid
-        return spacemap.points.inverse_grid_train(grid)
     
     def apply_point(self, p, index, maxShape=None):
         if index == 0 and self.ignoreInit:
@@ -107,13 +103,16 @@ class TransformDB:
                 p = spacemap.points.applyH_np(p, affine, xyd=xyd)
         if not self.useGrid:
             return p
-        if self._grid is not None:
+        if self._inv_grids is not None:
+            inv_grid = self._inv_grids[index]
+            p, _ = spacemap.points.apply_points_by_grid(inv_grid, p)
+        elif self._grid is not None:
             grid = self._grid[index-1]
-            if not self.dfGrid:
-                grid = self.__get_inv_grid(index, grid)
             xyd = maxShape / grid.shape[0]
+            inv_grid = spacemap.points.inverse_grid_train(grid, xyd=xyd, appendPoints=p, show=True, err=0.001)
             p, _ = spacemap.points.apply_points_by_grid(grid, p, inv_grid=grid, xyd=xyd)
-            return p
+        else:
+            pass
         return p
     
     def apply_imgs(self, imgs):
