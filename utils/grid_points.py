@@ -147,7 +147,7 @@ def _interpolate_2d_array(arr, v, edgeWidth=20):
     interpolated_values = _fill_nan(nan_mask, interpolated_values, v, edge_width=edgeWidth)
     return interpolated_values, nan_mask
 
-def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10, err=1e-3, edgeWidthRatio=0.1, show=False):
+def points_gen_grid_train(ps1, ps2, N, device="cpu", epochs=1000, lr=0.1, xyd=10, err=1e-3, edgeWidthRatio=0.05, show=False):
     """ Train a grid to represent the inverse of the input grid. """
     initial_grid = torch.full((N, N, 2), -1.0, dtype=torch.float32, device=device)
     init_points = torch.tensor(ps1, dtype=torch.float32, device=device)

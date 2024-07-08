@@ -46,4 +46,4 @@ from . import flow
 from .mgr.ldmMgrPair import LDMMgrPair
 from .mgr.ldmMgrMulti import LDMMgrMulti
 
-from .utils import compare as compare
+from .utils import compare

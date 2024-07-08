@@ -40,7 +40,7 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
     
     def ldm_pair(self, useKey, 
                  fromKey=None, toKey=None, saveGridKey=None,
-                 fixTrain=False, finalErr=None,
+                 fixTrain=False, centerTrain=False, finalErr=None,
                  show=False, customImgFunc=None):
         """ customFunc: ([Slice2], index, dfKey) -> img """
         if fromKey is None:
@@ -52,11 +52,11 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
         if finalErr is None:
             finalErr = self.finalErr
             
-        def _ldm_pair(indexI, indexJ, slices, show=False, ldm=None):
+        def _ldm_pair(indexI, indexJ, slices, show=False, ldm=None, centerTrain=False):
             sI = slices[indexI]
             sJ = slices[indexJ]
             fromKeyI = fromKey
-            if ldm is not None:
+            if ldm is not None or centerTrain:
                 fromKeyI = toKey
             if customImgFunc is not None:
                 imgI1 = customImgFunc(slices, indexI, fromKeyI)
@@ -103,9 +103,9 @@ class AutoFlowMultiCenter2(AutoFlowBasic2):
         else:
             ldm = None
         for i in range(len(self.slices1) - 1):
-            _ldm_pair(i, i+1, self.slices1, show, ldm)
+            _ldm_pair(i, i+1, self.slices1, show, ldm, centerTrain)
         for i in range(len(self.slices2) - 1):
-            _ldm_pair(i, i+1, self.slices2, show, ldm)
+            _ldm_pair(i, i+1, self.slices2, show, ldm, centerTrain)
         spacemap.Info("LDMMgrMulti: Finish LDM Pair")
     
     def ldm_merge_pair(self, useKey, 

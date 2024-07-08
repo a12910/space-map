@@ -166,6 +166,11 @@ class Slice2:
         confPath = "%s/outputs/%s_conf.json" % (self.projectf, self.index)
         self.imgs = SliceImg.load_config(confPath, self.projectf)
         
+    def add_img(self, imgKey, heMode):
+        img = SliceImg(self.index, imgKey, False, heMode, self.projectf)
+        self.imgs[imgKey] = img
+        self.save_config()
+        
     def init_df(self, initdf):
         img = SliceImg(self.index, SliceImg.DF, 
                        dfMode=True, heMode=False, 
