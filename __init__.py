@@ -5,7 +5,7 @@ from .base2 import *
 
 from .utils import he_img as he_img
 
-from .outputs import Transform, TransformDB
+from .outputs import TransformDB
 from .sliceData import SliceData
 
 # from .tfboard import *

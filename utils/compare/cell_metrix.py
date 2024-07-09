@@ -32,27 +32,30 @@ def _process_cells(expressions, cell_positions, maxShape, skip, overlap, tqdmSho
                 result[i, j] /= total
     return result
 
-def _barcode_load(index, folder):
+def _barcode_load(index, folder, typ=0):
     """ features * cells """
     from scipy.io import mmread
-    if folder is None:
-        folder = "/Users/hrd/CODE/code_works/3ddcell/points2/data/flow/matrix/%d" % index
+    folder = folder % index
+    if typ == 0:
+        matrix = folder + "/matrix.mtx.gz"
+        data = mmread(matrix)
+        data = data.toarray()
+        return data.T
     else:
-        folder = folder % index
-    matrix = folder + "/matrix.mtx.gz"
-    data = mmread(matrix)
-    data = data.toarray()
-    return data.T
+        matrix = folder
+        data = mmread(matrix)
+        data = data.toarray()
+        return data
 
-def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, savePath=None):
+def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, savePath=None, bcType=0, show=True):
     # 获取层的范围
     layers = sorted(dff['layer'].unique())
     matrixs = {}
     for l in layers:
         xy = dff[dff["layer"] == l][["x", "y"]].values
         spacemap.Info("Load Layer %d: %d cells" % (l, len(xy)))
-        mat = _barcode_load(l, barcodePath)
-        mat2 = _process_cells(mat, xy, maxShape, size, overlay, True)
+        mat = _barcode_load(l, barcodePath, typ=bcType)
+        mat2 = _process_cells(mat, xy, maxShape, size, overlay, show)
         matrixs[l] = mat2
     distances = []
     
@@ -76,7 +79,8 @@ def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, sa
     if savePath is not None:
         with open(savePath, "w") as f:
             dis1 = list(map(float, dis[1]))
-            pack = {"mean": float(dis[0]), 
+            pack = {
+                "mean": float(dis[0]), 
                 "distances": dis1, 
                 "size": size, 
                 "overlay": overlay
@@ -85,3 +89,31 @@ def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, sa
     spacemap.Info("Mean Distance: %f" % np.mean(distances))
     # 返回所有层对的平均距离
     return np.mean(distances), distances
+
+def caculate_layer_distances_thread(dfs: dict, values: list, maxShape, barcodePath, savePathBase, bcType=0):
+    from multiprocessing import Pool
+    import os
+    datas = []
+    for key, path in dfs.items():
+        for v in values:
+            savePath = savePathBase + "/%s-%d-%d.json" % (key, v[0], v[1])
+            datas.append([key, path, v[0], v[1], maxShape, 
+                          barcodePath, savePath, bcType])
+    results = []
+    spacemap.Info("Start Caculate Layer Distances")
+    spacemap.Info("Thread CPU Count: %d" % os.cpu_count())
+    with Pool(os.cpu_count()) as p:
+        result = p.map(_caculate_layer_distances_thread, datas)
+        results.append(result)
+    return results
+        
+def _caculate_layer_distances_thread(pack):
+    import pandas as pd
+    key, dfPath, size, overlap, maxShape, barcodePath, savePath, bcType = pack
+    spacemap.Info("Caculate Start: %s %d %d" % (key, size, overlap))
+    df = pd.read_csv(dfPath)
+    e, value = calculate_layer_distances(df, size, overlap, maxShape, 
+                                    barcodePath, savePath, bcType)
+    spacemap.Info("Caculate Finished: %s %d %d %f" % (key, size, overlap, e))
+    return [key, size, overlap, e, value]
+    

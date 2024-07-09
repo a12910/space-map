@@ -2,31 +2,6 @@ import spacemap
 import numpy as np
 import tqdm
 
-class Transform:
-    def __init__(self, grid=None, affine=None, shape=None) -> None:
-        self.grid = grid
-        self.affine = affine
-        self.shape = shape
-    
-    def pack(self, path=None):
-        pack = {}
-        if self.grid is not None:
-            pack["grid"] = self.grid
-        if self.affine is not None:
-            pack["affine"] = self.affine
-        if path is not None:
-            np.savez(path, **pack)
-        return pack
-    
-    def load(self, path=None, pack=None):
-        if pack is not None:
-            self.grid = pack.get("grid", None)
-            self.affine = pack.get("affine", None)
-        if path is not None:
-            data = np.load(path)
-            self.grid = data.get("grid", None)
-            self.affine = data.get("affine", None)
-
 class TransformDB:
     def __init__(self, path, affineShape=None, ignoreInit=False) -> None:
         pack = np.load(path)
@@ -95,7 +70,7 @@ class TransformDB:
             maxShape = spacemap.XYRANGE[1]
         
         if self._affine is not None:
-            affine = self._affine[index-1]
+            affine = self._affine[index]
             if self.__iszero(affine):
                 pass
             else:
@@ -105,12 +80,12 @@ class TransformDB:
             return p
         if self._inv_grids is not None:
             inv_grid = self._inv_grids[index]
-            p, _ = spacemap.points.apply_points_by_grid(inv_grid, p)
+            p, _ = spacemap.points.apply_points_by_grid(inv_grid, p, inv_grid)
         elif self._grid is not None:
-            grid = self._grid[index-1]
+            grid = self._grid[index]
             xyd = maxShape / grid.shape[0]
             inv_grid = spacemap.points.inverse_grid_train(grid, xyd=xyd, appendPoints=p, show=True, err=0.001)
-            p, _ = spacemap.points.apply_points_by_grid(grid, p, inv_grid=grid, xyd=xyd)
+            p, _ = spacemap.points.apply_points_by_grid(grid, p, inv_grid=inv_grid, xyd=xyd)
         else:
             pass
         return p
