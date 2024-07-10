@@ -24,10 +24,9 @@ class AutoAffineImgKey(spacemap.AffineFlowMgrImg):
             self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
             self.run_flow(spacemap.affine_block.FilterGlobalImg())
             self.run_flow(spacemap.affine_block.MatchEachImg())
-        else:
-            grad1 = spacemap.affine_block.AutoGradImg()
-            grad1.finalErr = self.step1Err
-            _ = self.run_flow(grad1)
+        grad1 = spacemap.affine_block.AutoGradImg()
+        grad1.finalErr = self.step1Err
+        _ = self.run_flow(grad1)
         grad2 = spacemap.affine_block.AutoGradImg2()
         _ = self.run_flow(grad2)
         if self.show:

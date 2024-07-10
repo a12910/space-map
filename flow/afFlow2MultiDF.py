@@ -9,13 +9,6 @@ def _show_err(imgI, imgJ2, imgJ3, tag):
     e2 = err.computeI(imgI, imgJ3, False)
     spacemap.Info("Err LDMPairMulti %s: %.5f->%.5f" % (tag, e1, e2))
 
-def _show_align(self, S1: Slice2, S2: Slice2, useKey, key1, key2):
-    img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
-    img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
-    e = self.err.err(img1, img2)
-    spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
-    Slice2.show_align(S1, S2, key1, key2, useKey)
-
 def _ldm_pair(pack):
     indexI = pack["indexI"]
     indexJ = pack["indexJ"]
@@ -27,10 +20,12 @@ def _ldm_pair(pack):
     gpu = pack["gpu"]
     saveGridKey = pack["saveGridKey"]
     finalErr = pack["finalErr"]
+    ldm = None
     
     sI = slices[indexI]
     sJ = slices[indexJ]
     fromKeyI = fromKey
+    
     if ldm is not None or centerTrain:
         fromKeyI = toKey
     useKey = SliceImg.DF
@@ -43,18 +38,16 @@ def _ldm_pair(pack):
         ldm.gpu = gpu
         ldm.err = finalErr
     N = imgI1.shape[1]
-    grid0 = np.zeros((N, N, 4), dtype=np.float32)
     ldm.load_img(imgJ2, imgI1)
     ldm.run()
     grid = ldm.generate_img_grid()
     imgI2 = ldm.apply_img(imgI1)
     _show_err(imgJ2, imgI1, imgI2, sJ.index)
     grid = grid.reshape((N, N, 2))
-    grid0[:, :, 2:] = grid
-    sJ.data.saveGrid(grid0, sI.index, saveGridKey)
+    sJ.data.saveGrid(grid, sI.index, saveGridKey)
     if not show:
         return
-    sJ.apply_grid(fromKey, toKey, grid0)
+    sJ.apply_grid(fromKey, toKey, grid, grid)
     _show_align(sI, sJ, useKey, fromKeyI, toKey)
 
 class AutoFlowMultiCenter2DF(AutoFlowBasic2):
