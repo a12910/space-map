@@ -78,9 +78,9 @@ def calculate_layer_distances(dff, size, overlay, maxShape, barcodePath=None, sa
         
     if savePath is not None:
         with open(savePath, "w") as f:
-            dis1 = list(map(float, dis[1]))
+            dis1 = list(map(float, distances))
             pack = {
-                "mean": float(dis[0]), 
+                "mean": float(np.mean(distances)), 
                 "distances": dis1, 
                 "size": size, 
                 "overlay": overlay
@@ -113,7 +113,7 @@ def _caculate_layer_distances_thread(pack):
     spacemap.Info("Caculate Start: %s %d %d" % (key, size, overlap))
     df = pd.read_csv(dfPath)
     e, value = calculate_layer_distances(df, size, overlap, maxShape, 
-                                    barcodePath, savePath, bcType)
+                                    barcodePath, savePath, bcType, False)
     spacemap.Info("Caculate Finished: %s %d %d %f" % (key, size, overlap, e))
     return [key, size, overlap, e, value]
     
