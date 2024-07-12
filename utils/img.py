@@ -83,8 +83,6 @@ def apply_img_by_grid(img_: np.array, grid: np.array):
     import torch.nn.functional as F
     
     # grid: N*N*2 img: N*N*C / N*N
-    if img_.max() > 1.1:
-        img_ = img_ / 255
     if len(grid.shape) == 4:
         grid = grid[0]
     grid = torch.tensor(grid).type(torch.FloatTensor).unsqueeze(0)
@@ -106,11 +104,10 @@ def apply_img_by_grid(img_: np.array, grid: np.array):
         It = It.permute(1, 2, 0)
     It = It.cpu().numpy()
     It = It.clip(0, 1)
-    meanOld = np.mean(img_)
-    meanNew = np.mean(It)
-    It = It * meanOld / meanNew
+    # meanOld = np.mean(img_)
+    # meanNew = np.mean(It)
+    # It = It * meanOld / meanNew
     if img_.max() > 1.1:
-        It = It * 255
         It = It.astype(np.uint8)
     return It
 

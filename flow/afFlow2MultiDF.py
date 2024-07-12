@@ -3,6 +3,15 @@ from spacemap import Slice2, SliceImg
 import numpy as np
 from .afFlow2Basic import AutoFlowBasic2
 
+def _show_align(S1: Slice2, S2: Slice2, useKey, key1, key2):
+    img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
+    img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
+    err = spacemap.find.default()
+    e = err.err(img1, img2)
+    spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
+    Slice2.show_align(S1, S2, key1, key2, useKey)
+
+
 def _show_err(imgI, imgJ2, imgJ3, tag):
     err = spacemap.find.default()
     e1 = err.computeI(imgI, imgJ2, False)

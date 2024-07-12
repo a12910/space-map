@@ -52,6 +52,8 @@ class TransformDB:
                 grid = self._grid[index]
                 if self.__iszero(grid):
                     img = img
+                else:
+                    img = spacemap.img.apply_img_by_grid(img, grid)
             elif self._inv_grids is not None:
                 inv_grid = self._inv_grids[index]
                 grid = spacemap.points.inverse_grid_train(inv_grid, xyd=spacemap.XYD)

@@ -140,7 +140,7 @@ def _interpolate_2d_array(arr, v, edgeWidth=20):
     non_zero_values = arr[arr != v]
     grid_x, grid_y = np.meshgrid(np.arange(ncols), np.arange(nrows))
     # 使用griddata进行插值，使用外推处理边界
-    interpolated_values = griddata(non_zero_indices, non_zero_values, (grid_y, grid_x), method='linear')
+    interpolated_values = griddata(non_zero_indices, non_zero_values, (grid_y, grid_x), method='cubic')
 
     nan_mask = np.isnan(interpolated_values)
     interpolated_values[nan_mask] = v
