@@ -6,8 +6,6 @@ import sys
 import os
 import distutils.version
 import nibabel as nib
-import spacemap
-from spacemap import base
 
 grid_sample = base.grid_sample
 irfft = base.irfft
@@ -15,171 +13,12 @@ rfft = base.rfft
 mygaussian_torch_selectcenter_meshgrid = base.mygaussian_torch_selectcenter_meshgrid
 mygaussian_3d_torch_selectcenter_meshgrid = base.mygaussian_3d_torch_selectcenter_meshgrid
 mygaussian = base.mygaussian
-interpolate = torch.nn.functional.interpolate
 
-def get_init2D(imgI, imgJ, gpu=None, verbose=100):
-    """ img: J -> I """
-    if gpu is None and spacemap.DEVICE != "cpu":
-        gpu = spacemap.DEVICE
-    ldm = LDDMM2D(template=imgJ,target=imgI,
-                              do_affine=1,do_lddmm=0,
-                              nt=7,
-                              optimizer='adam',
-                              sigma=20.0,sigmaR=40.0,
-                              gpu_number=gpu,
-                              target_err=0.1,
-                              verbose=verbose,
-                              target_step=20000,
-                              show_init=False)
-    return ldm
     
 class LDDMM2D(base.LDDMMBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
     
-    
-    # helper function to load images
-    def _load(self, template, target, costmask):
-        if isinstance(template, str):
-            I = [None]
-            Ispacing = [None]
-            Isize = [None]
-            I[0],Ispacing[0],Isize[0] = self.loadImage(template,im_norm_ms=self.params['im_norm_ms'])
-        elif isinstance(template, np.ndarray):
-            I = [None]
-            Ispacing = [None]
-            Isize = [None]
-            if self.params['im_norm_ms'] == 1:
-                I[0] = self.tensor((template - np.mean(template)) / np.std(template))
-            else:
-                I[0] = self.tensor(template)
-            
-            Isize[0] = list(template.shape)
-            if self.params['dx'] == None:
-                Ispacing[0] = np.ones((3,)).astype(np.float32)
-            else:
-                Ispacing[0] = self.params['dx']
-        elif isinstance(template, list):
-            if isinstance(template[0],str):
-                I = [None]*len(template)
-                Ispacing = [None]*len(template)
-                Isize = [None]*len(template)
-                for i in range(len(template)):
-                    I[i],Ispacing[i],Isize[i] = self.loadImage(template[i],im_norm_ms=self.params['im_norm_ms'])
-            # assumes images are the same spacing
-            elif isinstance(template[0],np.ndarray):
-                I = [None]*len(template)
-                Ispacing = [None]*len(template)
-                Isize = [None]*len(template)
-                for i in range(len(template)):
-                    if self.params['im_norm_ms'] == 1:
-                        I[i] = self.tensor((template[i] - np.mean(template[i])) / np.std(template[i]))
-                    else:
-                        I[i] = self.tensor(template[i])
-                    
-                    Isize[i] = template[i].shape
-                    if self.params['dx'] == None:
-                        Ispacing[i] = np.ones((3,)).astype(np.float32)
-                    else:
-                        Ispacing[i] = self.params['dx']
-            else:
-                print('ERROR: received list of unhandled type for template image.')
-                return -1
-        
-        if isinstance(target, str):
-            J = [None]
-            Jspacing = [None]
-            Jsize = [None]
-            J[0],Jspacing[0],Jsize[0] = self.loadImage(target,im_norm_ms=self.params['im_norm_ms'])
-        elif isinstance(target, np.ndarray):
-            J = [None]
-            Jspacing = [None]
-            Jsize = [None]
-            if self.params['im_norm_ms'] == 1:
-                J[0] = self.tensor((target - np.mean(target)) / np.std(target))
-            else:
-                J[0] = self.tensor(target)
-            
-            Jsize[0] = list(target.shape)
-            if self.params['dx'] == None:
-                Jspacing[0] = np.ones((3,)).astype(np.float32)
-            else:
-                Jspacing[0] = self.params['dx']
-        elif isinstance(target, list):
-            if isinstance(target[0],str):
-                J = [None]*len(target)
-                Jspacing = [None]*len(target)
-                Jsize = [None]*len(target)
-                for i in range(len(target)):
-                    J[i],Jspacing[i],Jsize[i] = self.loadImage(target[i],im_norm_ms=self.params['im_norm_ms'])
-            # assumes images are the same spacing
-            elif isinstance(target[0],np.ndarray):
-                J = [None]*len(target)
-                Jspacing = [None]*len(target)
-                Jsize = [None]*len(target)
-                for i in range(len(target)):
-                    if self.params['im_norm_ms'] == 1:
-                        J[i] = self.tensor((target[i] - np.mean(target[i])) / np.std(target[i]))
-                    else:
-                        J[i] = self.tensor(target[i])
-                    
-                    Jsize[i] = target[i].shape
-                    if self.params['dx'] == None:
-                        Jspacing[i] = np.ones((3,)).astype(np.float32)
-                    else:
-                        Jspacing[i] = self.params['dx']
-            else:
-                print('ERROR: received list of unhandled type for target image.')
-                return -1
-        
-        if isinstance(costmask, str):
-            K = [None]
-            Kspacing = [None]
-            Ksize = [None]
-            # never normalize cost mask
-            K[0],Kspacing[0],Ksize[0] = self.loadImage(costmask,im_norm_ms=0)
-        elif isinstance(costmask,np.ndarray):
-            K = [None]
-            Kspacing = [None]
-            Ksize = [None]
-            K[0] = self.tensor(costmask)
-            Ksize[0] = costmask.shape
-            if self.params['dx'] == None:
-                Kspacing[0] = np.ones((3,)).astype(np.float32)
-            else:
-                Kspacing[0] = self.params['dx']
-        else:
-            K = []
-            Kspacing = []
-            Ksize = []
-        
-        if len(J) != len(I):
-            print('ERROR: images must have the same number of channels.')
-            return -1
-            
-        #if I.shape[0] != J.shape[0] or I.shape[1] != J.shape[1] or I.shape[2] != J.shape[2]:
-        #if I.shape != J.shape:
-        if not all([x.shape == I[0].shape for x in I+J+K]):
-            print('ERROR: the image sizes are not the same.\n')
-            return -1
-        #elif Ispacing[0] != Jspacing[0] or Ispacing[1] != Jspacing[1] or Ispacing[2] != Jspacing[2]
-        #elif np.sum(Ispacing==Jspacing) < len(I.shape):
-        elif self.params['dx'] is None and not all([list(x == Ispacing[0]) for x in Ispacing+Jspacing+Kspacing]):
-            print('ERROR: the image pixel spacings are not the same.\n')
-            return -1
-        else:
-            self.I = I
-            self.J = J
-            if costmask is not None:
-                self.M = K[0]
-            else:
-                self.M = self.tensor(np.ones(I[0].shape)) # this could be initialized to a scalar 1.0 to save memory, if you do this make sure you check computeLinearContrastCorrection to see whether or not you are using torch.sum(w*self.M)
-            
-            self.dx = list(Ispacing[0])
-            self.dx = [float(x) for x in self.dx]
-            self.nx = I[0].shape
-            return 1
     
     # initialize lddmm kernels
     def initializeKernels2d(self):
@@ -189,18 +28,18 @@ class LDDMM2D(base.LDDMMBase):
         F0,F1 = np.meshgrid(f0,f1,indexing='ij')
         #a = 3.0*self.dx[0] # a scale in mm
         #p = 2
-        self.Ahat = self.tensor((1.0 - 2.0*(self.params['a']*self.dx[0])**2*((np.cos(2.0*np.pi*self.dx[0]*F0) - 1.0)/self.dx[0]**2 
-                                + (np.cos(2.0*np.pi*self.dx[1]*F1) - 1.0)/self.dx[1]**2))**(2.0*self.params['p']))
+        self.Ahat = (1.0 - 2.0*(self.params['a']*self.dx[0])**2*((np.cos(2.0*np.pi*self.dx[0]*F0) - 1.0)/self.dx[0]**2 
+                                + (np.cos(2.0*np.pi*self.dx[1]*F1) - 1.0)/self.dx[1]**2))**(2.0*self.params['p'])
         self.Khat = 1.0/self.Ahat
         # only move one kernel for now
         # TODO: try broadcasting this instead
         if distutils.version.LooseVersion(torch.__version__) < distutils.version.LooseVersion("1.8.0"): # this is because pytorch fft functions have changed in input and output after 1.8. No longer outputs a two-channel matrix
-            self.Khat = self.tensor(np.tile(np.reshape(self.Khat,(self.Khat.shape[0],self.Khat.shape[1],1)),(1,1,2)))
+            self.Khat = torch.tensor(np.tile(np.reshape(self.Khat,(self.Khat.shape[0],self.Khat.shape[1],1)),(1,1,2))).type(self.params['dtype']).to(device=self.params['cuda'])
         else:
-            self.Khat = self.tensor(np.reshape(self.Khat,(self.Khat.shape[0],self.Khat.shape[1])))
+            self.Khat = torch.tensor(np.reshape(self.Khat,(self.Khat.shape[0],self.Khat.shape[1]))).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # optimization multipliers (putting this in here because I want to reset this if I change the smoothing kernel)
-        self.GDBeta = self.tensor(1.0)
+        self.GDBeta = torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda'])
         #self.GDBetaAffineR = float(1.0)
         #self.GDBetaAffineT = float(1.0)
         self.climbcount = 0
@@ -234,14 +73,14 @@ class LDDMM2D(base.LDDMMBase):
             if np.mod(size,2) == 0:
                 size += 1
             
-            self.gaussian_filter = self.tensor(base.mygaussian(sigma=1.0/self.params['v_scale'],size=size))
+            self.gaussian_filter = torch.tensor(base.mygaussian(sigma=1.0/self.params['v_scale'],size=size)).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # image sampling domain
         x0 = np.arange(self.nx[0])*self.dx[0]
         x1 = np.arange(self.nx[1])*self.dx[1]
         X0,X1 = np.meshgrid(x0,x1,indexing='ij')
-        self.X0 = self.tensor(X0-np.mean(X0))
-        self.X1 = self.tensor(X1-np.mean(X1))
+        self.X0 = torch.tensor(X0-np.mean(X0)).type(self.params['dtype']).to(device=self.params['cuda'])
+        self.X1 = torch.tensor(X1-np.mean(X1)).type(self.params['dtype']).to(device=self.params['cuda'])
        
         # v and I
         if self.params['gpu_number'] is not None:
@@ -250,9 +89,9 @@ class LDDMM2D(base.LDDMMBase):
                 self.vt1 = []
                 self.detjac = []
                 for i in range(self.params['nt']):
-                    self.vt0.append(self.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))))
-                    self.vt1.append(self.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))))
-                    self.detjac.append(self.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))))
+                    self.vt0.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                    self.vt1.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                    self.detjac.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
             
             if (self.initializer_flags['load'] == 1 or self.initializer_flags['lddmm'] == 1) and self.params['low_memory'] < 1:
                 self.It = [ [None]*(self.params['nt']+1) for i in range(len(self.I)) ]
@@ -263,7 +102,10 @@ class LDDMM2D(base.LDDMMBase):
                         if i == 0:
                             self.It[ii][i] = self.I[ii]
                         else:
-                            self.It[ii][i] = self.tensor(self.I[ii][:,:].clone().detach())
+                            if isinstance(self.I[ii],torch.Tensor):
+                                self.It[ii][i] = self.I[ii][:,:].clone().type(self.params['dtype']).to(device=self.params['cuda'])
+                            else:
+                                self.It[ii][i] = torch.tensor(self.I[ii][:,:].clone().detach()).type(self.params['dtype']).to(device=self.params['cuda'])
         else:
             if not hasattr(self,'vt0') and self.initializer_flags['lddmm'] == 1:
                 self.vt0 = []
@@ -281,12 +123,12 @@ class LDDMM2D(base.LDDMMBase):
         
         # affine parameters
         if not hasattr(self,'affineA') and self.initializer_flags['affine'] == 1: # we never automatically reset affine variables
-            self.affineA = self.tensor(np.eye(3))
-            self.lastaffineA = self.tensor(np.eye(3))
-            self.gradA = self.tensor(np.zeros((3,3)))
+            self.affineA = torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda'])
+            self.lastaffineA = torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda'])
+            self.gradA = torch.tensor(np.zeros((3,3))).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # optimizer update variables
-        self.GDBeta = self.tensor(1.0)
+        self.GDBeta = torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda'])
         self.GDBetaAffineR = float(1.0)
         self.GDBetaAffineT = float(1.0)
         
@@ -309,22 +151,22 @@ class LDDMM2D(base.LDDMMBase):
             for i in range(self.params['we']):
                 if i == 0: # first index is the matching channel, the rest is artifacts
                     for ii in self.params['we_channels']: # allocate space only for the desired channels
-                        self.W[ii].append(self.tensor(0.9*np.ones((self.nx[0],self.nx[1]))))
-                        self.we_C[ii].append(self.tensor(1.0))
+                        self.W[ii].append(torch.tensor(0.9*np.ones((self.nx[0],self.nx[1]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                        self.we_C[ii].append(torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda']))
                 else:
                     for ii in self.params['we_channels']:
-                        self.W[ii].append(self.tensor(0.1*np.ones((self.nx[0],self.nx[1]))))
-                        self.we_C[ii].append(self.tensor(1.0))
+                        self.W[ii].append(torch.tensor(0.1*np.ones((self.nx[0],self.nx[1]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                        self.we_C[ii].append(torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda']))
         
         # SGD mask initialization
         if self.params['optimizer'] == 'sgd':
-            self.sgd_M = self.tensor(np.ones(self.M.shape))
+            self.sgd_M = torch.ones(self.M.shape).type(self.params['dtype']).to(device=self.params['cuda'])
         self.sgd_maskiter = 0
         
         self.adam = {}
          # adam optimizer variables
         if self.params['optimizer'] == "adam":
-            self.sgd_M = self.tensor(np.ones(self.M.shape))
+            self.sgd_M = torch.ones(self.M.shape).type(self.params['dtype']).to(device=self.params['cuda'])
             self.sgd_maskiter = 0
             self.adam['m0'] = []
             self.adam['m1'] = []
@@ -333,24 +175,24 @@ class LDDMM2D(base.LDDMMBase):
             self.adam['v1'] = []
             self.adam['v2'] = []
             for i in range(self.params['nt']):
-                self.adam['m0'].append(self.tensor(np.zeros(
+                self.adam['m0'].append(torch.tensor(np.zeros(
                     (int(np.round(self.nx[0]*self.params['v_scale'])),
-                     int(np.round(self.nx[1]*self.params['v_scale']))))))
-                self.adam['m1'].append(self.tensor(np.zeros((
+                     int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.adam['m1'].append(torch.tensor(np.zeros((
                     int(np.round(self.nx[0]*self.params['v_scale'])),
-                    int(np.round(self.nx[1]*self.params['v_scale']))))))
-                self.adam['m2'].append(self.tensor(np.zeros((
+                    int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.adam['m2'].append(torch.tensor(np.zeros((
                     int(np.round(self.nx[0]*self.params['v_scale'])),
-                    int(np.round(self.nx[1]*self.params['v_scale']))))))
-                self.adam['v0'].append(self.tensor(np.zeros((
+                    int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.adam['v0'].append(torch.tensor(np.zeros((
                     int(np.round(self.nx[0]*self.params['v_scale'])),
-                    int(np.round(self.nx[1]*self.params['v_scale']))))))
-                self.adam['v1'].append(self.tensor(np.zeros((
+                    int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.adam['v1'].append(torch.tensor(np.zeros((
                     int(np.round(self.nx[0]*self.params['v_scale'])),
-                    int(np.round(self.nx[1]*self.params['v_scale']))))))
-                self.adam['v2'].append(self.tensor(np.zeros((
+                    int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.adam['v2'].append(torch.tensor(np.zeros((
                     int(np.round(self.nx[0]*self.params['v_scale'])),
-                    int(np.round(self.nx[1]*self.params['v_scale']))))))
+                    int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']).to(device=self.params['cuda']))
         
         # reset initializer flags
         self.initializer_flags['load'] = 0
@@ -366,21 +208,21 @@ class LDDMM2D(base.LDDMMBase):
             # allocate gradient divisor for custom torch gradient function
             self.grad_divisor_x = np.ones(self.I[0].shape)
             self.grad_divisor_x[1:-1,:,:] = 2
-            self.grad_divisor_x = self.tensor(self.grad_divisor_x)
+            self.grad_divisor_x = torch.tensor(self.grad_divisor_x).type(self.params['dtype']).to(device=self.params['cuda'])
             self.grad_divisor_y = np.ones(self.I[0].shape)
             self.grad_divisor_y[:,1:-1,:] = 2
-            self.grad_divisor_y = self.tensor(self.grad_divisor_y)
+            self.grad_divisor_y = torch.tensor(self.grad_divisor_y).type(self.params['dtype']).to(device=self.params['cuda'])
             self.grad_divisor_z = np.ones(self.I[0].shape)
             self.grad_divisor_z[:,:,1:-1] = 2
-            self.grad_divisor_z = self.tensor(self.grad_divisor_z)
+            self.grad_divisor_z = torch.tensor(self.grad_divisor_z).type(self.params['dtype']).to(device=self.params['cuda'])
         else:
             # allocate gradient divisor for custom torch gradient function
             self.grad_divisor_x = np.ones(self.I[0].shape)
             self.grad_divisor_x[1:-1,:] = 2
-            self.grad_divisor_x = self.tensor(self.grad_divisor_x)
+            self.grad_divisor_x = torch.tensor(self.grad_divisor_x).type(self.params['dtype']).to(device=self.params['cuda'])
             self.grad_divisor_y = np.ones(self.I[0].shape)
             self.grad_divisor_y[:,1:-1] = 2
-            self.grad_divisor_y = self.tensor(self.grad_divisor_y)
+            self.grad_divisor_y = torch.tensor(self.grad_divisor_y).type(self.params['dtype']).to(device=self.params['cuda'])
     
     # 2D replication-pad, artificial roll, subtract, single-sided difference on boundaries
     def torch_gradient2d(self,arr, dx, dy, grad_divisor_x_gpu,grad_divisor_y_gpu):
@@ -393,7 +235,7 @@ class LDDMM2D(base.LDDMMBase):
     def applyThisTransform2d(self, I, interpmode='bilinear',dtype='torch.FloatTensor'):
         It = []
         for i in range(self.params['nt']+1):
-            It.append(self.tensor(I))
+            It.append(torch.tensor(I).type(dtype).to(device=self.params['cuda']))
         
         phiinv0_gpu = self.X0.clone()
         phiinv1_gpu = self.X1.clone()
@@ -404,16 +246,12 @@ class LDDMM2D(base.LDDMMBase):
                 phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
                 phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
             
-            if t == self.params['nt']-1 and \
-                (self.params['do_affine'] > 0  or \
-                 (hasattr(self, 'affineA') and not \
-                  torch.all(torch.eq(self.affineA,self.tensor(np.eye(4)))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
+            if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(4)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
                 phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
             
             # deform the image
             if self.params['v_scale'] != 1.0:
-                It[t+1] = torch.squeeze(grid_sample(It[0].unsqueeze(0).unsqueeze(0),
-                                                    torch.stack((torch.squeeze(interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
+                It[t+1] = torch.squeeze(grid_sample(It[0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
             else:
                 It[t+1] = torch.squeeze(grid_sample(It[0].unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
         
@@ -447,10 +285,10 @@ class LDDMM2D(base.LDDMMBase):
                 phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
                 phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
             
-            if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,self.tensor(np.eye(3)))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
+            if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
                 phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
         if self.params['v_scale'] != 1.0:
-            grid = torch.stack((torch.squeeze(interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0)
+            grid = torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0)
         else:
             grid = torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0)        
         del phiinv0_gpu,phiinv1_gpu
@@ -481,7 +319,7 @@ class LDDMM2D(base.LDDMMBase):
             if t == self.params['nt']-1 and \
                 (self.params['do_affine'] > 0 or \
                     (hasattr(self, 'affineA') and not \
-                        torch.all(torch.eq(self.affineA,self.tensor(np.eye(3)))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
+                        torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
                 if self.params['checkaffinestep'] == 1:
                     # new diffeo with old affine
                     # this doesn't match up with EAll even when vt is identity
@@ -489,7 +327,7 @@ class LDDMM2D(base.LDDMMBase):
                     I = [None]*len(self.I)
                     for i in range(len(self.I)):
                         if self.params['v_scale'] != 1.0:
-                            I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(interpolate(phiinv1_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(interpolate(phiinv0_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
+                            I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
                         else:
                             I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_temp/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_temp/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
                     
@@ -500,7 +338,7 @@ class LDDMM2D(base.LDDMMBase):
                     I = [None]*len(self.I)
                     for i in range(len(self.I)):
                         if self.params['v_scale'] != 1.0:
-                            I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(interpolate(phiinv1_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(interpolate(phiinv0_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
+                            I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_temp.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
                         else:
                             I[i] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_temp/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_temp/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
                     
@@ -514,7 +352,7 @@ class LDDMM2D(base.LDDMMBase):
             # deform the image
             for i in range(len(self.I)):
                 if self.params['v_scale'] != 1.0:
-                    self.It[i][t+1] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
+                    self.It[i][t+1] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='bilinear',align_corners=True))/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
                 else:
                     self.It[i][t+1] = torch.squeeze(grid_sample(self.It[i][0].unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))
         
@@ -705,24 +543,24 @@ class LDDMM2D(base.LDDMMBase):
         else:
             return
         
-        # if self.params['sg_mask_mode'] == 'gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '2gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '3gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == 'rand':
-        #     self.sgd_M = self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda'])
-        # elif self.params['sg_mask_mode'] == 'binrand':
-        #     self.sgd_M = torch.round(self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:5] == 'gauss' and len(self.params['sg_mask_mode']) > 5:
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        #     for i in range(int(self.params['sg_mask_mode'][5:])-1):
-        #         self.sgd_M += base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:8] == 'bingauss' and len(self.params['sg_mask_mode']) > 8:
-        #     self.sgd_M = torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
-        #     for i in range(int(self.params['sg_mask_mode'][8:])-1):
-        #         self.sgd_M += torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
+        if self.params['sg_mask_mode'] == 'gauss':
+            self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
+        elif self.params['sg_mask_mode'] == '2gauss':
+            self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
+        elif self.params['sg_mask_mode'] == '3gauss':
+            self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
+        elif self.params['sg_mask_mode'] == 'rand':
+            self.sgd_M = self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda'])
+        elif self.params['sg_mask_mode'] == 'binrand':
+            self.sgd_M = torch.round(self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda']))
+        elif self.params['sg_mask_mode'][0:5] == 'gauss' and len(self.params['sg_mask_mode']) > 5:
+            self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
+            for i in range(int(self.params['sg_mask_mode'][5:])-1):
+                self.sgd_M += base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
+        elif self.params['sg_mask_mode'][0:8] == 'bingauss' and len(self.params['sg_mask_mode']) > 8:
+            self.sgd_M = torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
+            for i in range(int(self.params['sg_mask_mode'][8:])-1):
+                self.sgd_M += torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
             
     
     # update learning rate for gradient descent
@@ -838,38 +676,38 @@ class LDDMM2D(base.LDDMMBase):
     
     # compute gradient of affine transformation
     def calculateGradientA2d(self,affineA,lambda1,mode='affine'):
-        self.gradA = self.tensor(np.zeros((3,3)))
+        self.gradA = torch.tensor(np.zeros((3,3))).type(self.params['dtype']).to(device=self.params['cuda'])
         affineB = torch.inverse(affineA)
         gi_x = [None]*len(self.I)
         gi_y = [None]*len(self.I)
         for i in range(len(self.I)):
             if self.params['low_memory'] == 0:
                 if self.params['v_scale'] != 1.0:
-                    gi_x[i],gi_y[i] = self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.It[i][-1],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
+                    gi_x[i],gi_y[i] = self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.It[i][-1],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
                 else:
                     gi_x[i],gi_y[i] = self.torch_gradient2d(self.applyContrastCorrection(self.It[i][-1],i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
             else:
                 if self.params['v_scale'] != 1.0:
-                    gi_x[i],gi_y[i] = self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
+                    gi_x[i],gi_y[i] = self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
                 else:
                     gi_x[i],gi_y[i] = self.torch_gradient2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
             # TODO: can this be efficiently vectorized?
             for r in range(2):
                 for c in range(3):
                     # allocating on the fly, not good
-                    dA = self.tensor(np.zeros((3,3)))
+                    dA = torch.tensor(np.zeros((3,3))).type(self.params['dtype']).to(device=self.params['cuda'])
                     dA[r,c] = 1.0
                     AdAB = torch.mm(torch.mm(affineA,dA),affineB)
                     #AdABX = AdAB[0,0]*self.X0 + AdAB[0,1]*self.X1 + AdAB[0,2]
                     #AdABY = AdAB[1,0]*self.X0 + AdAB[1,1]*self.X1 + AdAB[1,2]
                     if i == 0:
                         if self.params['v_scale'] != 1.0:
-                            self.gradA[r,c] = torch.sum( torch.squeeze(interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)) * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
+                            self.gradA[r,c] = torch.sum( torch.squeeze(torch.nn.functional.interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)) * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
                         else:
                             self.gradA[r,c] = torch.sum( lambda1[i] * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
                     else:
                         if self.params['v_scale'] != 1.0:
-                            self.gradA[r,c] += torch.sum( torch.squeeze(interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)) * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
+                            self.gradA[r,c] += torch.sum( torch.squeeze(torch.nn.functional.interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)) * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
                         else:
                             self.gradA[r,c] += torch.sum( lambda1[i] * ( gi_x[i]*(AdAB[0,0]*(self.X0) + AdAB[0,1]*(self.X1) + AdAB[0,2]) + gi_y[i]*(AdAB[1,0]*(self.X0) + AdAB[1,1]*(self.X1) + AdAB[1,2]) ) ) * self.dx[0]*self.dx[1]
                     #self.gradA[r,c] = torch.sum( lambda1 * ( gi_y*(AdAB[0,0]*self.X1 + AdAB[0,1]*self.X0 + AdAB[0,2]*self.X2 + AdAB[0,3]) + gi_x*(AdAB[1,0]*self.X1 + AdAB[1,1]*self.X0 + AdAB[1,2]*self.X2 + AdAB[1,3]) + gi_z*(AdAB[2,0]*self.X1 + AdAB[2,1]*self.X0 + AdAB[2,2]*self.X2 + AdAB[2,3]) ) ) * self.dx[0]*self.dx[1]*self.dx[2]
@@ -893,8 +731,8 @@ class LDDMM2D(base.LDDMMBase):
         
         # find the determinant of Jacobian
         if self.params['v_scale'] != 1:
-            phiinv0_0,phiinv0_1 = self.torch_gradient2d(phiinv0_gpu,self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
-            phiinv1_0,phiinv1_1 = self.torch_gradient2d(phiinv1_gpu,self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
+            phiinv0_0,phiinv0_1 = self.torch_gradient2d(phiinv0_gpu,self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
+            phiinv1_0,phiinv1_1 = self.torch_gradient2d(phiinv1_gpu,self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))
         else:
             phiinv0_0,phiinv0_1 = self.torch_gradient2d(phiinv0_gpu,self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
             phiinv1_0,phiinv1_1 = self.torch_gradient2d(phiinv1_gpu,self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
@@ -917,17 +755,17 @@ class LDDMM2D(base.LDDMMBase):
             #if self.params['do_affine'] == 0:
                 if self.params['v_scale'] < 1.0:
                     if self.params['v_scale_smoothing'] == 1:
-                        lambdat = torch.squeeze(grid_sample(interpolate(torch.nn.functional.conv2d(lambda1[i].unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
+                        lambdat = torch.squeeze(grid_sample(torch.nn.functional.interpolate(torch.nn.functional.conv2d(lambda1[i].unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
                     else:
-                        lambdat = torch.squeeze(grid_sample(interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
+                        lambdat = torch.squeeze(grid_sample(torch.nn.functional.interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
                 else:
                     lambdat = torch.squeeze(grid_sample(lambda1[i].unsqueeze(0).unsqueeze(0), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
             else:
                 if self.params['v_scale'] < 1.0:
                     if self.params['v_scale_smoothing'] == 1:
-                        lambdat = torch.squeeze(grid_sample(interpolate(torch.nn.functional.conv2d(lambda1[i].unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((((self.affineA[1,0]*(phiinv0_gpu)) + (self.affineA[1,1]*(phiinv1_gpu)) + self.affineA[1,2])/(self.nx[1]*self.dx[1]-self.dx[1])*2,((self.affineA[0,0]*(phiinv0_gpu)) + (self.affineA[0,1]*(phiinv1_gpu)) + self.affineA[0,2])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac*torch.abs(torch.det(self.affineA))
+                        lambdat = torch.squeeze(grid_sample(torch.nn.functional.interpolate(torch.nn.functional.conv2d(lambda1[i].unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((((self.affineA[1,0]*(phiinv0_gpu)) + (self.affineA[1,1]*(phiinv1_gpu)) + self.affineA[1,2])/(self.nx[1]*self.dx[1]-self.dx[1])*2,((self.affineA[0,0]*(phiinv0_gpu)) + (self.affineA[0,1]*(phiinv1_gpu)) + self.affineA[0,2])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac*torch.abs(torch.det(self.affineA))
                     else:
-                        lambdat = torch.squeeze(grid_sample(interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((((self.affineA[1,0]*(phiinv0_gpu)) + (self.affineA[1,1]*(phiinv1_gpu)) + self.affineA[1,2])/(self.nx[1]*self.dx[1]-self.dx[1])*2,((self.affineA[0,0]*(phiinv0_gpu)) + (self.affineA[0,1]*(phiinv1_gpu)) + self.affineA[0,2])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac*torch.abs(torch.det(self.affineA))
+                        lambdat = torch.squeeze(grid_sample(torch.nn.functional.interpolate(lambda1[i].unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True), torch.stack((((self.affineA[1,0]*(phiinv0_gpu)) + (self.affineA[1,1]*(phiinv1_gpu)) + self.affineA[1,2])/(self.nx[1]*self.dx[1]-self.dx[1])*2,((self.affineA[0,0]*(phiinv0_gpu)) + (self.affineA[0,1]*(phiinv1_gpu)) + self.affineA[0,2])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac*torch.abs(torch.det(self.affineA))
                 else:
                     lambdat = torch.squeeze(grid_sample(lambda1[i].unsqueeze(0).unsqueeze(0), torch.stack((((self.affineA[1,0]*(phiinv0_gpu)) + (self.affineA[1,1]*(phiinv1_gpu)) + self.affineA[1,2])/(self.nx[1]*self.dx[1]-self.dx[1])*2,((self.affineA[0,0]*(phiinv0_gpu)) + (self.affineA[0,1]*(phiinv1_gpu)) + self.affineA[0,2])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac*torch.abs(torch.det(self.affineA))
             
@@ -938,34 +776,34 @@ class LDDMM2D(base.LDDMMBase):
                     if self.params['v_scale'] != 1.0:
                         if self.params['v_scale_smoothing'] == 1:
                             #TODO: alternatively, compute image gradient and then downsample after
-                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
+                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
                         else:
-                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
+                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
                     else:
                         grad_list = [x*lambdat for x in self.torch_gradient2d(self.applyContrastCorrection(self.It[i][t],i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)]
                 else:
                     if self.params['v_scale'] != 1.0:
                         if self.params['v_scale_smoothing'] == 1:
-                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
+                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
                         else:
-                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
+                            grad_list = [x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))]
                     else:
                         grad_list = [x*lambdat for x in self.torch_gradient2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)]
             else:
                 if self.params['low_memory'] == 0:
                     if self.params['v_scale'] != 1.0:
                         if self.params['v_scale_smoothing'] == 1:
-                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
+                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
                         else:
-                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
+                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.It[i][t],i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
                     else:
                         grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(self.applyContrastCorrection(self.It[i][t],i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)])]
                 else:
                     if self.params['v_scale'] != 1.0:
                         if self.params['v_scale_smoothing'] == 1:
-                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
+                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(torch.nn.functional.conv2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),self.gaussian_filter.unsqueeze(0).unsqueeze(0), stride=1, padding = int(self.gaussian_filter.shape[0]/2.0)),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
                         else:
-                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
+                            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(torch.squeeze(torch.nn.functional.interpolate(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i).unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),self.dx[0],self.dx[1],torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_x.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)),torch.squeeze(torch.nn.functional.interpolate(self.grad_divisor_y.unsqueeze(0).unsqueeze(0),size=(self.X0.shape[0],self.X0.shape[1]),mode='bilinear',align_corners=True)))])]
                     else:
                         grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(self.applyContrastCorrection(self.applyThisTransformNT(self.I[i],nt=t),i),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)])]
         
@@ -1073,7 +911,7 @@ class LDDMM2D(base.LDDMMBase):
 
     # update affine matrix
     def updateAffine2d(self):
-        e = self.zeros((3, 3))
+        e = torch.zeros((3, 3)).type(self.params['dtype']).to(device=self.params['cuda'])
         e[0:2, 0:2] = self.params['epsilonL'] * self.GDBetaAffineR
         e[0:2, 2] = self.params['epsilonT'] * self.GDBetaAffineT
         e = torch.linalg.matrix_exp(-e * self.gradA)  # 直接在 GPU 上计算矩阵指数
@@ -1141,33 +979,32 @@ class LDDMM2D(base.LDDMMBase):
         self.meanx0 = np.mean(x0)
         self.meanx1 = np.mean(x1)
         X0,X1 = np.meshgrid(x0-self.meanx0,x1-self.meanx1,indexing='ij')
-        self.saX0 = self.tensor(X0)
-        self.saX1 = self.tensor(X1)
+        self.saX0 = torch.tensor(X0).type(self.params['dtype']).to(device=self.params['cuda'])
+        self.saX1 = torch.tensor(X1).type(self.params['dtype']).to(device=self.params['cuda'])
         X,Y,_ = np.meshgrid(x0-self.meanx0,x1-self.meanx1,x2-np.mean(x2),indexing='ij')
-        X = self.tensor(X)
-        Y = self.tensor(Y)
+        X = torch.tensor(X).type(self.params['dtype']).to(device=self.params['cuda'])
+        Y = torch.tensor(Y).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # allocate parameters
         if a is None:
-            a = self.tensor(torch.zeros((nx[2],)))
+            a = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
         
         if b is None:
-            b = self.tensor(torch.zeros((nx[2],)))
+            b = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
         
         if theta is None:
-            theta = self.tensor(torch.zeros((nx[2],)))
+            theta = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # allocate stuff
         # need to account for missing slices here
         factor_vector = np.ones((nx[2]-len(missingslices),))
         factor_vector[0:sigma_target_radius] = np.linspace(min_sigma_target,1.,sigma_target_radius)
         factor_vector[-sigma_target_radius:] = np.linspace(1.,min_sigma_target,sigma_target_radius)
-        sigma_target_vec = self.tensor(np.ones((nx[2]-len(missingslices),)) * sigma_target * factor_vector)
-        
+        sigma_target_vec = torch.tensor(np.ones((nx[2]-len(missingslices),)) * sigma_target * factor_vector).type(self.params['dtype']).to(device=self.params['cuda'])
         factor_vector = np.ones((nx[2]-len(missingslices),))
         factor_vector[0:sigma_atlas_radius] = np.linspace(min_sigma_atlas,1.,sigma_atlas_radius)
         factor_vector[-sigma_atlas_radius:] = np.linspace(1.,min_sigma_atlas,sigma_atlas_radius)
-        sigma_atlas_vec = self.tensor(np.ones((nx[2]-len(missingslices),)) * sigma_atlas * factor_vector)
+        sigma_atlas_vec = torch.tensor(np.ones((nx[2]-len(missingslices),)) * sigma_atlas * factor_vector).type(self.params['dtype']).to(device=self.params['cuda'])
         
         
         # get slice z coordinates
@@ -1180,9 +1017,9 @@ class LDDMM2D(base.LDDMMBase):
         #target_rem = torch.gather(target, 2, torch.Tensor(np.array(slicenumbers).astype(np.int32)).to(device=self.params['cuda'])).clone()
         target_rem = target[:,:,slicenumbers].clone()
         
-        slicecoord = torch.stack([self.tensor((x+1.0)*dx[2] - dx[2]/2.0) for x in [slicenumbers[0]-2, slicenumbers[0]-1] + slicenumbers + [slicenumbers[-1]+1, slicenumbers[-1]+2]])
+        slicecoord = torch.stack([torch.tensor((x+1.0)*dx[2] - dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']) for x in [slicenumbers[0]-2, slicenumbers[0]-1] + slicenumbers + [slicenumbers[-1]+1, slicenumbers[-1]+2]])
         shiftindices = [-2,-1,0,1,2]
-        mynumerator = self.tensor(np.zeros((len(shiftindices), slicecoord.shape[0])))
+        mynumerator = torch.tensor(np.zeros((len(shiftindices), slicecoord.shape[0]))).type(self.params['dtype']).to(device=self.params['cuda'])
         dz = ((torch.roll(slicecoord[2:-2],-1) - slicecoord[2:-2]) - (torch.roll(slicecoord[2:-2],1) - slicecoord[2:-2])) / 2.0
         # account for rollover
         dz[0] = dz[1]
@@ -1190,7 +1027,7 @@ class LDDMM2D(base.LDDMMBase):
         
         # smooth?
         if smoothing == 1:
-            mygauss = self.tensor(mygaussian(1,9))
+            mygauss = torch.tensor(mygaussian(1,9)).type(self.params['dtype']).to(device=self.params['cuda'])
             for i in range(input.shape[2]):
                 input[:,:,i] = torch.squeeze(torch.nn.functional.conv2d(input[:,:,i].unsqueeze(0).unsqueeze(0),mygauss.unsqueeze(0).unsqueeze(0), stride=1, padding=4))
             for i in range(template.shape[2]):
@@ -1213,24 +1050,24 @@ class LDDMM2D(base.LDDMMBase):
         
         # optimizer
         if optimizer=="adam":
-            best_E = self.tensor(1e15)
-            m_a = self.tensor(np.zeros((nx[2],)))
-            m_b = self.tensor(np.zeros((nx[2],)))
-            m_theta = self.tensor(np.zeros((nx[2],)))
-            v_a = self.tensor(np.zeros((nx[2],)))
-            v_b = self.tensor(np.zeros((nx[2],)))
-            v_theta = self.tensor((nx[2],))
-            meshind_x = self.tensor(torch.linspace(0,target_rem.shape[0]-1,target_rem.shape[0]))
-            meshind_y = self.tensor(torch.linspace(0,target_rem.shape[1]-1,target_rem.shape[1]))
+            best_E = torch.tensor(1e15).type(self.params['dtype']).to(device=self.params['cuda'])
+            m_a = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            m_b = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            m_theta = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            v_a = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            v_b = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            v_theta = torch.zeros((nx[2],)).type(self.params['dtype']).to(device=self.params['cuda'])
+            meshind_x = torch.linspace(0,target_rem.shape[0]-1,target_rem.shape[0]).type(self.params['dtype']).to(device=self.params['cuda'])
+            meshind_y = torch.linspace(0,target_rem.shape[1]-1,target_rem.shape[1]).type(self.params['dtype']).to(device=self.params['cuda'])
             meshX,meshY = torch.meshgrid(meshind_x,meshind_y)
 
         
         # sgd mask
-        M = self.tensor(torch.ones(target_rem.shape))
+        M = torch.ones(target_rem.shape).type(self.params['dtype']).to(device=self.params['cuda'])
         
         # loop
         iter = 1
-        E = self.tensor(1e15)
+        E = torch.tensor(1e15).type(self.params['dtype']).to(device=self.params['cuda'])
         while (iter < niter):
             # interpolate stack
             k = 0
@@ -1273,8 +1110,8 @@ class LDDMM2D(base.LDDMMBase):
             
             # update sgd mask
             if optimizer=="adam" and sg_mask_mode=="gauss":
-                center_x = self.tensor(torch.rand(1)*target_rem.shape[0])
-                center_y = self.tensor(torch.rand(1)*target_rem.shape[1])
+                center_x = (torch.rand(1)*target_rem.shape[0]).type(self.params['dtype']).to(device=self.params['cuda'])
+                center_y = (torch.rand(1)*target_rem.shape[1]).type(self.params['dtype']).to(device=self.params['cuda'])
                 M = mygaussian_torch_selectcenter_meshgrid(meshX,meshY,sg_sigma,center_x,center_y)
                 # normalize mask
                 #M = M / (1/(2*sg_sigma**2))
@@ -1454,8 +1291,8 @@ class LDDMM2D(base.LDDMMBase):
         self.meanx0 = np.mean(x0)
         self.meanx1 = np.mean(x1)
         X0,X1 = np.meshgrid(x0-self.meanx0,x1-self.meanx1,indexing='ij')
-        self.saX0 = self.tensor(X0)
-        self.saX1 = self.tensor(X1)
+        self.saX0 = torch.tensor(X0).type(self.params['dtype']).to(device=self.params['cuda'])
+        self.saX1 = torch.tensor(X1).type(self.params['dtype']).to(device=self.params['cuda'])
         
         for i in range(nx[2]):
             # maybe don't store TX and TY
@@ -1610,14 +1447,14 @@ class LDDMM2D(base.LDDMMBase):
             self.vt1 = []
             self.vt2 = []
             for i in range(self.params['nt']):
-                self.vt0.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
-                self.vt1.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
-                self.vt2.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
+                self.vt0.append(torch.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.vt1.append(torch.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                self.vt2.append(torch.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))).type(self.params['dtype']).to(device=self.params['cuda']))
         
         if hasattr(self,'affineA'): # we never automatically reset affine variables
-            self.affineA = self.tensor(np.eye(4))
-            self.lastaffineA = self.tensor(np.eye(4))
-            self.gradA = self.tensor(np.zeros((4,4)))
+            self.affineA = torch.tensor(np.eye(4)).type(self.params['dtype']).to(device=self.params['cuda'])
+            self.lastaffineA = torch.tensor(np.eye(4)).type(self.params['dtype']).to(device=self.params['cuda'])
+            self.gradA = torch.tensor(np.zeros((4,4))).type(self.params['dtype']).to(device=self.params['cuda'])
         
         if hasattr(self,'ccIbar'): # we never reset cc variables
             self.ccIbar = []
@@ -1637,15 +1474,15 @@ class LDDMM2D(base.LDDMMBase):
             for i in range(self.params['we']):
                 if i == 0: # first index is the matching channel, the rest is artifacts
                     for ii in self.params['we_channels']: # allocate space only for the desired channels
-                        self.W[ii].append(self.tensor(0.9*np.ones((self.nx[0],self.nx[1],self.nx[2]))))
-                        self.we_C[ii].append(self.tensor(1.0))
+                        self.W[ii].append(torch.tensor(0.9*np.ones((self.nx[0],self.nx[1],self.nx[2]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                        self.we_C[ii].append(torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda']))
                 else:
                     for ii in self.params['we_channels']:
-                        self.W[ii].append(self.tensor(0.1*np.ones((self.nx[0],self.nx[1],self.nx[2]))))
-                        self.we_C[ii].append(self.tensor(1.0))
+                        self.W[ii].append(torch.tensor(0.1*np.ones((self.nx[0],self.nx[1],self.nx[2]))).type(self.params['dtype']).to(device=self.params['cuda']))
+                        self.we_C[ii].append(torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda']))
         
         # optimizer update variables
-        self.GDBeta = self.tensor(1.0)
+        self.GDBeta = torch.tensor(1.0).type(self.params['dtype']).to(device=self.params['cuda'])
         self.GDBetaAffineR = float(1.0)
         self.GDBetaAffineT = float(1.0)
         return
@@ -1711,10 +1548,10 @@ class LDDMM2D(base.LDDMMBase):
                                 return -1
                 
                 if i == 0:
-                    self.vt0 = self.tensor(varlist[i])
+                    self.vt0 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt0 assigned.')
                 elif i == 1:
-                    self.vt1 = self.tensor(varlist[i])
+                    self.vt1 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt1 assigned.')
             
         return 1
@@ -1730,7 +1567,7 @@ class LDDMM2D(base.LDDMMBase):
                     print('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
                     return -1
             
-            self.affineA = self.tensor(affineA)
+            self.affineA = torch.Tensor(affineA).type(self.params['dtype']).to(device=self.params['cuda'])
             print('Custom affineA assigned.')
         
         return 1
@@ -1800,10 +1637,10 @@ class LDDMM2D(base.LDDMMBase):
                                 return -1
                 
                 if i == 0:
-                    self.vt0 = self.tensor(varlist[i])
+                    self.vt0 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt0 assigned.')
                 elif i == 1:
-                    self.vt1 = self.tensor(varlist[i])
+                    self.vt1 = torch.Tensor(varlist[i]).type(self.params['dtype']).to(device=self.params['cuda'])
                     print('Custom vt1 assigned.')
         
         if affineA is not None:
@@ -1815,7 +1652,7 @@ class LDDMM2D(base.LDDMMBase):
                     print('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
                     return -1
             
-            self.affineA = self.tensor(affineA)
+            self.affineA = torch.Tensor(affineA).type(self.params['dtype']).to(device=self.params['cuda'])
             print('Custom affineA assigned.')
         
         return 1
