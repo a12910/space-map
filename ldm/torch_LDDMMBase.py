@@ -294,6 +294,11 @@ class LDDMMBase:
             t = t.clone()
         return t.to(device=self.params['cuda'])
     
+    def tensor_ncp(self, t):
+        if isinstance(t, np.ndarray):
+            t = torch.tensor(t)
+        return t.to(device=self.params['cuda'])
+    
     # manual edit parameter
     def setParams(self,parameter_name,parameter_value):
         if self.willUpdate is None:
