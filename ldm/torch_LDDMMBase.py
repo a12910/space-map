@@ -288,16 +288,20 @@ class LDDMMBase:
         self.willUpdate = None
         
     def tensor(self, t):
-        if isinstance(t, np.ndarray):
+        if isinstance(t, np.ndarray) or isinstance(t, float):
             t = torch.tensor(t)
         elif isinstance(t, torch.Tensor):
             t = t.clone()
-        return t.to(device=self.params['cuda'])
+        if isinstance(t, torch.Tensor):
+            return t.type(self.params['dtype']).to(device=self.params['cuda'])
+        return t
     
     def tensor_ncp(self, t):
-        if isinstance(t, np.ndarray):
+        if isinstance(t, np.ndarray) or isinstance(t, float):
             t = torch.tensor(t)
-        return t.to(device=self.params['cuda'])
+        if isinstance(t, torch.Tensor):
+            return t.type(self.params['dtype']).to(device=self.params['cuda'])
+        return t
     
     # manual edit parameter
     def setParams(self,parameter_name,parameter_value):

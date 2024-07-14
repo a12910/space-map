@@ -47,6 +47,9 @@ def lddmm_main2(ldm, err=0.1):
     ldm.run()
     return ldm
 
+import torch
+import torch.jit
+
 
 class LDDMMRegistration(Registration):
     nt=5
