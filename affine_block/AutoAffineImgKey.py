@@ -1,8 +1,9 @@
 import numpy as np
 import spacemap
 import pandas as pd
+from .flowMgrImg import AffineFlowMgrImg
 
-class AutoAffineImgKey(spacemap.AffineFlowMgrImg):
+class AutoAffineImgKey(AffineFlowMgrImg):
     def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False, method="sift_vgg"):
         super().__init__("AutoAffineImgKey", imgI, imgJ, finder)
         self.show=show

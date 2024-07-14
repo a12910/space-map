@@ -130,8 +130,6 @@ class LDDMM2D(base.LDDMMBase):
                 print('ERROR: received list of unhandled type for target image.')
                 return -1
         
-        # load costmask if the variable exists
-        # TODO: make this multichannel
         if isinstance(costmask, str):
             K = [None]
             Kspacing = [None]
@@ -241,35 +239,7 @@ class LDDMM2D(base.LDDMMBase):
         X0,X1 = np.meshgrid(x0,x1,indexing='ij')
         self.X0 = torch.tensor(X0-np.mean(X0)).type(self.params['dtype']).to(device=self.params['cuda'])
         self.X1 = torch.tensor(X1-np.mean(X1)).type(self.params['dtype']).to(device=self.params['cuda'])
-        '''
-        # v and I
-        if self.params['gpu_number'] is not None:
-            self.vt0 = []
-            self.vt1 = []
-            self.detjac = []
-            self.It = [ [None]*(self.params['nt']+1) for i in range(len(self.I)) ]
-            for ii in range(len(self.I)):
-                for i in range(self.params['nt']+1):
-                    self.It[ii][i] = torch.tensor(self.I[ii][:,:]).type(self.params['dtype']).cuda()
-            
-            for i in range(self.params['nt']):
-                self.vt0.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']).cuda())
-                self.vt1.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']).cuda())
-                self.detjac.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']).cuda())
-        else:
-            self.vt0 = []
-            self.vt1 = []
-            self.detjac = []
-            self.It = [ [None]*(self.params['nt']+1) for i in range(len(self.I)) ]
-            for ii in range(len(self.I)):
-                for i in range(self.params['nt']+1):
-                    self.It[ii][i] = torch.tensor(self.I[ii][:,:]).type(self.params['dtype'])
-            
-            for i in range(self.params['nt']):
-                self.vt0.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']))
-                self.vt1.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']))
-                self.detjac.append(torch.tensor(np.zeros((self.nx[0],self.nx[1]))).type(self.params['dtype']))
-        '''
+       
         # v and I
         if self.params['gpu_number'] is not None:
             if not hasattr(self, 'vt0') and self.initializer_flags['lddmm'] == 1: # we never reset lddmm variables
@@ -303,18 +273,9 @@ class LDDMM2D(base.LDDMMBase):
                     self.vt0.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']))
                     self.vt1.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']))
                     self.detjac.append(torch.tensor(np.zeros((int(np.round(self.nx[0]*self.params['v_scale'])),int(np.round(self.nx[1]*self.params['v_scale']))))).type(self.params['dtype']))
-            
-            #self.It = [[None]]*len(self.I)
-            #for i in range(len(self.I)):
-            #    self.It[i] = [torch.tensor(self.I[i][:,:,:]).type(self.params['dtype'])]*(self.params['nt']+1)
             if self.initializer_flags['load'] == 1 or self.initializer_flags['lddmm'] == 1:
                 self.It = [ [None]*(self.params['nt']+1) for i in range(len(self.I)) ]
                 for ii in range(len(self.I)):
-                    # NOTE: you cannot use pointers / list multiplication for cuda tensors if you want actual copies
-                    #self.It.append(torch.tensor(self.I[:,:,:]).type(self.params['dtype']).cuda())
-                    # UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-#   self.It[ii][i] = torch.tensor(self.I[ii][:,:].clone().detach()).type(self.params['dtype'])
-                    
                     for i in range(self.params['nt']+1):
                         self.It[ii][i] = self.I[ii][:,:].clone().detach().type(self.params['dtype'])
         
@@ -448,87 +409,6 @@ class LDDMM2D(base.LDDMMBase):
         phiinv1_gpu -= self.X1
         phiinv2_gpu -= self.X2
         return phiinv0_gpu.cpu().numpy(),phiinv1_gpu.cpu().numpy(),phiinv2_gpu.cpu().numpy()
-
-    def generateTransFromGrid(self):
-        xyrange = spacemap.XYRANGE
-        xyd = spacemap.XYD
-        x0, x1 = int(xyrange[0] // xyd), int(xyrange[1] // xyd)
-        y0, y1 = int(xyrange[2] // xyd), int(xyrange[3] // xyd)
-        points = []
-        for xx in range(x0, x1):
-            points += [[xx * xyd, yy * xyd] for yy in range(y0, y1)]
-        results = self.applyThisTransformPoints2D(points)
-        return base.generateGridFromPoints(results)
-             
-    def applyThisTransformPoints2D(self, points: np.array, interpmode='bilinear',dtype='torch.FloatTensor'):
-        xyrange = spacemap.XYRANGE
-        xyd = spacemap.XYD
-        # points = convert_xy(points)
-        Pt = []
-        for i in range(self.params['nt']+1):
-            Pt.append(np.array(points))
-            # Pt.append(torch.tensor(points).type(dtype).to(device=self.params['cuda']))
-        
-        phiinv0_gpu = self.X0.clone()
-        phiinv1_gpu = self.X1.clone()
-        # TODO: evaluate memory vs speed for precomputing Xs, Ys, Zs
-        for t in range(self.params['nt']):
-            # update phiinv using method of characteristics
-            if self.params['do_lddmm'] == 1 or hasattr(self,'vt0'):
-                phiinv0_gpu = torch.squeeze(
-                    grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),
-                                torch.stack(
-                                    ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
-                                     (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
-                                padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
-                phiinv1_gpu = torch.squeeze(
-                    grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),
-                                torch.stack(
-                                    ((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,
-                                    (self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),
-                                    padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
-            
-            if t == self.params['nt']-1 and \
-                (self.params['do_affine'] > 0  or \
-                    (hasattr(self, 'affineA') and not \
-                        torch.all(torch.eq(self.affineA,torch.tensor(np.eye(4)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): 
-                # run this if do_affine == 1 or affineA exists and isn't identity
-                phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
-                
-            interpolate = torch.nn.functional.interpolate
-            # deform the image
-            
-            if self.params['v_scale'] != 1.0:
-                ph1 = torch.stack((
-                    torch.squeeze(interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),
-                                                size=(self.nx[0],self.nx[1],self.nx[2]),
-                                                mode='trilinear',
-                                                align_corners=True))
-                    .type(dtype)
-                    .to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,
-                    torch.squeeze(interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),
-                                                size=(self.nx[0],self.nx[1],self.nx[2]),
-                                                mode='trilinear',
-                                                align_corners=True))
-                    .type(dtype)
-                    .to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=3).unsqueeze(0)
-                ph1 = ph1.clone().detach().cpu().numpy()
-                Pt[t+1] = base.grid_sample_points(Pt[0], ph1, mode=interpmode, xymax=[xyrange[1], xyrange[3]], xyd=xyd)
-                # It[t+1] = torch.squeeze(grid_sample(It[0].unsqueeze(0).unsqueeze(0),ph1,padding_mode='zeros',mode=interpmode))
-            else:
-                ph1 = torch.stack((
-                                phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,
-                                phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2))
-                ph1 = ph1.clone().detach().cpu().numpy()
-                Pt[t+1] = base.grid_sample_points(Pt[0], ph1, mode=interpmode, xymax=[xyrange[1], xyrange[3]], xyd=xyd)
-                # It[t+1] = torch.squeeze(grid_sample(It[0].unsqueeze(0).unsqueeze(0),ph1,dim=3).unsqueeze(0),padding_mode='zeros',mode=interpmode))
-        
-        # return Pt,phiinv0_gpu, phiinv1_gpu, phiinv2_gpu
-        res = Pt[-1]
-        # return convert_xy(res)
-        res = np.array(res)
-        res -= xyd / 2
-        return res
     
     # apply current transform to new image
     def applyThisTransform2d(self, I, interpmode='bilinear',dtype='torch.FloatTensor'):
@@ -565,37 +445,11 @@ class LDDMM2D(base.LDDMMBase):
 
     # apply current transform to new image
     def applyThisTransformNT2d(self, I, interpmode='bilinear',dtype='torch.FloatTensor',nt=None):
-        
-        I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
+        if isinstance(I, np.array):
+            I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
         grid = self.generateTransFormGridImg(dtype=dtype,nt=nt,cpu=False)
         It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode=interpmode))
-        return It.cpu().numpy()
-        
-        # if nt == None:
-        #     nt = self.params['nt']
-        
-        # phiinv0_gpu = self.X0.clone()
-        # phiinv1_gpu = self.X1.clone()
-        # I = torch.tensor(I).type(dtype).to(device=self.params['cuda'])
-        # # TODO: evaluate memory vs speed for precomputing Xs, Ys, Zs
-        # for t in range(nt):
-        #     # update phiinv using method of characteristics
-        #     if self.params['do_lddmm'] == 1 or hasattr(self,'vt0'):
-        #         phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0-self.vt0[t]*self.dt)
-        #         phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1-self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0-self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1-self.vt1[t]*self.dt)
-            
-        #     if t == self.params['nt']-1 and (self.params['do_affine'] > 0  or (hasattr(self, 'affineA') and not torch.all(torch.eq(self.affineA,torch.tensor(np.eye(3)).type(self.params['dtype']).to(device=self.params['cuda']))) ) ): # run this if do_affine == 1 or affineA exists and isn't identity
-        #         phiinv0_gpu,phiinv1_gpu = self.forwardDeformationAffineVectorized2d(self.affineA,phiinv0_gpu,phiinv1_gpu)
-        
-        # # deform the image
-        # # TODO: do I actually need to send phiinv to gpu here?
-        # if self.params['v_scale'] != 1.0:
-        #     It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((torch.squeeze(torch.nn.functional.interpolate(phiinv1_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,torch.squeeze(torch.nn.functional.interpolate(phiinv0_gpu.unsqueeze(0).unsqueeze(0),size=(self.nx[0],self.nx[1]),mode='trilinear',align_corners=True)).type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
-        # else:
-        #     It = torch.squeeze(grid_sample(I.unsqueeze(0).unsqueeze(0),torch.stack((phiinv1_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu.type(dtype).to(device=self.params['cuda'])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros',mode=interpmode))
-        
-        # del phiinv0_gpu,phiinv1_gpu
-        # return It.cpu().numpy()
+        return It
     
     def generateTransFormGridImg(self, dtype='torch.FloatTensor',nt=None,cpu=True):
         if nt == None:
@@ -687,10 +541,6 @@ class LDDMM2D(base.LDDMMBase):
     # this could be vectorized by stacking X0, X1, X2
     def forwardDeformationAffine(self,affineA,phiinv0_gpu,phiinv1_gpu,phiinv2_gpu):
         affineB = torch.inverse(affineA)
-        
-        #Xs = affineB[0,0]*self.X0 + affineB[0,1]*self.X1 + affineB[0,2]*self.X2 + affineB[0,3]
-        #Ys = affineB[1,0]*self.X0 + affineB[1,1]*self.X1 + affineB[1,2]*self.X2 + affineB[1,3]
-        #Zs = affineB[2,0]*self.X0 + affineB[2,1]*self.X1 + affineB[2,2]*self.X2 + affineB[2,3]
         phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((affineB[2,0]*self.X0 + affineB[2,1]*self.X1 + affineB[2,2]*self.X2 + affineB[2,3])/(self.nx[2]*self.dx[2]-self.dx[2])*2,(affineB[1,0]*self.X0 + affineB[1,1]*self.X1 + affineB[1,2]*self.X2 + affineB[1,3])/(self.nx[1]*self.dx[1]-self.dx[1])*2,(affineB[0,0]*self.X0 + affineB[0,1]*self.X1 + affineB[0,2]*self.X2 + affineB[0,3])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=3).unsqueeze(0),padding_mode='border')) + (affineB[0,0]*self.X0 + affineB[0,1]*self.X1 + affineB[0,2]*self.X2 + affineB[0,3])
         phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((affineB[2,0]*self.X0 + affineB[2,1]*self.X1 + affineB[2,2]*self.X2 + affineB[2,3])/(self.nx[2]*self.dx[2]-self.dx[2])*2,(affineB[1,0]*self.X0 + affineB[1,1]*self.X1 + affineB[1,2]*self.X2 + affineB[1,3])/(self.nx[1]*self.dx[1]-self.dx[1])*2,(affineB[0,0]*self.X0 + affineB[0,1]*self.X1 + affineB[0,2]*self.X2 + affineB[0,3])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=3).unsqueeze(0),padding_mode='border')) + (affineB[1,0]*self.X0 + affineB[1,1]*self.X1 + affineB[1,2]*self.X2 + affineB[1,3])
         phiinv2_gpu = torch.squeeze(grid_sample((phiinv2_gpu-self.X2).unsqueeze(0).unsqueeze(0),torch.stack(((affineB[2,0]*self.X0 + affineB[2,1]*self.X1 + affineB[2,2]*self.X2 + affineB[2,3])/(self.nx[2]*self.dx[2]-self.dx[2])*2,(affineB[1,0]*self.X0 + affineB[1,1]*self.X1 + affineB[1,2]*self.X2 + affineB[1,3])/(self.nx[1]*self.dx[1]-self.dx[1])*2,(affineB[0,0]*self.X0 + affineB[0,1]*self.X1 + affineB[0,2]*self.X2 + affineB[0,3])/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=3).unsqueeze(0),padding_mode='border')) + (affineB[2,0]*self.X0 + affineB[2,1]*self.X1 + affineB[2,2]*self.X2 + affineB[2,3])
@@ -800,47 +650,6 @@ class LDDMM2D(base.LDDMMBase):
             ER += torch.sum(self.vt0[t]*irfft(rfft(self.vt0[t],2,onesided=False)*(1.0/self.Khat),2,onesided=False) + self.vt1[t]*irfft(rfft(self.vt1[t],2,onesided=False)*(1.0/self.Khat),2,onesided=False)) * 0.5 / self.params['sigmaR']**2 * self.dx[0]*self.dx[1]*self.dt
         
         return ER
-        lambda1 = [None]*len(self.I)
-        EM = 0
-        if self.params['we'] == 0:
-            for i in range(len(self.I)):
-                if self.params['low_memory'] == 0:
-                    lambda1[i] = -1*self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])/self.params['sigma'][i]**2 # may not need to store this
-                    EM += torch.sum(self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                else:
-                    lambda1[i] = -1*self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])/self.params['sigma'][i]**2 # may not need to store this
-                    EM += torch.sum(self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                
-                if self.params['optimizer'] == 'sgd':
-                    lambda1[i] *= self.sgd_M
-        else:
-            for i in range(len(self.I)):
-                if i in self.params['we_channels']:
-                    for ii in range(self.params['we']):
-                        if ii == 0:
-                            if self.params['low_memory'] == 0:
-                                lambda1[i] = -1*self.W[i][ii]*self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])/self.params['sigma'][i]**2
-                                EM += torch.sum(self.W[i][ii]*self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                            else:
-                                lambda1[i] = -1*self.W[i][ii]*self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])/self.params['sigma'][i]**2
-                                EM += torch.sum(self.W[i][ii]*self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                            
-                            if self.params['optimizer'] == 'sgd':
-                                lambda1[i] *= self.sgd_M
-                        else:
-                            EM += torch.sum(self.W[i][ii]*self.M*( self.we_C[i][ii] - self.J[i])**2/(2.0*self.params['sigmaW'][ii]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                else:
-                    if self.params['low_memory'] == 0:
-                        lambda1[i] = -1*self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])/self.params['sigma'][i]**2 # may not need to store this
-                        EM += torch.sum(self.M*( self.applyContrastCorrection(self.It[i][-1],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                    else:
-                        lambda1[i] = -1*self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])/self.params['sigma'][i]**2 # may not need to store this
-                        EM += torch.sum(self.M*( self.applyContrastCorrection(self.applyThisTransformNT(self.I[i]),i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                    
-                    if self.params['optimizer'] == 'sgd':
-                        lambda1[i] *= self.sgd_M
-        
-        return lambda1, EM
     
     # compute matching energy
     def calculateMatchingEnergyMSE2d(self):
@@ -886,36 +695,6 @@ class LDDMM2D(base.LDDMMBase):
         
         return lambda1, EM
     
-    '''
-    # compute matching energy
-    def calculateMatchingEnergyMSE2d(self):
-        lambda1 = [None]*len(self.I)
-        EM = 0
-        for i in range(len(self.I)):
-            lambda1[i] = -1*self.M*( ((self.It[i][-1] - self.ccIbar[i])*self.ccCovIJ[i]/self.ccVarI[i] + self.ccJbar[i]) - self.J[i])/self.params['sigma'][i]**2 # may not need to store this
-            EM += torch.sum(self.M*( ((self.It[i][-1] - self.ccIbar[i])*self.ccCovIJ[i]/self.ccVarI[i] + self.ccJbar[i]) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]
-        return lambda1, EM
-    '''
-    
-    # compute matching energy without lambda1
-    def calculateMatchingEnergyMSEOnly(self, I):
-        EM = 0
-        if self.params['we'] == 0:
-            for i in range(len(self.I)):
-                EM += torch.sum(self.M*( self.applyContrastCorrection(I[i],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-        else:
-            for i in range(len(self.I)):
-                if i in self.params['we_channels']:
-                    for ii in range(self.params['we']):
-                        if ii == 0:
-                            EM += torch.sum(self.W[i][ii]*self.M*( self.applyContrastCorrection(I[i],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                        else:
-                            EM += torch.sum(self.W[i][ii]*self.M*( self.we_C[i][ii] - self.J[i])**2/(2.0*self.params['sigmaW'][ii]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-                else:
-                    EM += torch.sum(self.M*( self.applyContrastCorrection(I[i],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]*self.dx[2]
-            
-        return EM
-    
     # compute matching energy without lambda1
     def calculateMatchingEnergyMSEOnly2d(self, I):
         EM = 0
@@ -934,15 +713,6 @@ class LDDMM2D(base.LDDMMBase):
                     EM += torch.sum(self.M*( self.applyContrastCorrection(I[i],i) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]
             
         return EM
-    
-    '''
-    # compute matching energy without lambda1
-    def calculateMatchingEnergyMSEOnly2d(self, I):
-        EM = 0
-        for i in range(len(self.I)):
-            EM += torch.sum(self.M*( ((I[i] - self.ccIbar[i])*self.ccCovIJ[i]/self.ccVarI[i] + self.ccJbar[i]) - self.J[i])**2/(2.0*self.params['sigma'][i]**2))*self.dx[0]*self.dx[1]
-        return EM
-    '''
     
     # update sgd subsampling mask
     def updateSGDMask(self):
@@ -1228,56 +998,10 @@ class LDDMM2D(base.LDDMMBase):
             grad_list[1] += self.vt1[t]/self.params['sigmaR']**2
         
         return grad_list,phiinv0_gpu,phiinv1_gpu
-        
-        ## compute gradient per time step for time varying velocity field parameterization
-        #def calculateGradientVt2d(self,lambda1,t,phiinv0_gpu,phiinv1_gpu):
-        #    # update phiinv using method of characteristics, note "+" because we are integrating backward
-        #    phiinv0_gpu = torch.squeeze(grid_sample((phiinv0_gpu-self.X0).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1+self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0+self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X0+self.vt0[t]*self.dt)
-        #    phiinv1_gpu = torch.squeeze(grid_sample((phiinv1_gpu-self.X1).unsqueeze(0).unsqueeze(0),torch.stack(((self.X1+self.vt1[t]*self.dt)/(self.nx[1]*self.dx[1]-self.dx[1])*2,(self.X0+self.vt0[t]*self.dt)/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='border')) + (self.X1+self.vt1[t]*self.dt)        
-        #    
-        #    # find the determinant of Jacobian
-        #    phiinv0_0,phiinv0_1 = self.torch_gradient2d(phiinv0_gpu,self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
-        #    phiinv1_0,phiinv1_1 = self.torch_gradient2d(phiinv1_gpu,self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)
-        #    detjac = phiinv0_0 * phiinv1_1 - phiinv0_1 * phiinv1_0
-        #    self.detjac[t] = detjac.clone()
-        #    '''
-        #    # deform phiinv back by affine transform if asked for
-        #    if self.params['do_affine'] == 1:
-        #        phiinv0_gpu = self.affineA[0,0]*phiinv0_gpu + self.affineA[0,1]*phiinv1_gpu + self.affineA[0,2]
-        #        phiinv1_gpu = self.affineA[1,0]*phiinv0_gpu + self.affineA[1,1]*phiinv1_gpu + self.affineA[1,2]
-        #    '''
-        #    for i in range(len(self.I)):
-        #        # find lambda_t
-        #        #if self.params['do_affine'] == 0:
-        #        lambdat = torch.squeeze(grid_sample(lambda1[i].unsqueeze(0).unsqueeze(0), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=2).unsqueeze(0),padding_mode='zeros'))*detjac
-        #        #else:
-        #        #    lambdat = torch.squeeze(grid_sample(lambda1.unsqueeze(0).unsqueeze(0), torch.stack((phiinv1_gpu/(self.nx[1]*self.dx[1]-self.dx[1])*2,phiinv0_gpu/(self.nx[0]*self.dx[0]-self.dx[0])*2),dim=3).unsqueeze(0),padding_mode='border'))*detjac*torch.det(self.affineA)
-        #        # get the gradient of the image at this time
-        #        # is there a row column flip in matlab versus my torch_gradient function? yes, there is.
-        #        if i == 0:
-        #            grad_list = [x*lambdat for x in self.torch_gradient2d(((self.It[i][t] - self.ccIbar[i])*self.ccCovIJ[i]/self.ccVarI[i] + self.ccJbar[i]),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)]
-        #        else:
-        #            grad_list = [y + z for (y,z) in zip(grad_list,[x*lambdat for x in self.torch_gradient2d(((self.It[i][t] - self.ccIbar[i])*self.ccCovIJ[i]/self.ccVarI[i] + self.ccJbar[i]),self.dx[0],self.dx[1],self.grad_divisor_x,self.grad_divisor_y)])]
-        #    
-        #    # smooth it
-        #    grad_list = [torch.irfft(torch.rfft(x,2,onesided=False)*self.Khat,2,onesided=False) for x in grad_list]
-        #    
-        #    # add the regularization term
-        #    grad_list[0] += self.vt0[t]/self.params['sigmaR']**2
-        #    grad_list[1] += self.vt1[t]/self.params['sigmaR']**2
-        #    return grad_list,phiinv0_gpu,phiinv1_gpu
-    
+      
     # update gradient
     def updateGradientVt(self,t,grad_list,iter=0):
         if self.params['optimizer'] == 'adam':
-            #self.vt0[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m0'][t] / (torch.sqrt(self.adam['v0'][t]) + self.params['adam_epsilon'])
-            #self.vt1[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m1'][t] / (torch.sqrt(self.adam['v1'][t]) + self.params['adam_epsilon'])
-            #if self.J[0].dim() > 2:
-            #    self.vt2[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m2'][t] / (torch.sqrt(self.adam['v2'][t]) + self.params['adam_epsilon'])
-            #self.vt0[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m0'][t] / ((self.adam['v0'][t]) + self.params['adam_epsilon'])
-            #self.vt1[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m1'][t] / ((self.adam['v1'][t]) + self.params['adam_epsilon'])
-            #if self.J[0].dim() > 2:
-            #    self.vt2[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * self.adam['m2'][t] / ((self.adam['v2'][t]) + self.params['adam_epsilon'])
             self.vt0[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * (irfft(rfft(self.adam['m0'][t] / (torch.sqrt(self.adam['v0'][t]) + self.params['adam_epsilon']),2,onesided=False)*self.Khat,2,onesided=False)) + self.vt0[t]/self.params['sigmaR']**2
             self.vt1[t] -= self.params['adam_alpha']*(1-self.params['adam_beta2']**(iter+1))**(1/2) / (1-self.params['adam_beta1']**(iter+1)) * (irfft(rfft(self.adam['m1'][t] / (torch.sqrt(self.adam['v1'][t]) + self.params['adam_epsilon']),2,onesided=False)*self.Khat,2,onesided=False)) + self.vt1[t]/self.params['sigmaR']**2
             if self.J[0].dim() > 2:
@@ -1291,12 +1015,6 @@ class LDDMM2D(base.LDDMMBase):
             self.adadelta['v1'][t] = self.params['ada_rho']*self.adadelta['v1'][t] + (1-self.params['ada_rho'])*(-1*irfft(rfft(torch.sqrt(self.adadelta['v1'][t] + self.params['ada_epsilon']) / torch.sqrt(self.adadelta['m1'][t] + self.params['ada_epsilon']) * grad_list[1],3,onesided=False)*self.Khat,3,onesided=False))**2
             if self.J[0].dim() > 2:
                 self.adadelta['v2'][t] = self.params['ada_rho']*self.adadelta['v2'][t] + (1-self.params['ada_rho'])*(-1*irfft(rfft(torch.sqrt(self.adadelta['v2'][t] + self.params['ada_epsilon']) / torch.sqrt(self.adadelta['m2'][t] + self.params['ada_epsilon']) * grad_list[2],3,onesided=False)*self.Khat,3,onesided=False))**2
-            #self.vt0[t] -= (self.adadelta['v0'][t] + self.params['ada_epsilon']) / (self.adadelta['m0'][t] + self.params['ada_epsilon']) * grad_list[0]
-            #self.vt1[t] -= (self.adadelta['v1'][t] + self.params['ada_epsilon']) / (self.adadelta['m1'][t] + self.params['ada_epsilon']) * grad_list[1]
-            #self.vt2[t] -= (self.adadelta['v2'][t] + self.params['ada_epsilon']) / (self.adadelta['m2'][t] + self.params['ada_epsilon']) * grad_list[2]
-            #self.adadelta['v0'][t] = self.params['ada_rho']*self.adadelta['v0'][t] + (1-self.params['ada_rho'])*(-1*(self.adadelta['v0'][t] + self.params['ada_epsilon']) / (self.adadelta['m0'][t] + self.params['ada_epsilon']) * grad_list[0])**2
-            #self.adadelta['v1'][t] = self.params['ada_rho']*self.adadelta['v1'][t] + (1-self.params['ada_rho'])*(-1*(self.adadelta['v1'][t] + self.params['ada_epsilon']) / (self.adadelta['m1'][t] + self.params['ada_epsilon']) * grad_list[1])**2
-            #self.adadelta['v2'][t] = self.params['ada_rho']*self.adadelta['v2'][t] + (1-self.params['ada_rho'])*(-1*(self.adadelta['v2'][t] + self.params['ada_epsilon']) / (self.adadelta['m2'][t] + self.params['ada_epsilon']) * grad_list[2])**2
         elif self.params['optimizer'] == 'rmsprop':
             self.vt0[t] -= irfft(rfft(self.params['rms_alpha'] / torch.sqrt(self.rmsprop['m0'][t] + self.params['rms_epsilon']) * grad_list[0],3,onesided=False)*self.Khat,3,onesided=False) + self.vt0[t]/self.params['sigmaR']**2
             self.vt1[t] -= irfft(rfft(self.params['rms_alpha'] / torch.sqrt(self.rmsprop['m1'][t] + self.params['rms_epsilon']) * grad_list[1],3,onesided=False)*self.Khat,3,onesided=False) + self.vt1[t]/self.params['sigmaR']**2
@@ -1315,13 +1033,6 @@ class LDDMM2D(base.LDDMMBase):
     
     # update adam parameters
     def updateAdamLearningRate(self,t,grad_list):
-        # don't normalize here, save normalization for the update step
-        #self.adam['m0'][t] = [self.params['adam_beta1']*x + (1-self.params['adam_beta1'])*y for (x,y) in zip(self.adam['m0'],grad_list[0])]
-        #self.adam['m1'][t] = [self.params['adam_beta1']*x + (1-self.params['adam_beta1'])*y for (x,y) in zip(self.adam['m1'],grad_list[1])]
-        #self.adam['m2'][t] = [self.params['adam_beta1']*x + (1-self.params['adam_beta1'])*y for (x,y) in zip(self.adam['m2'],grad_list[2])]
-        #self.adam['v0'][t] = [self.params['adam_beta2']*x + (1-self.params['adam_beta2'])*(y**2) for (x,y) in zip(self.adam['v0'],grad_list[0])]
-        #self.adam['v1'][t] = [self.params['adam_beta2']*x + (1-self.params['adam_beta2'])*(y**2) for (x,y) in zip(self.adam['v1'],grad_list[1])]
-        #self.adam['v2'][t] = [self.params['adam_beta2']*x + (1-self.params['adam_beta2'])*(y**2) for (x,y) in zip(self.adam['v2'],grad_list[2])]
         self.adam['m0'][t] = self.params['adam_beta1']*self.adam['m0'][t] + (1-self.params['adam_beta1'])*grad_list[0]
         self.adam['m1'][t] = self.params['adam_beta1']*self.adam['m1'][t] + (1-self.params['adam_beta1'])*grad_list[1]
         # self.adam['m2'][t] = self.params['adam_beta1']*self.adam['m2'][t] + (1-self.params['adam_beta1'])*grad_list[2]
@@ -1334,15 +1045,7 @@ class LDDMM2D(base.LDDMMBase):
         # accumulate gradient
         self.adadelta['m0'][t] = self.params['ada_rho']*self.adadelta['m0'][t] + (1-self.params['ada_rho'])*grad_list[0]**2
         self.adadelta['m1'][t] = self.params['ada_rho']*self.adadelta['m1'][t] + (1-self.params['ada_rho'])*grad_list[1]**2
-        # self.adadelta['m2'][t] = self.params['ada_rho']*self.adadelta['m2'][t] + (1-self.params['ada_rho'])*grad_list[2]**2
-        
-        # accumulate parameter update
-        #self.adadelta['v0'][t] = self.params['ada_rho']*self.adadelta['v0'][t] + (1-self.params['ada_rho'])*self.vt0[t]**2
-        #self.adadelta['v1'][t] = self.params['ada_rho']*self.adadelta['v1'][t] + (1-self.params['ada_rho'])*self.vt1[t]**2
-        #self.adadelta['v2'][t] = self.params['ada_rho']*self.adadelta['v2'][t] + (1-self.params['ada_rho'])*self.vt2[t]**2
-        # this is the update step
-        #-1 * torch.sqrt(self.adadelta['v0'][t] + self.params['ada_epsilon']) / torch.sqrt(self.adadelta['m0'][t] + self.params['ada_epsilon']) * grad_list[0]
-    
+      
     # update rmsprop parameters
     def updateRMSPropLearningRate(self,t,grad_list):
         self.rmsprop['m0'][t] = self.params['rms_rho']*self.rmsprop['m0'][t] + (1-self.params['rms_rho'])*grad_list[0]**2
@@ -1384,28 +1087,15 @@ class LDDMM2D(base.LDDMMBase):
         del phiinv0_gpu,phiinv1_gpu
         if self.J[0].dim() > 2:
             del phiinv2_gpu
-    
-    # update affine matrix
-    def updateAffine(self):
-        # transfer to cpu for matrix exponential, takes about 20ms round trip
-        gradA_cpu_numpy = self.gradA.cpu().numpy()
-        e = np.zeros((4,4))
-        e[0:3,0:3] = self.params['epsilonL']*self.GDBetaAffineR
-        e[0:3,3] = self.params['epsilonT']*self.GDBetaAffineT
-        e = torch.tensor(scipy.linalg.expm(-e * gradA_cpu_numpy)).type(self.params['dtype']).to(device=self.params['cuda'])
-        self.lastaffineA = self.affineA.clone()
-        self.affineA = torch.mm(self.affineA,e)
-    
+
     # update affine matrix
     def updateAffine2d(self):
-        # transfer to cpu for matrix exponential, takes about 20ms round trip
-        gradA_cpu_numpy = self.gradA.cpu().numpy()
-        e = np.zeros((3,3))
-        e[0:2,0:2] = self.params['epsilonL']*self.GDBetaAffineR
-        e[0:2,2] = self.params['epsilonT']*self.GDBetaAffineT
-        e = torch.tensor(scipy.linalg.expm(-e * gradA_cpu_numpy)).type(self.params['dtype']).to(device=self.params['cuda'])
+        e = torch.zeros((3, 3)).type(self.params['dtype']).to(device=self.params['cuda'])
+        e[0:2, 0:2] = self.params['epsilonL'] * self.GDBetaAffineR
+        e[0:2, 2] = self.params['epsilonT'] * self.GDBetaAffineT
+        e = torch.linalg.matrix_exp(-e * self.gradA)  # 直接在 GPU 上计算矩阵指数
         self.lastaffineA = self.affineA.clone()
-        self.affineA = torch.mm(self.affineA,e)
+        self.affineA = torch.mm(self.affineA, e)
     
     # update epsilon after a run
     def updateEpsilonAfterRun(self):
@@ -2197,69 +1887,3 @@ class LDDMM2D(base.LDDMMBase):
         # save outputs
         self.saveOutputs(save_template=save_template)
         
-
-def loadLDDMM2D_np(ldm: LDDMM2D, folder):
-    if not os.path.exists(folder):
-        return None
-    
-    device = ldm.params.get('cuda', 'cpu')
-    dtyp = ldm.params["dtype"]
-    ldm.params['cuda'] = device   
-    
-    x0 = np.load(folder + "/x0.npy")
-    ldm.X0 = torch.tensor(x0).type(dtyp).to(device=device)
-    
-    x1 = np.load(folder + "/x1.npy")
-    ldm.X1 = torch.tensor(x1).type(dtyp).to(device=device)
-    
-    nx = np.load(folder + "/nx.npy")
-    ldm.nx = np.array(nx)
-    
-    dx = np.load(folder + "/dx.npy")
-    ldm.dx = np.array(dx)
-    
-    ldm.dt = np.load(folder + "/dt.npy")
-    
-    ldm.params['nt'] = np.load(folder + "/nt.npy")
-    
-    ldm.vt0 = []
-    vt0 = np.load(folder + "/vt0.npy")
-    for v in vt0:
-        ldm.vt0.append(torch.tensor(v).type(dtyp).to(device=device))
-        
-    ldm.vt1 = []
-    vt1 = np.load(folder + "/vt1.npy")
-    for v in vt1:
-        ldm.vt1.append(torch.tensor(v).type(dtyp).to(device=device))
-        
-    afA = np.load(folder + "/affineA.npy")
-    ldm.affineA = torch.tensor(afA).type(dtyp).to(device=device)
-    return ldm
-    
-def saveLDDMM2D_np(ldm: LDDMM2D, folder):
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    x0 = ldm.X0.clone().detach().cpu().numpy()
-    np.save(folder + "/x0.npy", x0)
-
-    x1 = ldm.X1.clone().detach().cpu().numpy()
-    np.save(folder + "/x1.npy", x1)
-    
-    np.save(folder + "/nx.npy", ldm.nx)
-    np.save(folder + "/dx.npy", ldm.dx)
-    np.save(folder + "/dt.npy", ldm.dt)
-    np.save(folder + "/nt.npy", np.array(ldm.params['nt']))
-    
-    
-    vts = []
-    for v in ldm.vt0:
-        vts.append(v.clone().detach().cpu().numpy())
-    np.save(folder + "/vt0.npy", np.array(vts))
-    
-    vts = []
-    for v in ldm.vt1:
-        vts.append(v.clone().detach().cpu().numpy())
-    np.save(folder + "/vt1.npy", np.array(vts))
-    
-    afA = ldm.affineA.clone().detach().cpu().numpy()
-    np.save(folder + "/affineA.npy", afA)

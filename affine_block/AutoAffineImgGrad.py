@@ -1,8 +1,9 @@
 import numpy as np
 import spacemap
 import pandas as pd
+from .flowMgrImg import AffineFlowMgrImg
 
-class AutoAffineImgGrad(spacemap.AffineFlowMgrImg):
+class AutoAffineImgGrad(AffineFlowMgrImg):
     def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False):
         super().__init__("AutoAffineImgGrad", imgI, imgJ, finder)
         self.show=show

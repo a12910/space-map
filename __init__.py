@@ -12,9 +12,10 @@ from .sliceData import SliceData
 from .slice import Slice, slice_show_align
 from .slice2 import Slice2, SliceImg
 from .ldm import torch_LDDMMBase as base
-from .ldm.torch_LDDMMBase import saveLDDMM, loadLDDMM, applyPointsByGrid, mergeGrid, grid_sample_points, generateGridFromPoints, mergeImgGrid, applyImgByGrid
-from .ldm.torch_LDDMM import LDDMM
-from .ldm.torch_LDDMM2D import LDDMM2D, get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
+# from .ldm.torch_LDDMMBase import saveLDDMM, loadLDDMM, applyPointsByGrid, mergeGrid, grid_sample_points, generateGridFromPoints, mergeImgGrid, applyImgByGrid
+# from .ldm.torch_LDDMM import LDDMM
+from .ldm.torch_LDDMM2D import LDDMM2D
+# , get_init2D, loadLDDMM2D_np, saveLDDMM2D_np
 from .ldm.lddmmFlow import *
 
 from .utils.show import *
@@ -28,22 +29,22 @@ from .utils import grid_points as grid_points
 from .utils import imaris as imaris
 
 from .flowBase import *
-from .mgr.flowMgr import AffineFlowMgr, AffineFlowMgrBase
-from .mgr.flowMgrImg import AffineFlowMgrImg
-from .mgr.AutoFlowHE import AutoFlowHE
+# from .mgr.flowMgr import AffineFlowMgr, AffineFlowMgrBase
+# from .mgr.flowMgrImg import AffineFlowMgrImg
+# from .mgr.AutoFlowHE import AutoFlowHE
 
 from . import matches
 from . import affine
 from . import find
 from . import affine_block
 
-from .mgr.AutoFlow import SpaceMapAutoFlow
-from .mgr.AutoFlow2 import SpaceMapAutoFlow2
+# from .mgr.AutoFlow import SpaceMapAutoFlow
+# from .mgr.AutoFlow2 import SpaceMapAutoFlow2
 
 from . import registration
 from . import flow
 
-from .mgr.ldmMgrPair import LDMMgrPair
-from .mgr.ldmMgrMulti import LDMMgrMulti
+# from .mgr.ldmMgrPair import LDMMgrPair
+# from .mgr.ldmMgrMulti import LDMMgrMulti
 
 from .utils import compare

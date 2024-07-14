@@ -1,3 +1,7 @@
+from .flowMgr import AffineFlowMgr, AffineFlowMgrBase
+from .flowMgrImg import AffineFlowMgrImg
+from .flowHE import AutoFlowHE
+
 from .AutoGradImg import AutoGradImg
 from .AutoGradImg2 import AutoGradImg2
 from .FilterGlobalImg import FilterGlobalImg
@@ -10,3 +14,4 @@ from .MatchInitImg import MatchInitImg
 from .MatchShowImg import MatchShowImg
 from .AutoAffineImgGrad import AutoAffineImgGrad
 from .AutoAffineImgKey import AutoAffineImgKey
+

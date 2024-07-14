@@ -3,6 +3,51 @@ from .base import Registration
 import numpy as np
 from spacemap import LDDMM2D
 
+
+def lddmm_main(ldm, err=0.1):
+    """ J -> I """
+    ldm.setParams('do_lddmm', 0)
+    ldm.setParams('do_affine', 1)
+    ldm.setParams('v_scale', 8.0)
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('epsilon', 10000)
+    ldm.setParams('niter', 300)
+    ldm.run()
+    ldm.setParams('epsilon', 1000)
+    ldm.setParams('v_scale', 4.0)
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('niter', 1000)
+    ldm.run()
+    ldm.setParams('epsilon', 50)
+    ldm.setParams('v_scale', 1.0)
+    ldm.setParams('target_err_skip',err)
+    ldm.setParams('niter', 6000)
+    ldm.run()
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('epsilon', 1000)
+    ldm.setParams('niter', 20000)
+    ldm.setParams('do_lddmm', 1)
+    ldm.setParams('do_affine', 0)
+    ldm.run()
+    ldm.setParams('epsilon', 1)
+    ldm.setParams('niter', 20000)
+    ldm.run()
+    return ldm
+
+def lddmm_main2(ldm, err=0.1):
+    """ J -> I """
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('epsilon', 1000)
+    ldm.setParams('niter', 20000)
+    ldm.setParams('do_lddmm', 1)
+    ldm.setParams('do_affine', 0)
+    ldm.run()
+    ldm.setParams('epsilon', 1)
+    ldm.setParams('niter', 20000)
+    ldm.run()
+    return ldm
+
+
 class LDDMMRegistration(Registration):
     nt=5
     verbose=100
@@ -20,10 +65,10 @@ class LDDMMRegistration(Registration):
         if self.ldm is None:
             self._get_init(restart=True)
             # restart
-            spacemap.lddmm_main(self.ldm, err=self.err)
+            lddmm_main(self.ldm, err=self.err)
         else:
             # continue
-            spacemap.lddmm_main2(self.ldm, err=self.err)
+            lddmm_main2(self.ldm, err=self.err)
             
     def _get_init(self, restart=False):
         do_l = 0 if restart else 1
@@ -76,7 +121,7 @@ class LDDMMRegistration(Registration):
     def apply_img(self, img):
         if self.ldm is None:
             raise Exception("LDDMMRegistration: ldm is None")
-        return self.ldm.applyThisTransformNT2d(img)
+        return self.ldm.applyThisTransformNT2d(img).cpu().numpy()
 
     def load_img(self, imgI, imgJ):
         self.imgI = imgI

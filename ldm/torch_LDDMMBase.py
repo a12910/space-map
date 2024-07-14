@@ -45,24 +45,6 @@ def grid_sample(*args,**kwargs):
         return torch.nn.functional.grid_sample(*args,**kwargs)
     else:
         return torch.nn.functional.grid_sample(*args,**kwargs,align_corners=True)
-    
-def applyPointsByGrid(grid, points):
-    xyrange=spacemap.XYRANGE
-    xyd=spacemap.XYD
-    points = grid_sample_points(points, grid, [xyrange[1], xyrange[3]], xyd, mode="tri")
-    return points
-
-def mergeGrid(grid0, grid1):
-    xyrange = spacemap.XYRANGE
-    xyd = spacemap.XYD
-    x1, y1 = int(xyrange[1] // xyd), int(xyrange[3] // xyd)
-    points = []
-    for xx in range(x1):
-        points += [[xx * xyd, yy * xyd] for yy in range(y1)]
-    points1 = applyPointsByGrid(grid0, points)
-    points2 = applyPointsByGrid(grid1, points1)
-    grid = generateGridFromPoints(points2)
-    return grid
 
 def _fillGrid(grid):
     if isinstance(grid, np.ndarray):
@@ -72,105 +54,6 @@ def _fillGrid(grid):
     if len(grid.shape) == 3:
         grid = grid.unsqueeze(0)
     return grid
-
-def mergeImgGrid(grid0, grid1):
-    """ img -> grid0 -> grid1 -> img2 """
-    import torch.nn.functional as F
-    
-    grid0 = _fillGrid(grid0)
-    grid1 = _fillGrid(grid1)
-    
-    grid01 = F.grid_sample(grid0.permute(0, 3, 1, 2), 
-                           grid1, mode='bilinear', 
-                           padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
-    return grid01.squeeze(0).cpu().numpy()
-
-def applyImgByGrid(img_, grid):
-    import torch.nn.functional as F
-    import torch
-    # img = img_.copy()
-    # if len(img.shape) == 3:
-    #     img = img[np.newaxis, :, :, :]
-    # if len(img.shape) == 2:
-    #     img = img[np.newaxis, np.newaxis, :, :]
-    # img = torch.tensor(img).type(torch.FloatTensor)
-    # grid = torch.tensor(grid).type(torch.FloatTensor)
-    # distorted_image = F.grid_sample(img.permute(0, 3, 1, 2), 
-    #                                 grid, mode='bilinear', 
-    #                                 padding_mode='zeros', align_corners=True).permute(0, 2, 3, 1)
-    # if len(img_.shape) == 3:
-    #     distorted_image = distorted_image[0]
-    # if len(img_.shape) == 2:
-    #     distorted_image = distorted_image[0, 0]
-    # return distorted_image.cpu().numpy()
-    grid = _fillGrid(grid)
-    I = torch.tensor(img_).type(torch.FloatTensor)
-    It = torch.squeeze(F.grid_sample(I.unsqueeze(0).unsqueeze(0),grid,padding_mode='zeros',mode='bilinear', align_corners=True))
-    return It.cpu().numpy()
-    
-def generateGridFromPoints(points):
-    xyrange = spacemap.XYRANGE
-    xyd = spacemap.XYD
-    x1, y1 = int(xyrange[1] // xyd), int(xyrange[3] // xyd)
-    grid0 = np.zeros((2, x1, y1))
-    for xx in range(x1):
-        for yy in range(y1):
-            px, py = points[xx * y1 + yy]
-            grid0[1, xx, yy] = (px / xyd / x1) * 2 - 1
-            grid0[0, xx, yy] = (py / xyd / y1) * 2 - 1
-    return grid0
-    
-def grid_sample_points(points, phi, xymax=[4000, 4000], xyd=10, mode="tri"):
-    result = []
-    imgMaxX = int(xymax[0] // xyd) - 1
-    imgMaxY = int(xymax[1] // xyd) - 1
-    def get_net(xi, yi):
-        if xi > imgMaxX:
-            xi = imgMaxX
-        if yi > imgMaxY:
-            yi = imgMaxY
-        if xi < 0:
-            xi = 0
-        if yi < 0:
-            yi = 0
-        # xi, yi = yi, xi
-        if len(phi.shape) == 4:
-            x = phi[1, xi, yi, 0]
-            y = phi[2, xi, yi, 0]
-        else:
-            x = phi[0, xi, yi]
-            y = phi[1, xi, yi]
-        # x,y: -1~1
-        x = (x + 1) / 2 * xymax[0]
-        y = (y + 1) / 2 * xymax[1]
-        y, x = x, y
-        
-        return np.array([x, y])
-    
-    for x, y in points:
-        xl = int(x // xyd)
-        yt = int(y // xyd)
-        xlratio = (x % xyd) / xyd
-        ytratio = (y % xyd) / xyd
-        if mode == "nearest":
-            if xlratio < 0.5 and ytratio < 0.5:
-                p = get_net(xl, yt)
-            elif xlratio < 0.5:
-                p = get_net(xl, yt + 1)
-            elif xlratio > 0.5 and ytratio < 0.5:
-                p = get_net(xl + 1, yt)
-            else:
-                p = get_net(xl + 1, yt + 1)
-        else:
-            ptop = get_net(xl, yt) * (1 - xlratio) + get_net(xl + 1, yt) * xlratio
-            pbottom = get_net(xl, yt + 1) * (1 - xlratio) + get_net(xl + 1, yt + 1) * xlratio
-            p = ptop * (1 - ytratio) + pbottom * ytratio
-        tx, ty = p[0], p[1]
-        result.append([tx, ty])
-    result = np.array(result)
-    size = int(xymax[0] // xyd)
-    result = (result - xymax[0] / 2) * ((size - 2) / size) + xymax[0] / 2
-    return result
 
 def irfft(mat,dim,onesided=False):
     if distutils.version.LooseVersion(torch.__version__) < distutils.version.LooseVersion("1.8.0"):
@@ -191,7 +74,7 @@ class LDDMMBase:
                  nt=5,do_lddmm=1,do_affine=0,checkaffinestep=0,optimizer='gd',
                  sg_mask_mode='ones',sg_rand_scale=1.0,sg_sigma=1.0,sg_climbcount=1,sg_holdcount=1,sg_gamma=0.9,
                  adam_alpha=0.1,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
-                 rms_rho=0.9,rms_epsilon=1e-8,rms_alpha=0.001,maxclimbcount=3,savebestv=False,
+                 rms_rho=0.9,rms_epsilon=1e-8,rms_alpha=0.001,maxclimbcount=3,savebestv=False, rmlambda=1.0,
                  minenergychange = 0.000001,minbeta=1e-4,dtype='float',im_norm_ms=0,
                  slice_alignment=0,energy_fraction=0.02,energy_fraction_from=0,
                  cc=0,cc_channels=[],we=0,we_channels=[],sigmaW=1.0,nMstep=5,
@@ -207,6 +90,7 @@ class LDDMMBase:
         self.params['epsilonT'] = float(epsilonT)
         self.params["target_err"] = int(target_err)
         self.params["target_step"] = int(target_step)
+        self.params['rmlambda'] = float(rmlambda)
         if isinstance(sigma,(int,float)):
             self.params['sigma'] = float(sigma)
         else:
@@ -485,7 +369,7 @@ class LDDMMBase:
             else:
                 self.params['cuda'] = 'cuda:' + str(self.params['gpu_number'])
         
-        number_list = ['a','p','niter','epsilon','sigmaR','nt','do_lddmm','do_affine','epsilonL','epsilonT','im_norm_ms','slice_alignment','energy_fraction','energy_fraction_from','cc','we','nMstep','low_memory','update_epsilon','v_scale','adam_alpha','adam_beta1','adam_beta2','adam_epsilon','ada_rho','ada_epsilon','rms_rho','rms_alpha','rms_epsilon','sg_sigma','sg_climbcount','sg_rand_scale','sg_holdcount','sg_gamma','v_scale_smoothing','verbose']
+        number_list = ['a','p','niter','epsilon','sigmaR','nt','do_lddmm','do_affine','epsilonL','epsilonT','im_norm_ms','slice_alignment','energy_fraction','energy_fraction_from','cc','we','nMstep','low_memory','update_epsilon','v_scale','adam_alpha','adam_beta1','adam_beta2','adam_epsilon','ada_rho','ada_epsilon','rms_rho','rms_alpha','rms_epsilon','sg_sigma','sg_climbcount','sg_rand_scale','sg_holdcount','sg_gamma','v_scale_smoothing','verbose', 'rmlambda']
         string_list = ['outdir','optimizer']
         stringornone_list = ['costmask'] # or array, actually
         stringorlist_list = ['template','target'] # or array, actually
@@ -600,145 +484,3 @@ class LDDMMBase:
         
         return flag
     
-
-def loadLDDMM_np(ldm, folder):
-    if not os.path.exists(folder):
-        return None
-    
-    device = ldm.params.get('cuda', 'cpu')
-    dtyp = ldm.params["dtype"]
-    ldm.params['cuda'] = device   
-    
-    x0 = np.load(folder + "/x0.npy")
-    ldm.X0 = torch.tensor(x0).type(dtyp).to(device=device)
-    
-    x1 = np.load(folder + "/x1.npy")
-    ldm.X1 = torch.tensor(x1).type(dtyp).to(device=device)
-    
-    x2 = np.load(folder + "/x2.npy")
-    ldm.X2 = torch.tensor(x2).type(dtyp).to(device=device)
-    
-    nx = np.load(folder + "/nx.npy")
-    ldm.nx = np.array(nx)
-    
-    dx = np.load(folder + "/dx.npy")
-    ldm.dx = np.array(dx)
-    
-    ldm.dt = np.load(folder + "/dt.npy")
-    
-    ldm.params['nt'] = np.load(folder + "/nt.npy")
-    
-    ldm.vt0 = []
-    vt0 = np.load(folder + "/vt0.npy")
-    for v in vt0:
-        ldm.vt0.append(torch.tensor(v).type(dtyp).to(device=device))
-        
-    ldm.vt1 = []
-    vt1 = np.load(folder + "/vt1.npy")
-    for v in vt1:
-        ldm.vt1.append(torch.tensor(v).type(dtyp).to(device=device))
-    
-    vt2 = np.load(folder + "/vt2.npy")
-    ldm.vt2 = []
-    for v in vt2:
-        ldm.vt2.append(torch.tensor(v).type(dtyp).to(device=device))
-        
-    afA = np.load(folder + "/affineA.npy")
-    ldm.affineA = torch.tensor(afA).type(dtyp).to(device=device)
-    return ldm
-    
-def saveLDDMM_np(ldm, folder):
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    x0 = ldm.X0.clone().detach().cpu().numpy()
-    np.save(folder + "/x0.npy", x0)
-
-    x1 = ldm.X1.clone().detach().cpu().numpy()
-    np.save(folder + "/x1.npy", x1)
-    
-    x2 = ldm.X2.clone().detach().cpu().numpy()
-    np.save(folder + "/x2.npy", x2)
-    
-    np.save(folder + "/nx.npy", ldm.nx)
-    np.save(folder + "/dx.npy", ldm.dx)
-    np.save(folder + "/dt.npy", ldm.dt)
-    np.save(folder + "/nt.npy", np.array(ldm.params['nt']))
-    
-    
-    vts = []
-    for v in ldm.vt0:
-        vts.append(v.clone().detach().cpu().numpy())
-    np.save(folder + "/vt0.npy", np.array(vts))
-    
-    vts = []
-    for v in ldm.vt1:
-        vts.append(v.clone().detach().cpu().numpy())
-    np.save(folder + "/vt1.npy", np.array(vts))
-    
-    vts = []
-    for v in ldm.vt2:
-        vts.append(v.clone().detach().cpu().numpy())
-    np.save(folder + "/vt2.npy", np.array(vts))
-    
-    afA = ldm.affineA.clone().detach().cpu().numpy()
-    np.save(folder + "/affineA.npy", afA)
-    
-def saveLDDMM(lddmm, filename):
-    # save the LDDMM object to a file
-    import json
-    pack = {}
-    x0 = lddmm.X0.clone().detach().cpu().numpy().tolist()
-    pack['X0'] = x0
-    x1 = lddmm.X1.clone().detach().cpu().numpy().tolist()
-    pack['X1'] = x1
-    x2 = lddmm.X2.clone().detach().cpu().numpy().tolist()
-    pack['X2'] = x2
-    
-    pack['nx'] = list(lddmm.nx)
-    pack['dx'] = list(lddmm.dx)
-    pack['dt'] = lddmm.dt
-    pack['nt'] = lddmm.params['nt']
-    vts = []
-    for v in lddmm.vt0:
-        vts.append(v.clone().detach().cpu().numpy().tolist())
-    pack['vt0'] = vts
-    
-    vts = []
-    for v in lddmm.vt1:
-        vts.append(v.clone().detach().cpu().numpy().tolist())
-    pack['vt1'] = vts
-    
-    vts = []
-    for v in lddmm.vt2:
-        vts.append(v.clone().detach().cpu().numpy().tolist())
-    pack['vt2'] = vts
-    
-    afA = lddmm.affineA.clone().detach().cpu().numpy().tolist()
-    pack['affineA'] = afA
-    
-    with open(filename, 'wb') as f:
-        f.write(json.dumps(pack).encode('utf-8'))
-        
-def loadLDDMM(lddmm, filename):
-    import json
-    device = lddmm.params.get('cuda', 'cpu')
-    lddmm.params['cuda'] = device   
-    pack = json.loads(open(filename, 'rb').read().decode('utf-8'))
-    lddmm.X0 = torch.tensor(pack['X0']).type(lddmm.params['dtype']).to(device=device)
-    lddmm.X1 = torch.tensor(pack['X1']).type(lddmm.params['dtype']).to(device=device)
-    lddmm.X2 = torch.tensor(pack['X2']).type(lddmm.params['dtype']).to(device=device)
-    lddmm.nx = np.array(pack['nx'])
-    lddmm.dx = np.array(pack['dx'])
-    lddmm.dt = pack['dt']
-    lddmm.params['nt'] = pack['nt']
-    lddmm.vt0 = []
-    for v in pack['vt0']:
-        lddmm.vt0.append(torch.tensor(v).type(lddmm.params['dtype']).to(device=device))
-    lddmm.vt1 = []
-    for v in pack['vt1']:
-        lddmm.vt1.append(torch.tensor(v).type(lddmm.params['dtype']).to(device=device))
-    lddmm.vt2 = []
-    for v in pack['vt2']:
-        lddmm.vt2.append(torch.tensor(v).type(lddmm.params['dtype']).to(device=device))
-    lddmm.affineA = torch.tensor(pack['affineA']).type(lddmm.params['dtype']).to(device=device)
-    return lddmm

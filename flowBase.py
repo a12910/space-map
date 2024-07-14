@@ -109,26 +109,3 @@ class AffineFinder:
     def copy(self):
         return AffineFinder(self.name)
         
-# def manual_flow(dfI, dfJ):
-#     mgr = AffineFlowMgr("ManualFlow", dfI, dfJ)
-#     if mgr.center:
-#         rotate = spacemap.AffineBlockBestRotate()
-#         mgr.run_flow(rotate)
-#     matches = spacemap.MatchInit(matchr=mgr.matchr)
-#     matches.alignment = spacemap.AffineAlignmentLOFTR()
-#     mgr.run_flow(matches)
-#     if mgr.center:
-#         graph = spacemap.MatchFilterGraph(std=mgr.matchr_std)
-#         # graph.show_graph_match = True
-#         mgr.run_flow(graph)
-#         mgr.run_flow(spacemap.MatchShow())
-#     glob = spacemap.MatchFilterGlobal(count=mgr.glob_count)
-#     mgr.run_flow(glob)
-#     mgr.run_flow(spacemap.MatchShow())
-    
-#     each = spacemap.MatchEach()
-#     mgr.run_flow(each)
-#     mgr.run_flow(spacemap.MatchShow())
-#     # H = self.resultH()
-#     H = mgr.bestH()
-#     return H
