@@ -18,6 +18,13 @@ mygaussian = base.mygaussian
 
 # interpolate = torch.nn.functional.interpolate
 
+@torch.jit.script
+def Jtorch_gradient2d(arr, dx, dy, grad_divisor_x_gpu, grad_divisor_y_gpu):
+    arr = torch.squeeze(torch.nn.functional.pad(arr.unsqueeze(0).unsqueeze(0),(1,1,1,1),mode='replicate'))
+    gradx = torch.cat((arr[1:,:],arr[0,:].unsqueeze(0)),dim=0) - torch.cat((arr[-1,:].unsqueeze(0),arr[:-1,:]),dim=0)
+    grady = torch.cat((arr[:,1:],arr[:,0].unsqueeze(1)),dim=1) - torch.cat((arr[:,-1].unsqueeze(1),arr[:,:-1]),dim=1)
+    return gradx[1:-1,1:-1]/dx/grad_divisor_x_gpu, grady[1:-1,1:-1]/dy/grad_divisor_y_gpu
+
 def unsqueeze2(I):
     return I.unsqueeze(0).unsqueeze(0)
 
@@ -396,10 +403,9 @@ class LDDMM2D(base.LDDMMBase):
     
     # 2D replication-pad, artificial roll, subtract, single-sided difference on boundaries
     def torch_gradient2d(self, arr, dx, dy, grad_divisor_x_gpu,grad_divisor_y_gpu):
-        arr = torch.squeeze(torch.nn.functional.pad(unsqueeze2(arr),(1,1,1,1),mode='replicate'))
-        gradx = torch.cat((arr[1:,:],arr[0,:].unsqueeze(0)),dim=0) - torch.cat((arr[-1,:].unsqueeze(0),arr[:-1,:]),dim=0)
-        grady = torch.cat((arr[:,1:],arr[:,0].unsqueeze(1)),dim=1) - torch.cat((arr[:,-1].unsqueeze(1),arr[:,:-1]),dim=1)
-        return gradx[1:-1,1:-1]/dx/grad_divisor_x_gpu, grady[1:-1,1:-1]/dy/grad_divisor_y_gpu
+        dx = self.tensor(dx)
+        dy = self.tensor(dy)
+        return Jtorch_gradient2d(arr, dx, dy, grad_divisor_x_gpu,grad_divisor_y_gpu)
     
     # apply current transform to new image
     def applyThisTransform2d(self, I, interpmode='bilinear',dtype='torch.FloatTensor'):
@@ -793,47 +799,6 @@ class LDDMM2D(base.LDDMMBase):
             self.sgd_maskiter = 0
         else:
             return
-        
-        
-        # if self.params['sg_mask_mode'] == 'gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '2gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '3gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == 'rand':
-        #     self.sgd_M = self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda'])
-        # elif self.params['sg_mask_mode'] == 'binrand':
-        #     self.sgd_M = torch.round(self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:5] == 'gauss' and len(self.params['sg_mask_mode']) > 5:
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        #     for i in range(int(self.params['sg_mask_mode'][5:])-1):
-        #         self.sgd_M += base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:8] == 'bingauss' and len(self.params['sg_mask_mode']) > 8:
-        #     self.sgd_M = torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
-        #     for i in range(int(self.params['sg_mask_mode'][8:])-1):
-        #         self.sgd_M += torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
-            
-    
-    
-        # if self.params['sg_mask_mode'] == 'gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '2gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == '3gauss':
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])) + base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'] == 'rand':
-        #     self.sgd_M = self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda'])
-        # elif self.params['sg_mask_mode'] == 'binrand':
-        #     self.sgd_M = torch.round(self.params['sg_rand_scale']*torch.rand((self.nx[0],self.nx[1],self.nx[2])).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:5] == 'gauss' and len(self.params['sg_mask_mode']) > 5:
-        #     self.sgd_M = base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        #     for i in range(int(self.params['sg_mask_mode'][5:])-1):
-        #         self.sgd_M += base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda']))
-        # elif self.params['sg_mask_mode'][0:8] == 'bingauss' and len(self.params['sg_mask_mode']) > 8:
-        #     self.sgd_M = torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
-        #     for i in range(int(self.params['sg_mask_mode'][8:])-1):
-        #         self.sgd_M += torch.round(base.mygaussian_3d_torch_selectcenter_meshgrid(self.X0,self.X1,self.X2,self.params['sg_sigma'],((torch.rand(1)-0.5)*self.nx[0]*self.dx[0]/2.0).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[1]*self.dx[1]/2).type(self.params['dtype']).to(device=self.params['cuda']),((torch.rand(1)-0.5)*self.nx[2]*self.dx[2]/2.0).type(self.params['dtype']).to(device=self.params['cuda'])))
             
     
     # update learning rate for gradient descent
@@ -1430,30 +1395,30 @@ class LDDMM2D(base.LDDMMBase):
                 #self.computeWeightEstimation()
                 self.updateWeightEstimationConstants()
             
-        if hasattr(self, 'vt0'): # we never reset lddmm variables
-            self.vt0 = []
-            self.vt1 = []
-            self.vt2 = []
-            for i in range(self.params['nt']):
-                self.vt0.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
-                self.vt1.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
-                self.vt2.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
+        # if hasattr(self, 'vt0'): # we never reset lddmm variables
+        #     self.vt0 = []
+        #     self.vt1 = []
+        #     self.vt2 = []
+        #     for i in range(self.params['nt']):
+        #         self.vt0.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
+        #         self.vt1.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
+        #         self.vt2.append(self.tensor(np.zeros((self.nx[0],self.nx[1],self.nx[2]))))
         
-        if hasattr(self,'affineA'): # we never automatically reset affine variables
-            self.affineA = self.tensor(np.eye(4))
-            self.lastaffineA = self.tensor(np.eye(4))
-            self.gradA = self.tensor(np.zeros((4,4)))
+        # if hasattr(self,'affineA'): # we never automatically reset affine variables
+        #     self.affineA = self.tensor(np.eye(4))
+        #     self.lastaffineA = self.tensor(np.eye(4))
+        #     self.gradA = self.tensor(np.zeros((4,4)))
         
-        if hasattr(self,'ccIbar'): # we never reset cc variables
-            self.ccIbar = []
-            self.ccJbar = []
-            self.ccVarI = []
-            self.ccCovIJ = []
-            for i in range(len(self.I)):
-                self.ccIbar.append(0.0)
-                self.ccJbar.append(0.0)
-                self.ccVarI.append(1.0)
-                self.ccCovIJ.append(1.0)
+        # if hasattr(self,'ccIbar'): # we never reset cc variables
+        #     self.ccIbar = []
+        #     self.ccJbar = []
+        #     self.ccVarI = []
+        #     self.ccCovIJ = []
+        #     for i in range(len(self.I)):
+        #         self.ccIbar.append(0.0)
+        #         self.ccJbar.append(0.0)
+        #         self.ccVarI.append(1.0)
+        #         self.ccCovIJ.append(1.0)
         
         # weight estimation variables
         if hasattr(self,'W'): # if number of channels changed, reset everything
@@ -1578,10 +1543,14 @@ class LDDMM2D(base.LDDMMBase):
                                 return -1
                 
                 if i == 0:
-                    self.vt0 = self.tensor(varlist[i])
+                    self.vt0 = []
+                    for j in range(len(varlist[i])):
+                        self.vt0.append(self.tensor(varlist[i][j]))
                     print('Custom vt0 assigned.')
                 elif i == 1:
-                    self.vt1 = self.tensor(varlist[i])
+                    self.vt1 = []
+                    for j in range(len(varlist[i])):
+                        self.vt1.append(self.tensor(varlist[i][j]))
                     print('Custom vt1 assigned.')
         
         if affineA is not None:
@@ -1645,7 +1614,4 @@ class LDDMM2D(base.LDDMMBase):
         # update epsilon
         if self.params['update_epsilon'] == 1:
             self.updateEpsilonAfterRun()
-        
-        # save outputs
-        self.saveOutputs(save_template=save_template)
         

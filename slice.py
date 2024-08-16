@@ -23,6 +23,8 @@ class Slice:
         self.heImg = False
         
     def init_df(self, initdf):
+        if initdf.shape[1] == 0:
+            raise Exception("Empty DataFrame")
         initdf2 = initdf[["x", "y"]].copy()
         initdf2["x"] += spacemap.APPEND[0]
         initdf2["y"] += spacemap.APPEND[1]

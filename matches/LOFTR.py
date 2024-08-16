@@ -4,6 +4,8 @@ import spacemap
 import numpy as np
 
 class LOFTR(spacemap.AffineAlignment):
+    
+    method = "indoor"
     def __init__(self):
         super().__init__()
         self.multiChannel = True
@@ -22,6 +24,8 @@ class LOFTR(spacemap.AffineAlignment):
             imgI = imgI.mean(axis=2)
             imgJ = imgJ.mean(axis=2)
         return loftr_compute_matches(imgI, imgJ, matchr)
+    
+    
 
 def loftr_compute_matches(imgI, imgJ, matchr, device=None):
     from kornia.feature import LoFTR
@@ -46,7 +50,7 @@ def loftr_compute_matches(imgI, imgJ, matchr, device=None):
         "image1": torch.tensor(imgJ, device=device)
     }
 
-    matcher = LoFTR("indoor").to(device)
+    matcher = LoFTR(LOFTR.method).to(device)
     out = matcher(batch)
     pts1 = out["keypoints0"].cpu().numpy()
     pts2 = out["keypoints1"].cpu().numpy()

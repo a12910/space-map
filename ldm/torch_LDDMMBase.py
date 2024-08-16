@@ -67,6 +67,17 @@ def rfft(mat,dim,onesided=False):
     else:
         return torch.fft.fftn(mat)
     
+        
+import torch
+
+class JTensor(torch.nn.Module):
+    def __init__(self, device):
+        self.device = torch.device(device)
+        super(JTensor, self).__init__()
+    
+    def forward(self, t):
+        return t.type(torch.float32).to(device=self.device)
+    
     
 class LDDMMBase:
     def __init__(self,template=None,target=None,costmask=None,outdir='./',gpu_number=0,
@@ -80,6 +91,8 @@ class LDDMMBase:
                  cc=0,cc_channels=[],we=0,we_channels=[],sigmaW=1.0,nMstep=5,
                  dx=None,low_memory=0,update_epsilon=0,verbose=100,v_scale=1.0,
                  v_scale_smoothing=0,target_err=30,target_step=8000,show_init=True,target_err_skip=0.001):
+        self._JT = None
+        
         self.params = {}
         self.params['gpu_number'] = gpu_number
         self.params['a'] = float(a)
@@ -290,17 +303,25 @@ class LDDMMBase:
     def tensor(self, t):
         if isinstance(t, np.ndarray) or isinstance(t, float):
             t = torch.tensor(t)
-        elif isinstance(t, torch.Tensor):
-            t = t.clone()
+        # elif isinstance(t, torch.Tensor):
+        #     t = t.clone()
         if isinstance(t, torch.Tensor):
-            return t.type(self.params['dtype']).to(device=self.params['cuda'])
+            if self._JT is None:
+                self._JT = torch.jit.script(JTensor(self.params['cuda']))
+            return self._JT(t)
+            # return t.type(self.params['dtype']).to(device=self.params['cuda'])
+        return t
         return t
     
     def tensor_ncp(self, t):
         if isinstance(t, np.ndarray) or isinstance(t, float):
             t = torch.tensor(t)
         if isinstance(t, torch.Tensor):
-            return t.type(self.params['dtype']).to(device=self.params['cuda'])
+            if self._JT is None:
+                self._JT = torch.jit.script(JTensor(self.params['cuda']))
+            return self._JT(t)
+            # return t.type(self.params['dtype']).to(device=self.params['cuda'])
+        return t
         return t
     
     # manual edit parameter

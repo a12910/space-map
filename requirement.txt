@@ -1,0 +1,14 @@
+opencv-python
+pandas
+numpy
+torch
+kornia
+scikit-learn
+tifffile
+matplotlib
+numba
+scipy
+tqdm
+nibabel
+seaborn
+scikit-image

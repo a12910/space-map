@@ -172,6 +172,8 @@ class Slice2:
         self.save_config()
         
     def init_df(self, initdf):
+        if initdf.shape[1] == 0:
+            raise Exception("Empty DataFrame")
         img = SliceImg(self.index, SliceImg.DF, 
                        dfMode=True, heMode=False, 
                        projectf=self.projectf)

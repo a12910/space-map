@@ -15,7 +15,7 @@ class AutoAffineImgKey(AffineFlowMgrImg):
             self.method = "sift_vgg"
         if self.method == "auto":
             _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))
-            if len(self.matches) < 10:
+            if len(self.matches) < 20:
                 _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="loftr"))
                 if len(self.matches) < 10:
                     self.method = ""
