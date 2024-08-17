@@ -98,7 +98,7 @@ class SliceImg:
             if self.dfMode:
                 points = self.get_points(fromKey)
                 H_np = spacemap.img.to_npH(H)
-                points2 = spacemap.applyH_np(points, H_np)
+                points2 = spacemap.points.applyH_np(points, H_np)
                 self.save_points(points2, toKey)
             else:
                 img = self.get_img(fromKey, mchannel=True, scale=False, fixHe=False)

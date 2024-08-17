@@ -4,6 +4,14 @@ import torch.optim as optim
 import numpy as np
 import spacemap
 
+def applyH_np(df: np.array, H: np.array, xyd=None) -> np.array:
+    df2 = df.copy()
+    H = np.array(H)
+    H = to_npH(H, xyd)
+    df2[:, 0] = (df[:, 0] * H[0, 0] + df[:, 1] * H[0, 1]) + H[0, 2]
+    df2[:, 1] = (df[:, 0] * H[1, 0] + df[:, 1] * H[1, 1]) + H[1, 2]
+    return df2
+
 def _initialize_identity_grid(N, device):
     """ Initialize an identity grid for a given size N. """
     x = torch.linspace(-1, 1, N, device=device)

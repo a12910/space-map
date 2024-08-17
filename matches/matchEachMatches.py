@@ -33,7 +33,7 @@ class MatchEachMatches(spacemap.AffineBlock):
         for i in tqdm(range(minMatch, len(matches)+1), desc="Compute Each Match"):
             matchesi = matches[:i]
             H, _ = spacemap.matches.createHFromPoints2(matchesi, xyd)
-            matchesJ = spacemap.applyH_np(matchesi[:, 2:4] * xyd, H)
+            matchesJ = spacemap.points.applyH_np(matchesi[:, 2:4] * xyd, H)
             matchesI = matchesi[:, :2] * xyd
             errX, errY = np.mean(matchesI - matchesJ, axis=0)
             err = errX **2 + errY **2        

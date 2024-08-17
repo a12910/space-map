@@ -18,7 +18,7 @@ class MatchShowImg(spacemap.AffineBlock):
         return None
     
     def __show_matches_img(self, matches, imgI, imgJ, H):
-        matchesJ = spacemap.applyH_np(matches[:, 2:4], H)
+        matchesJ = spacemap.points.applyH_np(matches[:, 2:4], H)
         if imgI.max() > 128:
             imgI = np.array(imgI, dtype=np.float32) / 32
             imgI = np.clip(imgI, 0, 1)

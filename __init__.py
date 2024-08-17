@@ -26,22 +26,14 @@ from .utils import grid_points as grid_points
 from .utils import imaris as imaris
 
 from .base.flowBase import *
-# from .mgr.flowMgr import AffineFlowMgr, AffineFlowMgrBase
-# from .mgr.flowMgrImg import AffineFlowMgrImg
-# from .mgr.AutoFlowHE import AutoFlowHE
 
 from . import matches
 from . import affine
 from . import find
+from .find import err
 from . import affine_block
-
-# from .mgr.AutoFlow import SpaceMapAutoFlow
-# from .mgr.AutoFlow2 import SpaceMapAutoFlow2
 
 from . import registration
 from . import flow
-
-# from .mgr.ldmMgrPair import LDMMgrPair
-# from .mgr.ldmMgrMulti import LDMMgrMulti
 
 from .utils import compare

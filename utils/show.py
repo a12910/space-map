@@ -50,7 +50,7 @@ def show_xy_np(nps: [np.array], labels: [str],
     plt.show()
 
 def show_xy(dfs: list[pd.DataFrame], labels: list[str], 
-            keyx: str or list ="x", keyy: str or list="y", 
+            keyx: str="x", keyy: str="y", 
             xylim=None, s=1, alpha=0.2):
     nps = []
     for i in range(len(dfs)):

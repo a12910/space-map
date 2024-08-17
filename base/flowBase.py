@@ -45,7 +45,7 @@ class AffineBlock:
             for x, y in matches[:, :2]:
                 x_, y_ = int(x), int(y)
                 imgI_[x_-4:x_+4, y_-1:y_+1] = 20
-            matchesJ = spacemap.applyH_np(matches[:, 2:4] * xyd, H)
+            matchesJ = spacemap.points.applyH_np(matches[:, 2:4] * xyd, H)
             for x, y in matchesJ:
                 x_, y_ = int(x / xyd), int(y / xyd)
                 imgI_[x_-1:x_+1, y_-4:y_+4] = 10

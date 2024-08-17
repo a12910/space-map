@@ -61,6 +61,6 @@ class MatchEach(spacemap.AffineBlock):
         H, _ = spacemap.matches.createHFromPoints2(matchesi, xyd)
         if H is None:
             return []
-        dfOut = spacemap.applyH_np(dfJ, H)            
+        dfOut = spacemap.points.applyH_np(dfJ, H)            
         imgJ2 = spacemap.show_img3(dfOut)
         return [i, H, imgI, imgJ2]

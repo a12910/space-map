@@ -82,7 +82,7 @@ class AffineFlowMgr(AffineFlowMgrBase):
         if flow.updateMatches:
             self.matches = np.array(flow.matches)
         if H is not None:
-            self.dfJ = spacemap.applyH_np(self.dfJ, H)
+            self.dfJ = spacemap.points.applyH_np(self.dfJ, H)
             err = self.current_err(show=showErr)
             self.AffineH.append((H, err, flow.name))
         return self.dfI, self.dfJ

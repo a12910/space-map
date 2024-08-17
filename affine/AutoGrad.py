@@ -22,19 +22,19 @@ class AutoGrad(spacemap.AffineBlock):
             xH, err = self.find_bestX(imgI, imgJ, finder, dis, skip)
             if xH is not None: 
                 H = np.dot(xH, H)
-                ps = spacemap.applyH_np(dfJ, H)
+                ps = spacemap.points.applyH_np(dfJ, H)
                 imgJ = spacemap.show_img3(ps, imgConf=imgC)
             
             yH, err = self.find_bestY(imgI, imgJ, finder, dis, skip) 
             if yH is not None:  
                 H = np.dot(yH, H)
-                ps = spacemap.applyH_np(dfJ, H)
+                ps = spacemap.points.applyH_np(dfJ, H)
                 imgJ = spacemap.show_img3(ps, imgConf=imgC)
             
             rH, err = self.find_bestRotate(imgI, imgJ, finder, dis, skip)  
             if rH is not None: 
                 H = np.dot(rH, H)
-                ps = spacemap.applyH_np(dfJ, H)
+                ps = spacemap.points.applyH_np(dfJ, H)
                 imgJ = spacemap.show_img3(ps, imgConf=imgC)
             
             spacemap.Info("Grad Find: err=%.3f" % (err))

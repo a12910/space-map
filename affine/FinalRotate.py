@@ -19,8 +19,8 @@ class FinalRotate(spacemap.AffineBlock):
         
         center_x, center_y = spacemap.XYRANGE // 2, spacemap.XYRANGE // 2
         H1 = np.array([[1, 0, center_x-x_], [0, 1, center_y-y_], [0, 0, 1]])
-        dfI_ = spacemap.applyH_np(dfI, H1)
-        dfJ_ = spacemap.applyH_np(dfJ, H1)
+        dfI_ = spacemap.points.applyH_np(dfI, H1)
+        dfJ_ = spacemap.points.applyH_np(dfJ, H1)
         imgI2 = spacemap.show_img3(dfI_)
         imgJ2 = spacemap.show_img3(dfJ_)
         
