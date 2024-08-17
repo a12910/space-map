@@ -18,8 +18,8 @@ class AutoScale(spacemap.AffineBlock):
         H[0, 0] = ratio
         H[1, 1] = ratio
         
-        if np.max(dfJ) * ratio > spacemap.XYRANGE[1]:
-            dis = spacemap.XYRANGE[1] - np.max(dfJ) * ratio
+        if np.max(dfJ) * ratio > spacemap.XYRANGE:
+            dis = spacemap.XYRANGE - np.max(dfJ) * ratio
             H[0, 2] = -dis
             H[1, 1] = -dis
         

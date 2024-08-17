@@ -20,7 +20,7 @@ def generate_grid(rawDF, alignDF, start, end, outFolder,
     """ 为每一层生成一个grid """
     spacemap.mkdir(outFolder)
     spacemap.Info("Generate grid start %d~%d ->  %s/%s" % (start, end, outFolder, prefix))
-    shape = spacemap.XYRANGE[1], spacemap.XYRANGE[3]
+    shape = spacemap.XYRANGE, spacemap.XYRANGE
     xyd = spacemap.XYD
     gridShape = (int(shape[0]/xyd), int(shape[1]/xyd))
     

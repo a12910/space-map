@@ -5,8 +5,8 @@ import numpy as np
 class Dice4(spacemap.AffineFinder):
     def __init__(self):
         super().__init__("AffineFinderDice4")
-        self.centerX = int(spacemap.XYRANGE[1] // spacemap.XYD // 2)
-        self.centerY = int(spacemap.XYRANGE[3] // spacemap.XYD // 2)
+        self.centerX = int(spacemap.XYRANGE // spacemap.XYD // 2)
+        self.centerY = int(spacemap.XYRANGE // spacemap.XYD // 2)
         self.minErr = np.zeros(4)
         self.minErrIndex = np.zeros(4)
         self.allErr = np.zeros(4)

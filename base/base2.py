@@ -9,7 +9,7 @@ def auto_init_xyd(xy: np.array):
     maxx = np.max(xy, axis=0) + 500
     maxx = (maxx // 100) * 100 + minn
     spacemap.APPEND = -minn
-    spacemap.XYRANGE = [0, maxx[0], 0, maxx[1]]
+    spacemap.XYRANGE = maxx[0]
     spacemap.XYD = int(max(maxx) / 400)
     
 def init_xy(xyr, xyd):

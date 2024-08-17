@@ -69,7 +69,7 @@ class TransformDB:
         if self.ignoreInit:
             index -= 1
         if maxShape is None:
-            maxShape = spacemap.XYRANGE[1]
+            maxShape = spacemap.XYRANGE
         
         if self._affine is not None:
             affine = self._affine[index]

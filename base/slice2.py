@@ -103,7 +103,7 @@ class SliceImg:
             else:
                 img = self.get_img(fromKey, mchannel=True, scale=False, fixHe=False)
                 shape = img.shape[0]
-                ishape = spacemap.XYRANGE[1] / spacemap.XYD
+                ishape = spacemap.XYRANGE / spacemap.XYD
                 ratio = shape / ishape
                 H = H.copy()
                 H[0, 2] *= ratio

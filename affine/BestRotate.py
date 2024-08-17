@@ -11,8 +11,8 @@ class BestRotate(spacemap.AffineBlock):
     def compute_center(self, dfI, dfJ):
         xyrange = spacemap.XYRANGE
         
-        meanX = xyrange[1] // 2
-        meanY = xyrange[3] // 2
+        meanX = xyrange // 2
+        meanY = xyrange // 2
         
         meanIX, meanIY = np.mean(dfI[:, 0]), np.mean(dfI[:, 1])
         meanJX, meanJY = np.mean(dfJ[:, 0]), np.mean(dfJ[:, 1])

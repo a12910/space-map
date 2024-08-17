@@ -9,7 +9,7 @@ formatter = logging.Formatter('[%(asctime)s]%(levelname)s: %(message)s')
 stdHandle.setFormatter(formatter)
 L.addHandler(stdHandle)
 
-XYRANGE = [0, 4000, 0, 4000]
+XYRANGE = 4000
 XYD = 10
 IMGCONF = {"raw": 1}
 BASE = "data/flow"

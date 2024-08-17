@@ -72,10 +72,10 @@ def show_img4(values: np.array, kernel=0):
     # n*3
     xyrange = spacemap.XYRANGE
     xyd = spacemap.XYD
-    img = np.zeros((int((xyrange[1]-xyrange[0])/xyd), int((xyrange[3]-xyrange[2])/xyd)), dtype=np.float64)
+    img = np.zeros((int(xyrange/xyd), int(xyrange/xyd)), dtype=np.float64)
     values1 = values.copy()
-    values1[:, 0] = (values1[:, 0] - xyrange[0]) // xyd
-    values1[:, 1] = (values1[:, 1] - xyrange[2]) // xyd
+    values1[:, 0] = (values1[:, 0]) // xyd
+    values1[:, 1] = (values1[:, 1]) // xyd
     values_ = [(int(x), int(y), z) for x, y, z in values1]
     for ix, iy, iz in values_:
         if iz == 0:
@@ -109,10 +109,10 @@ def show_img3(values: np.array, imgConf=None):
     xyrange = spacemap.XYRANGE
     xyd = spacemap.XYD
     
-    img = np.zeros((int((xyrange[1]-xyrange[0])/xyd), int((xyrange[3]-xyrange[2])/xyd)), dtype=np.float64)
+    img = np.zeros((int(xyrange/xyd), int(xyrange/xyd)), dtype=np.float64)
     values1 = values.copy()
-    values1[:, 0] = (values1[:, 0] - xyrange[0]) // xyd
-    values1[:, 1] = (values1[:, 1] - xyrange[2]) // xyd
+    values1[:, 0] = (values1[:, 0]) // xyd
+    values1[:, 1] = (values1[:, 1]) // xyd
     if raw == 0:
         values_ = set([(int(x), int(y)) for x, y in values1])
     else:

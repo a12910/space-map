@@ -18,7 +18,7 @@ class FilterGlobalImg(spacemap.AffineBlock):
         matches1 = self.matches.copy()
         if len(matches1) < self.count:
             return None
-        while self.dis < spacemap.XYRANGE[1] // 40:
+        while self.dis < spacemap.XYRANGE // 40:
             matches1 = self.matches_filter(self.matches)
             if len(matches1) > self.count * 0.8 or \
                 len(matches1) < self.count * 0.2:

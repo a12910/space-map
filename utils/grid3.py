@@ -112,7 +112,7 @@ def grid_to_points(grid, xyd):
     return grid.reshape((-1, 2))
 
 def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
-    xyd = xyd if xyd is not None else int(spacemap.XYRANGE[1] // grid.shape[1])
+    xyd = xyd if xyd is not None else int(spacemap.XYRANGE // grid.shape[1])
     if len(grid.shape) == 4:
         grid = grid.squeeze(0)
     if inv_grid is None:
