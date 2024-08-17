@@ -1,4 +1,5 @@
 from .basic import FinderBasic, default, SiftCount
+from . import err
 from .cellLabel import CellLabelDice
 from .convDice import *
 from .dice4 import Dice4

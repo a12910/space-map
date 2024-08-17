@@ -1,4 +1,9 @@
-class AutoFlowMultiCenter3(spacemap.flow.AutoFlowMultiCenter2):
+import spacemap
+from spacemap import Slice2, SliceImg
+import numpy as np
+from .afFlow2Multi import AutoFlowMultiCenter2
+
+class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
     def __init__(self, slices: list[Slice2],
                  initJKey=Slice2.rawKey,
                  alignMethod=None,

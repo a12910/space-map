@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 class FlowExport:
-    def __init__(self, slices: list[spacemap.Slice]):
+    def __init__(self, slices: list[spacemap.Slice2]):
         self.slices = slices
         self.ldmKey = "final_ldm"
         self.affineKey = "cell"
@@ -31,7 +31,7 @@ class FlowExport:
         affines[initI] = np.zeros_like(affines[i1])
         
         for i, s in enumerate(self.slices):
-            if s.index == self.initGridlice:
+            if s.index == self.initGridSlice:
                 initI = i
                 grids.append(None)
                 continue

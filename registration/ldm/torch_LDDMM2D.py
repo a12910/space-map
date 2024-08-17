@@ -7,14 +7,14 @@ import os
 import distutils.version
 import nibabel as nib
 import spacemap
-from spacemap import base
-
-grid_sample = base.grid_sample
-irfft = base.irfft
-rfft = base.rfft
-mygaussian_torch_selectcenter_meshgrid = base.mygaussian_torch_selectcenter_meshgrid
-mygaussian_3d_torch_selectcenter_meshgrid = base.mygaussian_3d_torch_selectcenter_meshgrid
-mygaussian = base.mygaussian
+# from spacemap.base import root
+from . import torch_LDDMMBase as root
+grid_sample = root.grid_sample
+irfft = root.irfft
+rfft = root.rfft
+mygaussian_torch_selectcenter_meshgrid = root.mygaussian_torch_selectcenter_meshgrid
+mygaussian_3d_torch_selectcenter_meshgrid = root.mygaussian_3d_torch_selectcenter_meshgrid
+mygaussian = root.mygaussian
 
 # interpolate = torch.nn.functional.interpolate
 
@@ -44,7 +44,7 @@ def get_init2D(imgI, imgJ, gpu=None, verbose=100):
                               show_init=False)
     return ldm
     
-class LDDMM2D(base.LDDMMBase):
+class LDDMM2D(root.LDDMMBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -250,7 +250,7 @@ class LDDMM2D(base.LDDMMBase):
             if np.mod(size,2) == 0:
                 size += 1
             
-            self.gaussian_filter = self.tensor(base.mygaussian(sigma=1.0/self.params['v_scale'],size=size))
+            self.gaussian_filter = self.tensor(root.mygaussian(sigma=1.0/self.params['v_scale'],size=size))
         
         # image sampling domain
         x0 = np.arange(self.nx[0])*self.dx[0]

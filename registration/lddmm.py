@@ -1,7 +1,7 @@
 import spacemap
 from .base import Registration
 import numpy as np
-from spacemap import LDDMM2D
+from . import LDDMM2D
 
 
 def lddmm_main(ldm, err=0.1):

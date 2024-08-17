@@ -2,8 +2,6 @@ import spacemap
 from spacemap import Slice2
 import numpy as np
 
-
-
 class AutoFlowBasic2:
     def __init__(self, slices: list[Slice2], 
                  initJKey=Slice2.rawKey,

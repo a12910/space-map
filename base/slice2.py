@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2, json
 import numpy as np
+from . import SliceData
 
 class SliceImg:
     DF = "DF"
@@ -161,7 +162,7 @@ class Slice2:
         self.imgs: dict[str: SliceImg] = {}
         self.index = str(index)
         self.projectf = spacemap.BASE if projectf is None else projectf
-        self.data = spacemap.SliceData(index, self.projectf)
+        self.data = SliceData(index, self.projectf)
         self.first = first
         confPath = "%s/outputs/%s_conf.json" % (self.projectf, self.index)
         self.imgs = SliceImg.load_config(confPath, self.projectf)

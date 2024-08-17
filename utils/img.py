@@ -65,7 +65,7 @@ def to_imgH(H: np.array):
     H[1, 2] = H[1, 2] / xyd
     return H
 
-def apply_transform(S: spacemap.Slice, img: np.array, affineShape, 
+def apply_transform(S: spacemap.Slice2, img: np.array, affineShape, 
                         initIndex, 
                         affineKey="cell", gridKey="final_ldm"):
     affine = S.data.loadH(initIndex, affineKey)
