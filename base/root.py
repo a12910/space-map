@@ -17,6 +17,10 @@ APPEND = np.array([0, 0])
 
 DEVICE = "cpu"
 
+import torch
+if torch.cuda.is_available():
+    DEVICE = "cuda:0"
+
 LAYER_START = 0
 LAYER_END = 0
 

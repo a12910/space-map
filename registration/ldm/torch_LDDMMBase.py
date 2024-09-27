@@ -342,24 +342,25 @@ class LDDMMBase:
                 self.initializer_flags['load'] = 1
             elif parameter_name == 'do_lddmm' and parameter_value == 1 and self.params['do_lddmm'] == 0:
                 self.initializer_flags['lddmm'] = 1
-                print('WARNING: LDDMM state has changed. Variables will be initialized.')
+                # print('WARNING: LDDMM state has changed. Variables will be initialized.')
             elif parameter_name == 'do_affine' and parameter_value > 0 and self.params['do_affine'] != parameter_value:
                 self.initializer_flags['affine'] = 1
-                print('WARNING: Affine state has changed. Variables will be initialized.')
+                # print('WARNING: Affine state has changed. Variables will be initialized.')
             elif (parameter_name == 'cc' and parameter_value != 0 and self.params['cc'] != parameter_value) or (parameter_name == 'cc_channels' and parameter_value != self.params['cc_channels']):
                 self.initializer_flags['cc'] = 1
-                print('WARNING: Contrast correction state has changed. Variables will be initialized.')
+                # print('WARNING: Contrast correction state has changed. Variables will be initialized.')
             elif parameter_name == 'we' and parameter_value >= 2 and self.params['we'] != parameter_value or (parameter_name == 'we_channels' and parameter_value != self.params['we_channels']):
                 self.initializer_flags['we'] = 1
-                print('WARNING: Weight estimation state has changed. Variables will be initialized.')
+                # print('WARNING: Weight estimation state has changed. Variables will be initialized.')
             elif parameter_name == 'v_scale' and self.params['do_lddmm'] == 1 and hasattr(self,'vt0'):
                 self.initializer_flags['v_scale'] = 1
-                print('WARNING: Parameter sparsity has changed. Variables will be initialized.')
+                # print('WARNING: Parameter sparsity has changed. Variables will be initialized.')
             
             self.willUpdate[parameter_name] = parameter_value
             self.params[parameter_name] = parameter_value
         else:
-            print('Parameter \'' + str(parameter_name) + '\' is not a valid parameter.')
+            pass
+            # print('Parameter \'' + str(parameter_name) + '\' is not a valid parameter.')
         
         return
     
@@ -377,7 +378,7 @@ class LDDMMBase:
 
                 else:
                     image = torch.tensor((image - np.mean(image)) ).type(self.params['dtype']).to(device=self.params['cuda'])
-                    print('WARNING: stdev of image is zero, not rescaling.')
+                    # print('WARNING: stdev of image is zero, not rescaling.')
             else:
                 image = torch.tensor(image).type(self.params['dtype']).to(device=self.params['cuda'])
             return (image, spacing, size)
@@ -392,7 +393,7 @@ class LDDMMBase:
 
                 else:
                     image = torch.tensor((image - np.mean(image)) ).type(self.params['dtype']).to(device=self.params['cuda'])
-                    print('WARNING: stdev of image is zero, not rescaling.')
+                    # print('WARNING: stdev of image is zero, not rescaling.')
             else:
                 image = torch.tensor(image).type(self.params['dtype']).to(device=self.params['cuda'])
             return (image, spacing, size)
@@ -515,17 +516,13 @@ class LDDMMBase:
         # set timesteps to 1 if doing affine only
         if self.params['do_affine'] > 0 and self.params['do_lddmm'] == 0 and not hasattr(self,'vt0'):
             if self.params['nt'] != 1:
-                print('WARNING: nt set to 1 because settings indicate affine registration only.')
                 self.params['nt'] = 1
         elif self.params['do_affine'] == 0 and self.params['do_lddmm'] == 0:
             flag = -1
-            print('ERROR: both linear and LDDMM registration are turned off. Exiting.')
         elif self.params['do_lddmm'] == 1:
             if self.params['nt'] == 1 and self.params['orig_nt'] == 1:
-                print('WARNING: parameter \'nt\' is currently set to 1. You might have just finished linear registration. For LDDMM, set to a higher value.')
+                pass
             elif self.params['nt'] == 1 and self.params['orig_nt'] != 1:
                 self.params['nt'] = self.params['orig_nt']
-                print('WARNING: parameter \'nt\' was set to 1 and has been automatically reverted to your initial value of ' + str(self.params['orig_nt']) + '.')
-        
         return flag
     

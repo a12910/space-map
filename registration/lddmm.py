@@ -34,6 +34,22 @@ def lddmm_main(ldm, err=0.1):
     ldm.run()
     return ldm
 
+def lddmm_affine(ldm, err=0.1):
+    """ J -> I """
+    ldm.setParams('do_lddmm', 0)
+    ldm.setParams('do_affine', 1)
+    ldm.setParams('v_scale', 16.0)
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('epsilon', 10000)
+    ldm.setParams('niter', 1000)
+    ldm.run()
+    ldm.setParams('epsilon', 1000)
+    ldm.setParams('v_scale', 4.0)
+    ldm.setParams('target_err_skip', err)
+    ldm.setParams('niter', 1000)
+    ldm.run()
+    return ldm
+
 def lddmm_main2(ldm, err=0.1):
     """ J -> I """
     ldm.setParams('target_err_skip', err)
@@ -61,6 +77,15 @@ class LDDMMRegistration(Registration):
         self.ldm: spacemap.LDDMM2D = None
         self.gpu = None
         self.err = 0.1
+        self.verbose = LDDMMRegistration.verbose
+        
+    def run_affine(self) -> np.array:
+        if self.imgI is None or self.imgJ is None:
+            raise Exception("LDDMMRegistration: imgI or imgJ is None")
+        self._get_init(restart=True)
+        lddmm_affine(self.ldm, err=self.err)
+        A = self.ldm.affineA
+        return A
 
     def run(self):
         if self.imgI is None or self.imgJ is None:
@@ -77,7 +102,7 @@ class LDDMMRegistration(Registration):
         do_l = 0 if restart else 1
         self.ldm = LDDMM2D(template=self.imgJ, 
                            target=self.imgI, do_affine=1,do_lddmm=do_l, 
-                           nt=LDDMMRegistration.nt,optimizer='adam', sigma=20.0,sigmaR=20.0, gpu_number=self.gpu, target_err=0.1,verbose=LDDMMRegistration.verbose, target_step=20000, show_init=False)
+                           nt=LDDMMRegistration.nt,optimizer='adam', sigma=20.0,sigmaR=20.0, gpu_number=self.gpu, target_err=0.1,verbose=self.verbose, target_step=20000, show_init=False)
 
     def load_params_path(self, path):
         path = path + ".npz"

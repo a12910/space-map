@@ -1353,7 +1353,7 @@ class LDDMM2D(root.LDDMMBase):
                 elif self.EAll[-1]/self.EAll[self.params['energy_fraction_from']] <= self.params['energy_fraction']:
                     print('Early termination: Minimum fraction of initial energy reached.')
                 
-                print('Total elapsed runtime: {:.2f} seconds.'.format(total_time))
+                # print('Total elapsed runtime: {:.2f} seconds.'.format(total_time))
                 break
             
             del E, ER, EM
@@ -1573,7 +1573,7 @@ class LDDMM2D(root.LDDMMBase):
         # check parameters
         
         if self.willUpdate is not None:
-            print("Params Update: %s" % (str(self.willUpdate)))
+            # print("Params Update: %s" % (str(self.willUpdate)))
             self.willUpdate = None
         
         flag = self._checkParameters()

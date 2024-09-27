@@ -42,7 +42,9 @@ class AutoFlowBasic2:
         mgr.run()
         H = mgr.resultH_img()
         imgA3 = spacemap.he_img.rotate_imgH(imgA2, H)
-        e1 = err.err(imgA1, imgA3)
+        eA2 = err.err(imgA1, imgA3)
+        eA1 = err.err(imgA1, imgA2)
+        e1 = eA2 / eA1
                 
         spacemap.Info("TryRaw: raw=1")
         spacemap.IMGCONF = {"raw": 1}
@@ -52,8 +54,10 @@ class AutoFlowBasic2:
         mgr.run()
         H = mgr.resultH_img()
         imgB3 = spacemap.he_img.rotate_imgH(imgB2, H)
-        e2 = err.err(imgB1, imgB3)
-        spacemap.IMGCONF = {"raw": 0 if e1 < e2 else 1}
+        eB1 = err.err(imgB1, imgB2)
+        eB2 = err.err(imgB1, imgB3)
+        e2 = eB2 / eB1
+        spacemap.IMGCONF = {"raw": 0 if e1 > e2 else 1}
         spacemap.Info("TryRaw choose-%d 0:%f 1:%f" % (spacemap.IMGCONF["raw"], e1, e2))
         
     def affine(self, useKey, show=False, affine=True, 

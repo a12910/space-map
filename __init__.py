@@ -28,12 +28,13 @@ from .utils import imaris as imaris
 from .base.flowBase import *
 
 from . import matches
+from . import registration
 from . import affine
 from . import find
 from .find import err
 from . import affine_block
 
-from . import registration
+
 from . import flow
 
 from .utils import compare

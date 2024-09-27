@@ -28,6 +28,9 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         grad1 = spacemap.affine_block.AutoGradImg()
         grad1.finalErr = self.step1Err
         _ = self.run_flow(grad1)
+        ldm = spacemap.affine_block.LDMAffine()
+        ldm.err = self.step1Err
+        _ = self.run_flow(ldm)
         grad2 = spacemap.affine_block.AutoGradImg2()
         _ = self.run_flow(grad2)
         if self.show:

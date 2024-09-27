@@ -26,7 +26,7 @@ def scale_H(H, shape, target):
 def get_shape():
     xyd = spacemap.XYD
     xyr = spacemap.XYRANGE
-    affineShape = (int(xyr[1] // xyd), int(xyr[3] // xyd))
+    affineShape = (int(xyr // xyd), int(xyr // xyd))
     return affineShape
 
 def convert_M_to_H(M):

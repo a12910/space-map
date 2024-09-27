@@ -71,7 +71,7 @@ class SliceImg:
         if scale:
             xyd = spacemap.XYD
             xyr = spacemap.XYRANGE
-            shape = (int(xyr[1]/xyd), int(xyr[3]/xyd))
+            shape = (int(xyr/xyd), int(xyr/xyd))
             img = cv2.resize(img, shape)
         if fixHe and self.heMode:
             _, img = spacemap.he_img.split_he_background_otsu(img)
@@ -97,8 +97,9 @@ class SliceImg:
         else:
             if self.dfMode:
                 points = self.get_points(fromKey)
-                H_np = spacemap.img.to_npH(H)
-                points2 = spacemap.points.applyH_np(points, H_np)
+                # H_np = spacemap.img.to_npH(H)
+                points2 = spacemap.points.applyH_np(points, 
+                                                    H, fromImgH=True)
                 self.save_points(points2, toKey)
             else:
                 img = self.get_img(fromKey, mchannel=True, scale=False, fixHe=False)
@@ -232,6 +233,9 @@ class Slice2:
     def applyH(self, fromDF, H, toDF):
         for img in self.imgs.values():
             img.applyH(fromDF, H, toDF)
+            
+    def ps(self, key):
+        return self.imgs["DF"].ps(key)
             
     def apply_grid(self, fromDF, toDF, grid, inv_grid=None):
         if grid is None and inv_grid is not None:

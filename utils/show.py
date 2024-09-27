@@ -8,7 +8,7 @@ import cv2
 def show_img_labels(xy: np.array, labels: np.array):
     xyr = spacemap.XYRANGE
     xyd = spacemap.XYD
-    sx, sy = xyr[1] // xyd, xyr[3] // xyd
+    sx, sy = xyr // xyd, xyr // xyd
     mapp = np.zeros((sx, sy,
                         len(labels[0])))
     mapCount = np.zeros((sx, sy))
@@ -28,11 +28,11 @@ def show_xy_np(nps: [np.array], labels: [str],
     fig,ax = plt.subplots()
     xyr = spacemap.XYRANGE
     if xylim is None:
-        plt.xlim((xyr[0], xyr[1]))
-        plt.ylim((xyr[2], xyr[3]))
+        plt.xlim((0, xyr))
+        plt.ylim((0, xyr))
     else:
-        plt.xlim((xylim[0], xylim[1]))
-        plt.ylim((xylim[2], xylim[3]))
+        plt.xlim((0, xylim))
+        plt.ylim((0, xylim))
     for i in range(len(nps)):
         label = labels[i]
         xI = np.array(nps[i][:, 0])

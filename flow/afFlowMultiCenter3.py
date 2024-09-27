@@ -9,6 +9,11 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
                  alignMethod=None,
                  gpu=None):
         super().__init__(slices, initJKey, alignMethod, gpu)
+        self.rawXYD = spacemap.XYD
+        self.XYDs = [self.rawXYD*2, 
+                     int(self.rawXYD), 
+                     int(self.rawXYD/2)]
+        self.xydSteps = 3
 
     def ldm_pair(self,
                  fromKey, toKey,
@@ -43,13 +48,20 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
 
         spacemap.Info("LDMMgrMulti: Start LDM Pair")
 
-        # for s in self.slices:
-        #     s.applyH(fromKey, None, toKey)
-        step = 3
+        for s in self.slices:
+            s.applyH(fromKey, None, toKey)
+        
         for i in range(len(self.slices1) - 1):
-            for ste in range(step):
-                _ldm_pair(i, i+1, self.slices1, 0.1**ste, show)
+            for ste in range(self.xydSteps):
+                spacemap.XYD = self.XYDs[ste]
+                _ldm_pair(i, i+1, self.slices1, 0.1**ste, False)
+            self.show_align(self.slices1[i], self.slices1[i+1], 
+                            SliceImg.DF, toKey, toKey)
         for i in range(len(self.slices2) - 1):
-            for _ in range(step):
-                _ldm_pair(i, i+1, self.slices2, 0.1**ste, show)
+            for ste in range(self.xydSteps):
+                spacemap.XYD = self.XYDs[ste]
+                _ldm_pair(i, i+1, self.slices2, 0.1**ste, False)
+            self.show_align(self.slices2[i], self.slices2[i+1], 
+                            SliceImg.DF, toKey, toKey)
+        spacemap.XYD = self.rawXYD
         spacemap.Info("LDMMgrMulti: Finish LDM Pair")

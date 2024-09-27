@@ -4,10 +4,11 @@ import torch.optim as optim
 import numpy as np
 import spacemap
 
-def applyH_np(df: np.array, H: np.array, xyd=None) -> np.array:
+def applyH_np(df: np.array, H: np.array, xyd=None, fromImgH=True) -> np.array:
     df2 = df.copy()
     H = np.array(H)
-    H = to_npH(H, xyd)
+    if fromImgH:
+        H = to_npH(H, xyd)
     df2[:, 0] = (df[:, 0] * H[0, 0] + df[:, 1] * H[0, 1]) + H[0, 2]
     df2[:, 1] = (df[:, 0] * H[1, 0] + df[:, 1] * H[1, 1]) + H[1, 2]
     return df2
@@ -128,14 +129,6 @@ def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
     ps2 = grid_sample_points_vectorized(ps, inv_grid, xyd)
     ps2 = ps2.detach().cpu().numpy()
     return ps2, inv_grid
-
-def applyH_np(df: np.array, H: np.array, xyd=None) -> np.array:
-    df2 = df.copy()
-    H = np.array(H)
-    H = to_npH(H, xyd)
-    df2[:, 0] = (df[:, 0] * H[0, 0] + df[:, 1] * H[0, 1]) + H[0, 2]
-    df2[:, 1] = (df[:, 0] * H[1, 0] + df[:, 1] * H[1, 1]) + H[1, 2]
-    return df2
 
 def to_npH(H: np.array, xyd=None):
     H = H.copy()

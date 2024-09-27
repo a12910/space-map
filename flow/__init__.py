@@ -11,3 +11,4 @@ from .afFlow2MultiDF import AutoFlowMultiCenter2DF
 from .afFlowMultiCenter3 import AutoFlowMultiCenter3
 from .outputs import TransformDB
 from .flowExport import FlowExport
+from .flowImport import FlowImport

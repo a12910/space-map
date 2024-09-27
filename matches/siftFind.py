@@ -122,7 +122,7 @@ def createHFromPoints2(matches, xyd, method=cv2.RANSAC):
         return None, None
     selectMatches = matches[mask.ravel() == 1]
     H1 = H.copy()
-    matchesJ = spacemap.points.applyH_np(selectMatches[:, 2:4] * xyd, H)
+    matchesJ = spacemap.points.applyH_np(selectMatches[:, 2:4] * xyd, H, fromImgH=False)
     matchesI = selectMatches[:, :2] * xyd
     errX, errY = np.mean(matchesI - matchesJ, axis=0)
     H[0, 2] += errX
