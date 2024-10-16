@@ -4,6 +4,7 @@ import pandas as pd
 from .flowMgrImg import AffineFlowMgrImg
 
 class AutoAffineImgKey(AffineFlowMgrImg):
+    useLDM=True
     def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False, method="sift_vgg"):
         super().__init__("AutoAffineImgKey", imgI, imgJ, finder)
         self.show=show
@@ -28,9 +29,10 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         grad1 = spacemap.affine_block.AutoGradImg()
         grad1.finalErr = self.step1Err
         _ = self.run_flow(grad1)
-        ldm = spacemap.affine_block.LDMAffine()
-        ldm.err = self.step1Err
-        _ = self.run_flow(ldm)
+        if self.useLDM:
+            ldm = spacemap.affine_block.LDMAffine()
+            ldm.err = self.step1Err
+            _ = self.run_flow(ldm)
         grad2 = spacemap.affine_block.AutoGradImg2()
         _ = self.run_flow(grad2)
         if self.show:

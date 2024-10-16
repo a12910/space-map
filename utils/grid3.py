@@ -130,6 +130,21 @@ def apply_points_by_grid(grid: np.array, ps: np.array, inv_grid=None, xyd=None):
     ps2 = ps2.detach().cpu().numpy()
     return ps2, inv_grid
 
+def fix_points(targetImg, ps):
+    xyd = spacemap.XYD
+    img = targetImg
+    minErr = 1000
+    err = spacemap.find.default()
+    minI = 0
+    for i in range(0, xyd // 2):
+        ps1 = ps - i
+        img1 = spacemap.show_img3(ps1)
+        e = err.err(img, img1)
+        if e < minErr:
+            minErr = e
+            minI = i
+    return ps - minI        
+
 def to_npH(H: np.array, xyd=None):
     H = H.copy()
     xyd = xyd if xyd is not None else spacemap.XYD

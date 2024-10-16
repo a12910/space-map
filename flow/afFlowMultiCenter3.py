@@ -9,6 +9,7 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
                  alignMethod=None,
                  gpu=None):
         super().__init__(slices, initJKey, alignMethod, gpu)
+        spacemap.Info("AutoFlowMultiCenter3: Init")
         self.rawXYD = spacemap.XYD
         self.XYDs = [self.rawXYD*2, 
                      int(self.rawXYD), 
@@ -41,6 +42,7 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
             df = sJ.imgs["DF"]
             ps = df.ps(toKey)
             ps2, _ = spacemap.points.apply_points_by_grid(grid, ps, grid)
+            ps2 = spacemap.points.fix_points(imgI1, ps2)
             df.save_points(ps2, toKey)
             if not show:
                 return
@@ -55,13 +57,15 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
             for ste in range(self.xydSteps):
                 spacemap.XYD = self.XYDs[ste]
                 _ldm_pair(i, i+1, self.slices1, 0.1**ste, False)
-            self.show_align(self.slices1[i], self.slices1[i+1], 
+            if show:
+                self.show_align(self.slices1[i], self.slices1[i+1], 
                             SliceImg.DF, toKey, toKey)
         for i in range(len(self.slices2) - 1):
             for ste in range(self.xydSteps):
                 spacemap.XYD = self.XYDs[ste]
                 _ldm_pair(i, i+1, self.slices2, 0.1**ste, False)
-            self.show_align(self.slices2[i], self.slices2[i+1], 
+            if show:
+                self.show_align(self.slices2[i], self.slices2[i+1], 
                             SliceImg.DF, toKey, toKey)
         spacemap.XYD = self.rawXYD
         spacemap.Info("LDMMgrMulti: Finish LDM Pair")

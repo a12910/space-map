@@ -18,8 +18,9 @@ def init_xy(xyr, xyd):
 
 def init_path(path):
     spacemap.BASE = path
-    for f in ["imgs", "outputs", "raw"]:
+    for f in ["imgs", "outputs", "raw", "logs"]:
         spacemap.mkdir(path + "/" + f)
+    __reload_handler()
 
 def storage_variables():
     spacemap.GLOBAL_STORAGE = {"XYD": spacemap.XYD, 
@@ -28,4 +29,16 @@ def storage_variables():
 def revert_variables():
     spacemap.XYD = spacemap.GLOBAL_STORAGE.get("XYD", spacemap.XYD)
     spacemap.IMGCONF = spacemap.GLOBAL_STORAGE.get("IMGCONF", spacemap.IMGCONF)
+    
+def __reload_handler():
+    L = spacemap.L
+    for handler in L.handlers:
+        if isinstance(handler, logging.FileHandler):
+            L.removeHandler(handler)
+    path = spacemap.BASE + "/logs"
+    logPath = path + "/%s.log" % time.strftime("%Y%m%d-%H%M%S")
+    fileHandle = logging.FileHandler(logPath)
+    formatter = logging.Formatter('[%(asctime)s]%(levelname)s: %(message)s')
+    fileHandle.setFormatter(formatter)
+    L.addHandler(fileHandle)
     

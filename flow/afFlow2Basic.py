@@ -86,18 +86,39 @@ class AutoFlowBasic2:
                 mgr.run()
                 H21 = mgr.resultH_img()
                 S2.data.saveH(H21, S1.index, key)
+                S2.applyH(self.initJKey, H21, self.alignKey)
             if merge:
                 H21 = S2.data.loadH(S1.index, key)
                 if i == 0:
                     H1i = np.eye(3)
+                    S1.applyH(self.initJKey, H1i, self.alignKey)
                 else:
                     H1i = S1.data.loadH(initS.index, key)
                 H2i = np.dot(H1i, H21)
                 S2.data.saveH(H2i, initS.index, key)
                 S2.applyH(self.initJKey, H2i, self.alignKey)
             if show:
-                self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)
-            
+                if merge:
+                    self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)
+                else:
+                    self.show_align(S1, S2, useKey, self.initJKey, self.alignKey)
+        if merge and useKey == "DF":
+            # final merge
+            spacemap.Info("LDMMgrMulti: Fix Affine Merge DF")
+            dfs = None
+            for s in self.slices:
+                df = s.ps(self.alignKey)
+                if dfs is None:
+                    dfs = df
+                else:
+                    dfs = np.concatenate((dfs, df), axis=0)
+            mid = dfs.mean(axis=0)
+            mid0 = np.array([spacemap.XYRANGE/2, spacemap.XYRANGE/2])
+            spacemap.Info("LDMMgrMulti: Fix Center DF %d %d -> %d %d" % (mid[0], mid[1], mid0[0], mid0[1]))
+            for s in self.slices:
+                df = s.ps(self.alignKey)
+                df1 = df - mid + mid0
+                s.save_value_points(df1, self.alignKey)
         spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
         
     def affine_pair(self, show=False):

@@ -17,9 +17,10 @@ class FlowImport:
             sizeS = max(np.max(sX) - np.min(sX), np.max(sY) - np.min(sY))
             size = max(size, sizeS)
         xys2 = []
-        targetSize = (int(size * 1.1 / 1000)) * 1000
+        targetSize = (int(size * 1.2 / 1000)) * 1000
         for i, s in enumerate(xys):
-            mid = np.mean(s, axis=0)
+            # mid = np.mean(s, axis=0)
+            mid = np.max(s, axis=0) / 2 + np.min(s, axis=0) / 2
             xys2.append(targetSize // 2 + s - mid)
         spacemap.XYRANGE = targetSize
         xyd = int(targetSize / 400 / 5) * 5 + 5
@@ -70,11 +71,15 @@ class FlowImport:
         
         keys = list(pack.keys())
         keys.sort()
-        xys = [pack[k] for k in keys]
+        keys2 = [(k, int(k[1:])) for k in keys]
+        keys2.sort(key=lambda x: x[1])
+        # print(keys2)
+        xys = [pack[k[0]] for k in keys2]
+        keys = [k[0] for k in keys2]
         # conf = {}
         # for i in range(len(xys)):
         #     conf[i] = keys[i]
         # with open(self.basePath + "/codex.json", "w") as f:
         #     json.dump(conf, f)
+        spacemap.Info(f"Init from codex: {keys}")
         return self.init_xys(xys, keys)
-    

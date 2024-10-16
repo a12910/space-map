@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.signal as ss
+from scipy.signal import convolve2d
 import numpy as np
 import spacemap
 import cv2
@@ -108,20 +109,19 @@ def show_img3(values: np.array, imgConf=None):
     
     xyrange = spacemap.XYRANGE
     xyd = spacemap.XYD
-    
-    img = np.zeros((int(xyrange/xyd), int(xyrange/xyd)), dtype=np.float64)
-    values1 = values.copy()
-    values1[:, 0] = (values1[:, 0]) // xyd
-    values1[:, 1] = (values1[:, 1]) // xyd
+    imgsize = int(xyrange/xyd)
+    img = np.zeros((imgsize, imgsize), dtype=int)
+    values1 = (values // xyd).astype(int)
+    valid_mask = (values1[:, 0] >= 0) & (values1[:, 0] < imgsize) & (values1[:, 1] >= 0) & (values1[:, 1] < imgsize)
+    values2 = values1[valid_mask].astype(int)
+    ix = values2[:, 0]
+    iy = values2[:, 1]
+    np.add.at(img, (ix, iy), 1)
     if raw == 0:
-        values_ = set([(int(x), int(y)) for x, y in values1])
-    else:
-        values_ = [(int(x), int(y)) for x, y in values1]
-    for ix, iy in values_:
-        if ix < 0 or ix >= img.shape[0] or iy < 0 or iy >= img.shape[1]:
-            continue
-        img[ix-kernel: ix+kernel+1, iy-kernel:iy+kernel+1] += 1
-    
+        img[img > 0] = 1
+    if kernel > 0:
+        k = np.ones((kernel+1, kernel+1))
+        img = convolve2d(img, k, mode="same", boundary="fill", fillvalue=0)
     density = imgConf.get("density", 0)
     gauss = imgConf.get("gauss", 0)
     if gauss > 0:
