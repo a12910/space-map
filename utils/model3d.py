@@ -10,7 +10,7 @@ def generate_imgs_basic(df, start, end, outFolder, prefix="s"):
     spacemap.mkdir(outFolder)
     for i in tqdm.trange(start, end+1):
         xy = df[df["layer"] == i][["x", "y"]].values
-        img = spacemap.show_img3(np.array(xy))
+        img = spacemap.show_img(np.array(xy))
         path = "%s/%s_%d.tiff" % (outFolder, prefix, i)
         ii = Image.fromarray(img)
         ii.save(path)

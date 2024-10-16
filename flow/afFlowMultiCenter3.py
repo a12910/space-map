@@ -1,11 +1,11 @@
 import spacemap
-from spacemap import Slice2, SliceImg
+from spacemap import Slice, SliceImg
 import numpy as np
 from .afFlow2Multi import AutoFlowMultiCenter2
 
 class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
-    def __init__(self, slices: list[Slice2],
-                 initJKey=Slice2.rawKey,
+    def __init__(self, slices: list[Slice],
+                 initJKey=Slice.rawKey,
                  alignMethod=None,
                  gpu=None):
         super().__init__(slices, initJKey, alignMethod, gpu)
@@ -20,7 +20,7 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
                  fromKey, toKey,
                  finalErr=0.01,
                  show=False):
-        """ customFunc: ([Slice2], index, dfKey) -> img """
+        """ customFunc: ([Slice], index, dfKey) -> img """
         def _ldm_pair(indexI, indexJ, slices, err, show=False, ldm=None):
             sI = slices[indexI]
             sJ = slices[indexJ]

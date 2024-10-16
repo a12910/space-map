@@ -16,7 +16,7 @@ def fig_show_box(data, columns, ylim=[0, 1.0]):
     
 def fig_show_df1(df):
     npI = df[["x", "y"]].values
-    spacemap.imshow(spacemap.show_img3(npI))
+    spacemap.imshow(spacemap.show_img(npI))
     
 def plot_hist(img):
     img = np.array(img, dtype=np.uint8)

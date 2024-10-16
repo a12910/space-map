@@ -10,8 +10,8 @@ class FinalRotate(spacemap.AffineBlock):
         self.step2 = 0.1
     
     def compute(self, dfI: np.array, dfJ: np.array, finder: spacemap.AffineFinder):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         diceImg = spacemap.err_conv_min(imgI, imgJ, kernel=self.kernel)
         xx, yy = np.argmax(diceImg)
         x_ = int(xx * spacemap.XYD)
@@ -21,8 +21,8 @@ class FinalRotate(spacemap.AffineBlock):
         H1 = np.array([[1, 0, center_x-x_], [0, 1, center_y-y_], [0, 0, 1]])
         dfI_ = spacemap.points.applyH_np(dfI, H1, fromImgH=False)
         dfJ_ = spacemap.points.applyH_np(dfJ, H1, fromImgH=False)
-        imgI2 = spacemap.show_img3(dfI_)
-        imgJ2 = spacemap.show_img3(dfJ_)
+        imgI2 = spacemap.show_img(dfI_)
+        imgJ2 = spacemap.show_img(dfJ_)
         
         finder.clear()
         for rotate_ in range(-int(self.kernel / self.step2), int(self.kernel / self.step2)):

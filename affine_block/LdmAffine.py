@@ -13,8 +13,8 @@ class LDMAffine(spacemap.AffineBlock):
         self.finder = spacemap.find.default()
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         A = self.compute_img(imgI, imgJ, finder)
         A_np = spacemap.points.to_npH(A)
         return A_np

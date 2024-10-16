@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 class FlowExport:
-    def __init__(self, slices: list[spacemap.Slice2]):
+    def __init__(self, slices: list[spacemap.Slice]):
         self.slices = slices
         self.ldmKey = "final_ldm"
         self.affineKey = "cell"

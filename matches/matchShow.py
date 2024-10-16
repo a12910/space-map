@@ -39,7 +39,7 @@ class MatchShow(spacemap.AffineBlock):
 
     def __show_matches(self, matches, dfI, dfJ, H):
         xyd = spacemap.XYD
-        I = spacemap.show_img3(dfI)
+        I = spacemap.show_img(dfI)
         
         matchesJ = spacemap.points.applyH_np(matches[:, 2:4] * xyd, H, fromImgH=False)
         

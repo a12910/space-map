@@ -8,8 +8,8 @@ class AutoScale(spacemap.AffineBlock):
         super().__init__("AutoScale")
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         inte1 = spacemap.compute_interest_area(imgI, 0.05)
         inte2 = spacemap.compute_interest_area(imgJ, 0.05)
         ratio = np.sum(inte1) / np.sum(inte2)

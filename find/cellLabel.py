@@ -32,8 +32,8 @@ class CellLabelDice(spacemap.AffineFinder):
         for i in range(self.clas):
             dfI_ = dfI[self.labelI == i].copy()
             dfJ_ = dfJ[self.labelI == i].copy()
-            imgI_ = spacemap.show_img3(dfI_)
-            imgJ_ = spacemap.show_img3(dfJ_)
+            imgI_ = spacemap.show_img(dfI_)
+            imgJ_ = spacemap.show_img(dfJ_)
             e = spacemap.err.err_dice1(imgI_, imgJ_)
             e = e * dfI_.shape[0] / summ
             result += e
@@ -47,8 +47,8 @@ class CellLabelDice(spacemap.AffineFinder):
         for i in range(self.clas):
             dfI_ = dfI[self.labelI == i].copy()
             dfJ_ = dfJ[self.labelI == i].copy()
-            imgI_ = spacemap.show_img3(dfI_)
-            imgJ_ = spacemap.show_img3(dfJ_)
+            imgI_ = spacemap.show_img(dfI_)
+            imgJ_ = spacemap.show_img(dfJ_)
             imgIs.append(imgI_)
             imgJs.append(imgJ_)
             e = spacemap.err.err_dice1(imgI_, imgJ_)

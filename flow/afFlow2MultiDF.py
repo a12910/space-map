@@ -1,15 +1,15 @@
 import spacemap
-from spacemap import Slice2, SliceImg
+from spacemap import Slice, SliceImg
 import numpy as np
 from .afFlow2Basic import AutoFlowBasic2
 
-def _show_align(S1: Slice2, S2: Slice2, useKey, key1, key2):
+def _show_align(S1: Slice, S2: Slice, useKey, key1, key2):
     img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
     img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
     err = spacemap.find.default()
     e = err.err(img1, img2)
     spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
-    Slice2.show_align(S1, S2, key1, key2, useKey)
+    Slice.show_align(S1, S2, key1, key2, useKey)
 
 
 def _show_err(imgI, imgJ2, imgJ3, tag):
@@ -60,8 +60,8 @@ def _ldm_pair(pack):
     _show_align(sI, sJ, useKey, fromKeyI, toKey)
 
 class AutoFlowMultiCenter2DF(AutoFlowBasic2):
-    def __init__(self, slices: list[Slice2], 
-                 initJKey=Slice2.rawKey,
+    def __init__(self, slices: list[Slice], 
+                 initJKey=Slice.rawKey,
                  alignMethod=None,
                  gpu=None):
         super().__init__(slices, initJKey, alignMethod, gpu)
@@ -75,7 +75,7 @@ class AutoFlowMultiCenter2DF(AutoFlowBasic2):
                  fromKey=None, toKey=None,
                  centerTrain=False, finalErr=None,
                  show=False):
-        """ customFunc: ([Slice2], index, dfKey) -> img """
+        """ customFunc: ([Slice], index, dfKey) -> img """
         if fromKey is None:
             fromKey = self.alignKey
         if toKey is None:

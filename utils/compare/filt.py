@@ -63,7 +63,7 @@ def __generate_imgs(df, start, end):
     img1s = []
     for layer in range(start, end):
         df_ = df[df["layer"] == layer][["x", "y"]].copy()
-        img1 = spacemap.show_img3(np.array(df_.values))
+        img1 = spacemap.show_img(np.array(df_.values))
         img1s.append(img1)
     return img1s
     

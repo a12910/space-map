@@ -12,8 +12,8 @@ class BestScale(spacemap.AffineBlock):
         xyd = spacemap.XYD
         meanJX, meanJY = np.mean(dfJ[:, 0]), np.mean(dfJ[:, 1])
         xJ, yJ = (int(meanJX // xyd), int(meanJY // xyd))
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         minS, maxS = self.minS, maxS
         w, h, = imgI.shape[:2]
         

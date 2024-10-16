@@ -56,7 +56,7 @@ class FilterGraph(spacemap.AffineBlock):
         return matches1
     
     def matches_filter(self, matches, stdd, dfI, dfJ):
-        I = spacemap.show_img3(dfI)
-        J = spacemap.show_img3(dfJ)
+        I = spacemap.show_img(dfI)
+        J = spacemap.show_img(dfJ)
         return self.matches_filter_img(matches, stdd, I, J)
     

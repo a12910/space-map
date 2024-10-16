@@ -54,8 +54,8 @@ class AffineBlock:
     
     @staticmethod
     def show_matches(matches, dfI, dfJ, H):
-        I = spacemap.show_img3(dfI)
-        J = spacemap.show_img3(dfJ)
+        I = spacemap.show_img(dfI)
+        J = spacemap.show_img(dfJ)
         AffineBlock.show_matches_img(matches, I, J, H)
 
 class AffineFinder:
@@ -70,8 +70,8 @@ class AffineFinder:
         return np.sum(abs(imgI - imgJ))
     
     def err_np(self, npI, npJ):
-        imgI = spacemap.show_img3(npI)
-        imgJ = spacemap.show_img3(npJ)
+        imgI = spacemap.show_img(npI)
+        imgJ = spacemap.show_img(npJ)
         return self.err(imgI, imgJ)
         
     def add_result(self, index, H: np.array, imgI: np.array, imgJ: np.array):
@@ -87,8 +87,8 @@ class AffineFinder:
         return e
             
     def compute(self, dfI, dfJ, show=True):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         return self.computeI(imgI, imgJ, show)
     
     def add_result_blank(self, index, H: np.array, err):

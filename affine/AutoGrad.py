@@ -11,8 +11,8 @@ class AutoGrad(spacemap.AffineBlock):
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         imgC = spacemap.IMGCONF.copy()
         imgC["raw"] = 1
-        imgI = spacemap.show_img3(dfI, imgConf=imgC)
-        imgJ = spacemap.show_img3(dfJ, imgConf=imgC)
+        imgI = spacemap.show_img(dfI, imgConf=imgC)
+        imgJ = spacemap.show_img(dfJ, imgConf=imgC)
         H = np.eye(3)
         
         dis = 0.6
@@ -24,19 +24,19 @@ class AutoGrad(spacemap.AffineBlock):
             if xH is not None: 
                 H = np.dot(xH, H)
                 ps = spacemap.points.applyH_np(dfJ, H, fromImgH=False)
-                imgJ = spacemap.show_img3(ps, imgConf=imgC)
+                imgJ = spacemap.show_img(ps, imgConf=imgC)
             
             yH, err = self.find_bestY(imgI, imgJ, finder, dis, skip) 
             if yH is not None:  
                 H = np.dot(yH, H)
                 ps = spacemap.points.applyH_np(dfJ, H, fromImgH=False)
-                imgJ = spacemap.show_img3(ps, imgConf=imgC)
+                imgJ = spacemap.show_img(ps, imgConf=imgC)
             
             rH, err = self.find_bestRotate(imgI, imgJ, finder, dis, skip)  
             if rH is not None: 
                 H = np.dot(rH, H)
                 ps = spacemap.points.applyH_np(dfJ, H, fromImgH=False)
-                imgJ = spacemap.show_img3(ps, imgConf=imgC)
+                imgJ = spacemap.show_img(ps, imgConf=imgC)
             
             spacemap.Info("Grad Find: err=%.3f" % (err))
             dis = dis * 0.5

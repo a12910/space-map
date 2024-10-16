@@ -1,24 +1,24 @@
 import spacemap
-from spacemap import Slice2
+from spacemap import Slice
 import numpy as np
 
 class AutoFlowBasic2:
-    def __init__(self, slices: list[Slice2], 
-                 initJKey=Slice2.rawKey,
+    def __init__(self, slices: list[Slice], 
+                 initJKey=Slice.rawKey,
                  alignMethod=None,
                  gpu=None):
-        self.slices: list[Slice2] = slices
+        self.slices: list[Slice] = slices
         self.initJKey = initJKey
-        self.alignKey = Slice2.align1Key
+        self.alignKey = Slice.align1Key
         self.affineKey  ="cell"
         self.pairGridKey = "img"
         self.fixGridKey = "fix"
         self.finalGridKey = "final_ldm"
-        self.ldmKey = Slice2.align2Key
+        self.ldmKey = Slice.align2Key
         self.continueStart = 0
         self.gpu=gpu
-        self.finalKey = Slice2.finalKey
-        self.enhanceKey = Slice2.enhanceKey
+        self.finalKey = Slice.finalKey
+        self.enhanceKey = Slice.enhanceKey
         self.err = spacemap.find.default()
         self.verbose = 100
         self.finalErr = 0.1
@@ -62,7 +62,7 @@ class AutoFlowBasic2:
         
     def affine(self, useKey, show=False, affine=True, 
                merge=True, customImgFunc=None):
-        """ customFunc: (Slice2) -> img"""
+        """ customFunc: (Slice) -> img"""
         spacemap.Info("LDMMgrMulti: Start Affine Pair&Merge")
         method = self.alignMethod
         if method is None:
@@ -131,14 +131,14 @@ class AutoFlowBasic2:
     def _is_zero(grid):
         return np.sum(np.abs(grid)) < 0.1
         
-    def show_align(self, S1: Slice2, S2: Slice2, useKey, key1, key2):
+    def show_align(self, S1: Slice, S2: Slice, useKey, key1, key2):
         img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
         img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
         e = self.err.err(img1, img2)
         spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
-        Slice2.show_align(S1, S2, key1, key2, useKey)
+        Slice.show_align(S1, S2, key1, key2, useKey)
         
-    def _apply_grid(self, S: Slice2, fromKey, toKey, grid):
+    def _apply_grid(self, S: Slice, fromKey, toKey, grid):
         grid1 = grid[:, :, :2]
         inv_grid1 = grid[:, :, 2:]
         if self._is_zero(grid1):

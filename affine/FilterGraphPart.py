@@ -23,8 +23,8 @@ class FilterGraphPart(spacemap.AffineBlock):
         graph_dis = np.sum((p1s - p2s) ** 2, axis=1)
         index = 0
 
-        I = spacemap.show_img3(dfI)
-        J = spacemap.show_img3(dfJ)
+        I = spacemap.show_img(dfI)
+        J = spacemap.show_img(dfJ)
         
         while True:
             maxIndex = np.argmax(graph_dis)

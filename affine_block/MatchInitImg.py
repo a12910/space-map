@@ -15,8 +15,8 @@ class MatchInitImg(spacemap.AffineBlock):
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         """ dfI, dfJ -> H """
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         return self.compute_img(imgI, imgJ, finder)
     
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):

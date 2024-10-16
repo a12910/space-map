@@ -69,8 +69,8 @@ class AffineFlowMgr(AffineFlowMgrBase):
         self.dfJ = dfJ
         
     def find_matchr(self, minCount=75):
-        I = spacemap.show_img3(self.__dfI)
-        J = spacemap.show_img3(self.__dfJ)
+        I = spacemap.show_img(self.__dfI)
+        J = spacemap.show_img(self.__dfJ)
         return spacemap.matches.autoSetMatchr(I, J, minCount)
          
     def run_flow(self, flow: spacemap.AffineBlock, showErr=True):

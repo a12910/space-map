@@ -17,8 +17,8 @@ class ImgDiffShow(spacemap.AffineBlock):
         return imgI, imgJ
         
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
-        imgI = spacemap.show_img3(dfI)
-        imgJ = spacemap.show_img3(dfJ)
+        imgI = spacemap.show_img(dfI)
+        imgJ = spacemap.show_img(dfJ)
         self.compute_img(imgI, imgJ, finder=finder)
         return None
     

@@ -22,8 +22,8 @@ class BestRotate(spacemap.AffineBlock):
         dfI_[:, 1] += meanY - meanIY
         dfJ_[:, 0] += meanX - meanJX
         dfJ_[:, 1] += meanY - meanJY
-        imgI1 = spacemap.show_img3(dfI_)
-        imgJ1 = spacemap.show_img3(dfJ_)
+        imgI1 = spacemap.show_img(dfI_)
+        imgJ1 = spacemap.show_img(dfJ_)
         
         H11 = np.array([[1, 0, -meanJX], [0, 1, -meanJY], [0, 0, 1]])
         H13 = np.array([[1, 0, meanIX], [0, 1, meanIY], [0, 0, 1]])        

@@ -88,7 +88,7 @@ def show_img4(values: np.array, kernel=0):
     
 def show_layer_img(points, labels):
     count, channels = labels.shape
-    img0 = spacemap.show_img3(points, {"raw": 1})
+    img0 = spacemap.show_img(points, {"raw": 1})
     shape = img0.shape
     rawI = np.zeros((channels + 1, *shape))
     rawI[0, :, :] = img0
@@ -100,7 +100,7 @@ def show_layer_img(points, labels):
         rawI[i+1, :, :] = img
     return rawI
     
-def show_img3(values: np.array, imgConf=None):
+def show_img(values: np.array, imgConf=None):
     if imgConf is None:
         imgConf = spacemap.IMGCONF
     kernel = imgConf.get("kernel", 0)

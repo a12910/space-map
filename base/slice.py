@@ -44,23 +44,23 @@ class SliceImg:
         if os.path.exists(path):
             df = pd.read_csv(path)
             return df[["x", "y"]].values
-        elif key == Slice2.rawKey:
+        elif key == Slice.rawKey:
             raise Exception("no Data")
         else:
             spacemap.Info("Slice Load %s %s->raw" % (self.index, key))
-            return self.get_points(Slice2.rawKey)
+            return self.get_points(Slice.rawKey)
     
     def get_img(self, key, mchannel=False, scale=True, fixHe=False):
         if self.dfMode:
             points = self.get_points(key)
-            img = spacemap.show_img3(points)
+            img = spacemap.show_img(points)
         else:
             path = "%s/imgs/%s_%s_%s.png" % (self.projectf, self.index, self.imgKey, key)
             if not os.path.exists(path):
-                if key == Slice2.rawKey:
+                if key == Slice.rawKey:
                     raise Exception("no Data")
                 spacemap.Info("Slice Load %s %s->raw" % (self.index, key))
-                return self.get_img(Slice2.rawKey, mchannel=mchannel, 
+                return self.get_img(Slice.rawKey, mchannel=mchannel, 
                                     scale=scale, fixHe=fixHe)
             img = cv2.imread(path)
         if len(img.shape) == 3 and not mchannel:
@@ -152,7 +152,7 @@ class SliceImg:
             p = json.dumps(packs)
             f.write(p)
 
-class Slice2:
+class Slice:
     rawKey = "raw"
     align1Key = "align1"
     align2Key = "align2"
@@ -182,7 +182,7 @@ class Slice2:
         initdf2 = initdf[["x", "y"]].values
         initdf2[:, 0] += spacemap.APPEND[0]
         initdf2[:, 1] += spacemap.APPEND[1]
-        img.save_points(initdf2, Slice2.rawKey)
+        img.save_points(initdf2, Slice.rawKey)
         self.imgs[SliceImg.DF] = img
 
     def init_img(self, img, he=False, imgKey=None):
@@ -191,7 +191,7 @@ class Slice2:
         s = SliceImg(self.index, imgKey,
                        dfMode=False, heMode=he, 
                        projectf=self.projectf)
-        s.save_img(img, Slice2.rawKey)
+        s.save_img(img, Slice.rawKey)
         self.imgs[imgKey] = s
         
     def save_config(self):
@@ -246,8 +246,8 @@ class Slice2:
     
     @staticmethod
     def show_align(sI, sJ, keyI=None, keyJ=None, imgKey=SliceImg.Img):
-        keyI = Slice2.finalKey if keyI is None else keyI
-        keyJ = Slice2.rawKey if keyJ is None else keyJ
+        keyI = Slice.finalKey if keyI is None else keyI
+        keyJ = Slice.rawKey if keyJ is None else keyJ
         if imgKey not in sI.imgs or imgKey not in sJ.imgs:
             raise Exception("No Image %s" % imgKey)
         spacemap.Info("Slice Align: %s-%s %s-%s" % (sI.index, keyI, sJ.index, keyJ))

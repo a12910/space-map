@@ -138,7 +138,7 @@ def fix_points(targetImg, ps):
     minI = 0
     for i in range(0, xyd // 2):
         ps1 = ps - i
-        img1 = spacemap.show_img3(ps1)
+        img1 = spacemap.show_img(ps1)
         e = err.err(img, img1)
         if e < minErr:
             minErr = e
