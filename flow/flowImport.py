@@ -31,6 +31,8 @@ class FlowImport:
         
         self.slices = []
         for i, s in enumerate(xys2):
+            idd = ids[i]
+            spacemap.Info(f"Init Slice {idd} {s.shape}")
             slice = spacemap.Slice(ids[i], self.basePath, i==0)
             df = pd.DataFrame(s, columns=["x", "y"])
             slice.init_df(df)

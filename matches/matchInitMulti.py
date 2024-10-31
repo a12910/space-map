@@ -32,21 +32,21 @@ class MatchInitMulti(spacemap.AffineBlock):
         spacemap.Info("Init Matches finished: %d" % len(matches))
         return None
     
-class MatchInitAuto(MatchInitMulti):
-    def __init__(self, methods=None, number=200):
-        if methods is None:
-            methods = ["loftr", "sift"]
-        super().__init__(methods, number)
+# class MatchInitAuto(MatchInitMulti):
+#     def __init__(self, methods=None, number=200):
+#         if methods is None:
+#             methods = ["loftr", "sift"]
+#         super().__init__(methods, number)
     
-    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
-        spacemap.Info("Init Matches start")
-        matches = []
-        for alignment in self.alignments:
-            matches += alignment.compute(imgI, imgJ, 
-                                         matchr=self.matchr)
-            if len(matches) > self.number:
-                break
-        self.matches = matches
-        spacemap.Info("Init Matches finished: %d" % len(matches))
-        return None
+#     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+#         spacemap.Info("Init Matches start")
+#         matches = []
+#         for alignment in self.alignments:
+#             matches += alignment.compute(imgI, imgJ, 
+#                                          matchr=self.matchr)
+#             if len(matches) > self.number:
+#                 break
+#         self.matches = matches
+#         spacemap.Info("Init Matches finished: %d" % len(matches))
+#         return None
     

@@ -6,7 +6,7 @@ class AffineFlowMgrBase:
     def __init__(self, name, finder=None) -> None:
         self.name = name
         if finder is None:
-            finder = spacemap.find.FinderBasic("dice")
+            finder = spacemap.find.default()
         self.affineFinder: spacemap.AffineFinder = finder
         self.AffineH: [(np.array, float, str)] = []
         self.matches = []

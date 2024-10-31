@@ -82,7 +82,7 @@ class AutoGradHE:
                 self.H = np.dot(sH, self.H)
                 imgJ_ = he_img.rotate_imgH(imgJ, sH)
             
-            print("Iter: %d Grad Find: err=%.5f" % (iter, err))
+            spacemap.Info("Iter: %d Grad Find: err=%.5f" % (iter, err))
             dis = dis * 0.5
             skip = skip * 0.5
             

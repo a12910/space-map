@@ -31,7 +31,7 @@ def __sift_kp(image: np.array, method='sift', scale=False):
         # elif method == "surf_vgg":
         # descriptor = cv2.xfeatures2d.SURF_create()
     else:
-        raise Exception("Unknown method")
+        raise Exception("Unknown method %s" % method)
     
     if method in ["sift", "surf", "orb"]:
         (kps, features) = descriptor.detectAndCompute(gray_image, None)
@@ -112,6 +112,8 @@ def siftImageAlignment2(img1,img2, k, matchr=0.75, method='sift'):
 def createHFromPoints2(matches, xyd, method=cv2.RANSAC):
     """ H: df, H1: img """
     matches = np.array(matches, dtype=np.float32)
+    if len(matches) < 4:
+        return np.eye(3), np.eye(3)
     ptsI = matches[:, :2].reshape(-1, 1, 2)
     ptsJ = matches[:, 2:4].reshape(-1, 1, 2)
     ransacReprojThreshold = 4

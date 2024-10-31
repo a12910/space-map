@@ -15,4 +15,6 @@ from .MatchShowImg import MatchShowImg
 from .AutoAffineImgGrad import AutoAffineImgGrad
 from .AutoAffineImgKey import AutoAffineImgKey
 from .LdmAffine import LDMAffine
+from .DetailAffine import DetailAffine
+from .matchinitauto import MatchInitAuto
 

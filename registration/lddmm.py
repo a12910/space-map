@@ -154,6 +154,7 @@ class LDDMMRegistration(Registration):
     def load_img(self, imgI, imgJ):
         self.imgI = imgI
         self.imgJ = imgJ
+        self.imgI, self.imgJ = spacemap.img.process_init(self.imgI, self.imgJ)
         if self.ldm is not None:
             params = self.output_params()
             # J -> I

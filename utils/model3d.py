@@ -102,5 +102,3 @@ def grid_sample_img(img_, grid_, maxx=None, targetSize=None, exchange=True, move
                                         img2_.shape[1]+x, img2_.shape[0]+y)
         img2 = img2_
     return img2
-
-

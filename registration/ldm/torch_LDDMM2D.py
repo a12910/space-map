@@ -100,7 +100,7 @@ class LDDMM2D(root.LDDMMBase):
                     else:
                         Ispacing[i] = self.params['dx']
             else:
-                print('ERROR: received list of unhandled type for template image.')
+                spacemap.Info('ERROR: received list of unhandled type for template image.')
                 return -1
         
         if isinstance(target, str):
@@ -146,7 +146,7 @@ class LDDMM2D(root.LDDMMBase):
                     else:
                         Jspacing[i] = self.params['dx']
             else:
-                print('ERROR: received list of unhandled type for target image.')
+                spacemap.Info('ERROR: received list of unhandled type for target image.')
                 return -1
         
         if isinstance(costmask, str):
@@ -171,18 +171,18 @@ class LDDMM2D(root.LDDMMBase):
             Ksize = []
         
         if len(J) != len(I):
-            print('ERROR: images must have the same number of channels.')
+            spacemap.Info('ERROR: images must have the same number of channels.')
             return -1
             
         #if I.shape[0] != J.shape[0] or I.shape[1] != J.shape[1] or I.shape[2] != J.shape[2]:
         #if I.shape != J.shape:
         if not all([x.shape == I[0].shape for x in I+J+K]):
-            print('ERROR: the image sizes are not the same.\n')
+            spacemap.Info('ERROR: the image sizes are not the same.\n')
             return -1
         #elif Ispacing[0] != Jspacing[0] or Ispacing[1] != Jspacing[1] or Ispacing[2] != Jspacing[2]
         #elif np.sum(Ispacing==Jspacing) < len(I.shape):
         elif self.params['dx'] is None and not all([list(x == Ispacing[0]) for x in Ispacing+Jspacing+Kspacing]):
-            print('ERROR: the image pixel spacings are not the same.\n')
+            spacemap.Info('ERROR: the image pixel spacings are not the same.\n')
             return -1
         else:
             self.I = I
@@ -893,7 +893,7 @@ class LDDMM2D(root.LDDMMBase):
                         self.vt1 = [x.to(device=self.params['cuda']) for x in self.best['vt1']]
                         if self.J[0].dim() > 2:
                             self.vt2 = [x.to(device=self.params['cuda']) for x in self.best['vt2']]
-                        print('Reducing epsilon to ' + str((self.GDBeta*self.params['epsilon']).item()) + ' and resetting to last best point.')
+                        spacemap.Info('Reducing epsilon to ' + str((self.GDBeta*self.params['epsilon']).item()) + ' and resetting to last best point.')
                 # energy decreased
                 elif self.EAll[-1] < self.bestE:
                     self.climbcount = 0
@@ -1310,30 +1310,30 @@ class LDDMM2D(root.LDDMMBase):
                 total_time = end_time-self.params["last_time"]
                 if it > 0:
                     if self.params['checkaffinestep'] == 1 and self.params['do_affine'] > 0:
-                        print("iter: " + str(it) + ", E= {:.4f}, ER= {:.3f}, EM= {:.3f}, epd= {:.3f}, del_Ev= {:.4f}, del_El= {:.4f}, del_Et= {:.4f}, time= {:.2f}s.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item(),self.ERAll[-1] + self.EMDiffeo[-1] - self.EAll[-2], self.EMAffineR[-1] - self.EMDiffeo[-1], self.EMAffineT[-1] - self.EMAffineR[-1],total_time))
+                        spacemap.Info("iter: " + str(it) + ", E= {:.4f}, ER= {:.3f}, EM= {:.3f}, epd= {:.3f}, del_Ev= {:.4f}, del_El= {:.4f}, del_Et= {:.4f}, time= {:.2f}s.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item(),self.ERAll[-1] + self.EMDiffeo[-1] - self.EAll[-2], self.EMAffineR[-1] - self.EMDiffeo[-1], self.EMAffineT[-1] - self.EMAffineR[-1],total_time))
                     else:
-                        print("iter: " + str(it) + ", E= {:.4f}, ER= {:.3f}, EM= {:.3f}, epd= {:.3f}, time= {:.2f}s.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item(),total_time))
+                        spacemap.Info("iter: " + str(it) + ", E= {:.4f}, ER= {:.3f}, EM= {:.3f}, epd= {:.3f}, time= {:.2f}s.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item(),total_time))
                     self.params["last_time"] = time.time()
                 else:
-                    print("iter: " + str(it) + ", E = {:.4f}, ER = {:.4f}, EM = {:.4f}, epd = {:.6f}.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item()))
+                    spacemap.Info("iter: " + str(it) + ", E = {:.4f}, ER = {:.4f}, EM = {:.4f}, epd = {:.6f}.".format(E.item(),ER.item(),ERR,(self.GDBeta*self.params['epsilon']).item()))
                     
             self.params["total_step"] += 1
             
             if self.params["target_step"] > 0 and self.params["target_step"] < self.params["total_step"]:
-                print('Early termination: Target Step: %d reached.' % int(self.params["target_step"]))
+                spacemap.Info('Early termination: Target Step: %d reached.' % int(self.params["target_step"]))
                 break
             if self.params["target_err"] > 0 and EM.item() < self.params["target_err"] and self.params["total_step"] > 500:
-                print('Early termination: Target Err: %.4f reached.' % float(ERR))
+                spacemap.Info('Early termination: Target Err: %.4f reached.' % float(ERR))
                 break
             # lastErr = np.max(historyErr)
             lastErr = historyErr[it % len(historyErr + 1)]
             if abs(lastErr -  ERR) < self.params["target_err_skip"] and it > len(historyErr):
-                print('Early termination: Target Err Skip: %.4f reached. %.2f' % (float(ERR), self.params["target_err_skip"]))
+                spacemap.Info('Early termination: Target Err Skip: %.4f reached. %.2f' % (float(ERR), self.params["target_err_skip"]))
                 break
             if ERR > np.mean(historyErr) and it > len(historyErr) * 5:
-                print('Early termination: Err Larger: %.4f then history. %.4f' % (float(ERR), historyErr[it % len(historyErr + 1)]))
+                spacemap.Info('Early termination: Err Larger: %.4f then history. %.4f' % (float(ERR), historyErr[it % len(historyErr + 1)]))
                 self.loadTransforms(*minOutputs)
-                print('Early termination: Reload minOutputs %.4f' % (float(minErr)))
+                spacemap.Info('Early termination: Reload minOutputs %.4f' % (float(minErr)))
                 break
             
             historyErr[it % len(historyErr)] = ERR
@@ -1349,11 +1349,11 @@ class LDDMM2D(root.LDDMMBase):
                     (self.params['do_affine']==0 or (
                          self.GDBetaAffineR < self.params['minbeta'] and 
                          self.GDBetaAffineT < self.params['minbeta']))):
-                    print('Early termination: Energy change threshold reached.')
+                    spacemap.Info('Early termination: Energy change threshold reached.')
                 elif self.EAll[-1]/self.EAll[self.params['energy_fraction_from']] <= self.params['energy_fraction']:
-                    print('Early termination: Minimum fraction of initial energy reached.')
+                    spacemap.Info('Early termination: Minimum fraction of initial energy reached.')
                 
-                # print('Total elapsed runtime: {:.2f} seconds.'.format(total_time))
+                # spacemap.Info('Total elapsed runtime: {:.2f} seconds.'.format(total_time))
                 break
             
             del E, ER, EM
@@ -1446,27 +1446,27 @@ class LDDMM2D(root.LDDMMBase):
         for i in range(len(varlist)):
             if varlist[i] is not None:
                 if not isinstance(varlist[i],list):
-                    print('ERROR: input \'' + str(namelist[i]) + '\' must be a list.')
+                    spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list.')
                     return -1
                 else:
                     if len(varlist[i]) != len(self.vt0):
-                        print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of length ' + str(len(self.vt0)) + ', length ' + str(len(varlist[i])) + ' was received.')
+                        spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of length ' + str(len(self.vt0)) + ', length ' + str(len(varlist[i])) + ' was received.')
                         return -1
                     else:
                         for ii in range(len(varlist[i])):
                             if not isinstance(varlist[i][ii],(np.ndarray,torch.Tensor)):
-                                print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor.')
+                                spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor.')
                                 return -1
                             elif not varlist[i][ii].shape == self.vt0[ii].shape:
-                                print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor of shapes ' + str(list(self.vt0[ii].shape)) + ', shape ' + str(list(varlist[i][ii].shape)) + ' was received.')
+                                spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor of shapes ' + str(list(self.vt0[ii].shape)) + ', shape ' + str(list(varlist[i][ii].shape)) + ' was received.')
                                 return -1
                 
                 if i == 0:
                     self.vt0 = self.tensor(varlist[i])
-                    print('Custom vt0 assigned.')
+                    spacemap.Info('Custom vt0 assigned.')
                 elif i == 1:
                     self.vt1 = self.tensor(varlist[i])
-                    print('Custom vt1 assigned.')
+                    spacemap.Info('Custom vt1 assigned.')
             
         return 1
     
@@ -1474,15 +1474,15 @@ class LDDMM2D(root.LDDMMBase):
     def parseInputATransforms(self,affineA):
         if affineA is not None:
             if not isinstance(affineA,(np.ndarray, torch.Tensor)):
-                print('ERROR: input affineA must be of type numpy.ndarray or torch.Tensor.')
+                spacemap.Info('ERROR: input affineA must be of type numpy.ndarray or torch.Tensor.')
                 return -1
             else:
                 if not affineA.shape == self.affineA.shape:
-                    print('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
+                    spacemap.Info('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
                     return -1
             
             self.affineA = self.tensor(affineA)
-            print('Custom affineA assigned.')
+            spacemap.Info('Custom affineA assigned.')
         
         return 1
     
@@ -1495,7 +1495,7 @@ class LDDMM2D(root.LDDMMBase):
         elif hasattr(self,'vt0'):
             return [x.cpu().numpy() for x in self.vt0], [x.cpu().numpy() for x in self.vt1], None
         else:
-            print('ERROR: no LDDMM or linear transforms to output.')
+            spacemap.Info('ERROR: no LDDMM or linear transforms to output.')
     
     # output deformed template
     def outputDeformedTemplate(self):
@@ -1509,14 +1509,14 @@ class LDDMM2D(root.LDDMMBase):
         # check parameters
         flag = self._checkParameters()
         if flag==-1:
-            print('ERROR: parameters did not check out.')
+            spacemap.Info('ERROR: parameters did not check out.')
             return
         
         if self.initializer_flags['load'] == 1:
             # load images
             flag = self._load(self.params['template'],self.params['target'],self.params['costmask'])
             if flag==-1:
-                print('ERROR: images did not load.')
+                spacemap.Info('ERROR: images did not load.')
                 return
             
         # initialize initialize
@@ -1527,43 +1527,43 @@ class LDDMM2D(root.LDDMMBase):
         for i in range(len(varlist)):
             if varlist[i] is not None:
                 if not isinstance(varlist[i],list):
-                    print('ERROR: input \'' + str(namelist[i]) + '\' must be a list.')
+                    spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list.')
                     return -1
                 else:
                     if len(varlist[i]) != len(self.vt0):
-                        print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of length ' + str(len(self.vt0)) + ', length ' + str(len(varlist[i])) + ' was received.')
+                        spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of length ' + str(len(self.vt0)) + ', length ' + str(len(varlist[i])) + ' was received.')
                         return -1
                     else:
                         for ii in range(len(varlist[i])):
                             if not isinstance(varlist[i][ii],(np.ndarray,torch.Tensor)):
-                                print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor.')
+                                spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor.')
                                 return -1
                             elif not varlist[i][ii].shape == self.vt0[ii].shape:
-                                print('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor of shapes ' + str(list(self.vt0[ii].shape)) + ', shape ' + str(list(varlist[i][ii].shape)) + ' was received.')
+                                spacemap.Info('ERROR: input \'' + str(namelist[i]) + '\' must be a list of numpy.ndarray or torch.Tensor of shapes ' + str(list(self.vt0[ii].shape)) + ', shape ' + str(list(varlist[i][ii].shape)) + ' was received.')
                                 return -1
                 
                 if i == 0:
                     self.vt0 = []
                     for j in range(len(varlist[i])):
                         self.vt0.append(self.tensor(varlist[i][j]))
-                    print('Custom vt0 assigned.')
+                    spacemap.Info('Custom vt0 assigned.')
                 elif i == 1:
                     self.vt1 = []
                     for j in range(len(varlist[i])):
                         self.vt1.append(self.tensor(varlist[i][j]))
-                    print('Custom vt1 assigned.')
+                    spacemap.Info('Custom vt1 assigned.')
         
         if affineA is not None:
             if not isinstance(affineA,(np.ndarray, torch.Tensor)):
-                print('ERROR: input affineA must be of type numpy.ndarray or torch.Tensor.')
+                spacemap.Info('ERROR: input affineA must be of type numpy.ndarray or torch.Tensor.')
                 return -1
             else:
                 if not affineA.shape == self.affineA.shape:
-                    print('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
+                    spacemap.Info('ERROR: input affineA must be of shape ' + str(list(self.affineA.shape)) + ', received shape ' + str(list(affineA.shape)) + '.')
                     return -1
             
             self.affineA = self.tensor(affineA)
-            print('Custom affineA assigned.')
+            spacemap.Info('Custom affineA assigned.')
         
         return 1
             
@@ -1573,19 +1573,19 @@ class LDDMM2D(root.LDDMMBase):
         # check parameters
         
         if self.willUpdate is not None:
-            # print("Params Update: %s" % (str(self.willUpdate)))
+            # spacemap.Info("Params Update: %s" % (str(self.willUpdate)))
             self.willUpdate = None
         
         flag = self._checkParameters()
         if flag==-1:
-            print('ERROR: parameters did not check out.')
+            spacemap.Info('ERROR: parameters did not check out.')
             return
         
         if self.initializer_flags['load'] == 1:
             # load images
             flag = self._load(self.params['template'],self.params['target'],self.params['costmask'])
             if flag==-1:
-                print('ERROR: images did not load.')
+                spacemap.Info('ERROR: images did not load.')
                 return
             
         self.initializeVariables2d()
@@ -1593,12 +1593,12 @@ class LDDMM2D(root.LDDMMBase):
         # check for initializing transforms
         flag = self.parseInputVTransforms(vt0,vt1)
         if flag == -1:
-            print('ERROR: problem with input velocity fields.')
+            spacemap.Info('ERROR: problem with input velocity fields.')
             return
 
         flag = self.parseInputATransforms(affineA)
         if flag == -1:
-            print('ERROR: problem with input linear transforms.')
+            spacemap.Info('ERROR: problem with input linear transforms.')
             return
 
         # initialize stuff for gradient function

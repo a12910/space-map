@@ -12,3 +12,4 @@ tqdm
 nibabel
 seaborn
 scikit-image
+sphinx

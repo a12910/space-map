@@ -36,7 +36,6 @@ class FilterGraphPart(spacemap.AffineBlock):
                 graph_dis[maxIndex] = 0
                 matches1 = matches[graph_dis > 0]
                 if index % 10 == 0 and self.show_graph_match:
-                    print(self.history[-1])
                     plt.figure(figsize=(10,10))
                     plt.imshow(np.concatenate((I, J), axis=1))
                     for m in matches1:

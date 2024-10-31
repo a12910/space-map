@@ -111,6 +111,43 @@ def apply_img_by_grid(img_: np.array, grid: np.array):
         It = It.astype(np.uint8)
     return It
 
+def process_init(arr1, arr2):
+    def downscale(arr):
+        N = arr.shape[0]
+        if N % 2 != 0:
+            N -= 1
+        arr = arr[:N, :N]
+        return arr.reshape(N//2, 2, N//2, 2).mean(axis=(1, 3))
+
+    def non_zero_mean(arr):
+        non_zero_elements = arr[arr != 0]
+        if len(non_zero_elements) == 0:
+            return 0
+        return non_zero_elements.mean()
+    
+    small_arr1 = downscale(arr1)
+    small_arr2 = downscale(arr2)
+    
+    mean1 = non_zero_mean(small_arr1)
+    mean2 = non_zero_mean(small_arr2)
+    arr1 = arr1.astype(np.float32)
+    arr2 = arr2.astype(np.float32)
+    
+    # 调整平均值
+    if mean1 < mean2 and mean1 != 0:
+        adjustment_factor = mean2 / mean1
+        arr1 *= adjustment_factor
+    elif mean2 < mean1 and mean2 != 0:
+        adjustment_factor = mean1 / mean2
+        arr2 *= adjustment_factor
+
+    arr1[arr1 < 0] = 0
+    arr2[arr2 < 0] = 0
+    arr1 = arr1.astype(np.uint8)
+    arr2 = arr2.astype(np.uint8)
+    
+    return arr1, arr2
+
 # def merge_affine_to_grid(affine: np.array, grid=None, shape=None):
 #     import torch
 #     import torch.nn.functional as F
