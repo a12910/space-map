@@ -75,27 +75,32 @@ class LDDMMRegistration(Registration):
         self.imgI = None
         self.imgJ = None
         self.ldm: spacemap.LDDMM2D = None
-        self.gpu = None
+        self.gpu = spacemap.DEVICE
         self.err = 0.1
         self.verbose = LDDMMRegistration.verbose
         
     def run_affine(self) -> np.array:
+        self.gpu = spacemap.DEVICE
         if self.imgI is None or self.imgJ is None:
             raise Exception("LDDMMRegistration: imgI or imgJ is None")
         self._get_init(restart=True)
+        spacemap.Info("LDDMM run_affine device: %s" % self.gpu)
         lddmm_affine(self.ldm, err=self.err)
-        A = self.ldm.affineA
+        A = self.ldm.affineA.cpu().numpy()
         return A
 
     def run(self):
+        self.gpu = spacemap.DEVICE
         if self.imgI is None or self.imgJ is None:
             raise Exception("LDDMMRegistration: imgI or imgJ is None")
         if self.ldm is None:
             self._get_init(restart=True)
             # restart
+            spacemap.Info("LDDMM restart device: %s" % self.gpu)
             lddmm_main(self.ldm, err=self.err)
         else:
             # continue
+            spacemap.Info("LDDMM continue device: %s" % self.gpu)
             lddmm_main2(self.ldm, err=self.err)
             
     def _get_init(self, restart=False):

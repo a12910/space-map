@@ -16,7 +16,7 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         if self.processinit:
             self.imgI, self.imgJ = AutoAffineImgKey.process_init(self.imgI, self.imgJ)
         if self.method is None:
-            self.method = "sift_vgg"
+            self.method = "auto"
         if self.method == "auto":
             match = spacemap.affine_block.MatchInitAuto()
             _ = self.run_flow(match)
@@ -35,10 +35,16 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         grad1 = spacemap.affine_block.AutoGradImg()
         grad1.finalErr = self.step1Err
         _ = self.run_flow(grad1)
-        if self.useLDM:
+        if self.useLDM == True:
+            self.useLDM = 3
+        oldXYD = spacemap.XYD
+        for i in range(self.useLDM):
+            spacemap.XYD = oldXYD // (2**i)
+            spacemap.Info("Affine LDM %d xyd=%d" % (i+1, spacemap.XYD))
             ldm = spacemap.affine_block.LDMAffine()
             ldm.err = self.step1Err
             _ = self.run_flow(ldm)
+        spacemap.XYD = oldXYD
         detail = spacemap.affine_block.DetailAffine()
         _ = self.run_flow(detail)
         grad2 = spacemap.affine_block.AutoGradImg2()

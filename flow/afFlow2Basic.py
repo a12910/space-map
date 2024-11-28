@@ -16,7 +16,9 @@ class AutoFlowBasic2:
         self.finalGridKey = "final_ldm"
         self.ldmKey = Slice.align2Key
         self.continueStart = 0
-        self.gpu=gpu
+        self.gpu=spacemap.DEVICE
+        if spacemap.DEVICE == "cpu":
+            self.gpu = None
         self.finalKey = Slice.finalKey
         self.enhanceKey = Slice.enhanceKey
         self.err = spacemap.find.default()

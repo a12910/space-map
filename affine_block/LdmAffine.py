@@ -23,6 +23,7 @@ class LDMAffine(spacemap.AffineBlock):
         ldm = spacemap.registration.LDDMMRegistration()
         ldm.load_img(imgI, imgJ)
         ldm.err = self.err
+        ldm.gpu = spacemap.DEVICE
         ldm.verbose = 1000
         A = ldm.run_affine()
         return A

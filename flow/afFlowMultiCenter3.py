@@ -30,7 +30,7 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
             imgJ2 = sJ.create_img(useKey, toKey,
                                   mchannel=False, scale=True, fixHe=True)
             ldm = spacemap.registration.LDDMMRegistration()
-            ldm.gpu = self.gpu
+            ldm.gpu = spacemap.DEVICE
             ldm.err = err
             N = imgI1.shape[1]
             ldm.load_img(imgJ2, imgI1)

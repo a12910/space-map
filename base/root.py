@@ -32,7 +32,7 @@ DEVICE = "cpu"
 
 import torch
 if torch.cuda.is_available():
-    DEVICE = "cuda:0"
+    DEVICE = 0
 
 LAYER_START = 0
 LAYER_END = 0

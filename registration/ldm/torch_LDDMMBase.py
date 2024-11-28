@@ -103,6 +103,8 @@ class LDDMMBase:
         
         self.params = {}
         self.params['gpu_number'] = gpu_number
+        if gpu_number == 'cpu':
+            self.params['gpu_number'] = None
         self.params['a'] = float(a)
         self.params['p'] = float(p)
         self.params['niter'] = niter
