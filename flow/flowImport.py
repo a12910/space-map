@@ -8,6 +8,7 @@ class FlowImport:
         self.slices = []
         self.basePath = basePath
         spacemap.init_path(basePath)
+        self.ratio = 1.4
         self.auto_init()
         
     def init_xys(self, xys: list[np.array], ids=None) -> None:
@@ -17,7 +18,7 @@ class FlowImport:
             sizeS = max(np.max(sX) - np.min(sX), np.max(sY) - np.min(sY))
             size = max(size, sizeS)
         xys2 = []
-        targetSize = (int(size * 1.2 / 1000)) * 1000
+        targetSize = (int(size * self.ratio / 1000)) * 1000
         for i, s in enumerate(xys):
             # mid = np.mean(s, axis=0)
             mid = np.max(s, axis=0) / 2 + np.min(s, axis=0) / 2

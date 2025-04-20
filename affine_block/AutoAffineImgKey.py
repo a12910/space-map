@@ -5,6 +5,8 @@ from .flowMgrImg import AffineFlowMgrImg
 
 class AutoAffineImgKey(AffineFlowMgrImg):
     useLDM=True
+    useDetail = True
+    useGrad = True
     def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False, method="sift_vgg"):
         super().__init__("AutoAffineImgKey", imgI, imgJ, finder)
         self.show=show
@@ -20,6 +22,8 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         if self.method == "auto":
             match = spacemap.affine_block.MatchInitAuto()
             _ = self.run_flow(match)
+        elif self.method == "sift_only":
+            _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))
         elif self.method == "auto_old":
             _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))
             if len(self.matches) < 20:
@@ -32,9 +36,10 @@ class AutoAffineImgKey(AffineFlowMgrImg):
             self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
             self.run_flow(spacemap.affine_block.FilterGlobalImg())
             self.run_flow(spacemap.affine_block.MatchEachImg())
-        grad1 = spacemap.affine_block.AutoGradImg()
-        grad1.finalErr = self.step1Err
-        _ = self.run_flow(grad1)
+        if self.useGrad:
+            grad1 = spacemap.affine_block.AutoGradImg()
+            grad1.finalErr = self.step1Err
+            _ = self.run_flow(grad1)
         if self.useLDM == True:
             self.useLDM = 3
         oldXYD = spacemap.XYD
@@ -45,10 +50,11 @@ class AutoAffineImgKey(AffineFlowMgrImg):
             ldm.err = self.step1Err
             _ = self.run_flow(ldm)
         spacemap.XYD = oldXYD
-        detail = spacemap.affine_block.DetailAffine()
-        _ = self.run_flow(detail)
-        grad2 = spacemap.affine_block.AutoGradImg2()
-        _ = self.run_flow(grad2)
+        # detail = spacemap.affine_block.DetailAffine()
+        # _ = self.run_flow(detail)
+        if self.useDetail:
+            grad2 = spacemap.affine_block.AutoGradImg2()
+            _ = self.run_flow(grad2)
         if self.show:
             self.run_flow(spacemap.affine_block.ImgDiffShow(channel=True))
         H = self.resultH_img()

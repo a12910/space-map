@@ -108,6 +108,15 @@ class AutoFlowBasic2:
             # final merge
             spacemap.Info("LDMMgrMulti: Fix Affine Merge DF")
             dfs = None
+            # initS = self.slices[0]
+            # Hs = []
+            # for s in self.slices[1:]:
+            #     H = s.data.loadH(initS.index, self.affineKey)
+            #     Hs.append(H)
+            # H1 = np.array(Hs)[:, :2, :2].mean(axis=0)
+            # H2 = np.linalg.inv(H1)
+            # H3 = np.eye(3)
+            # H3[:2, :2] = H2
             for s in self.slices:
                 df = s.ps(self.alignKey)
                 if dfs is None:
@@ -119,7 +128,9 @@ class AutoFlowBasic2:
             spacemap.Info("LDMMgrMulti: Fix Center DF %d %d -> %d %d" % (mid[0], mid[1], mid0[0], mid0[1]))
             for s in self.slices:
                 df = s.ps(self.alignKey)
-                df1 = df - mid + mid0
+                df1 = df - mid
+                # df1 = spacemap.points.applyH_np(df1, H3)
+                df1 += mid0
                 s.save_value_points(df1, self.alignKey)
         spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
         

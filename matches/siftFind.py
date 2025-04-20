@@ -85,7 +85,7 @@ def siftImageAlignment(imgI,imgJ, matchr=0.75, method='sift', scale=False):
         pI1, pI2 = m.queryIdx, m.trainIdx
         pt1, pt2 = kp1[pI1].pt, kp2[pI2].pt
         # ptI, ptJ, dis
-        matches2.append([pt1[1], pt1[0], pt2[1], pt2[0], 1000/m.distance])
+        matches2.append([pt1[1], pt1[0], pt2[1], pt2[0], 1000/(m.distance+0.01)])
     # 距离从小到大
     matches2.sort(key=lambda x: x[-1], reverse=True)
     return np.array(matches2)
