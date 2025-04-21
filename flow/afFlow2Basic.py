@@ -69,10 +69,10 @@ class AutoFlowBasic2:
         method = self.alignMethod
         if method is None:
             method = "sift_vgg"
-            
+        spacemap.affine_block.AutoAffineImgKey.restart()
         initS = self.slices[0]
         key = self.affineKey
-            
+        
         for i in range(self.continueStart, len(self.slices) - 1):
             S1 = self.slices[i]
             S2 = self.slices[i+1]
@@ -84,7 +84,9 @@ class AutoFlowBasic2:
                 else: 
                     img1 = S1.create_img(useKey, self.initJKey, fixHe=True)
                     img2 = S2.create_img(useKey, self.initJKey, fixHe=True)
+                lastH = S1.data.loadH(initS.index, key) if i > 0 else np.eye(3)
                 mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
+                mgr.each.lastImgs.lastH = lastH
                 mgr.run()
                 H21 = mgr.resultH_img()
                 S2.data.saveH(H21, S1.index, key)
@@ -99,6 +101,8 @@ class AutoFlowBasic2:
                 H2i = np.dot(H1i, H21)
                 S2.data.saveH(H2i, initS.index, key)
                 S2.applyH(self.initJKey, H2i, self.alignKey)
+                imgJ_new = S2.create_img(useKey, self.alignKey, fixHe=True)
+                mgr.each.lastImgs.add_img(imgJ_new)
             if show:
                 if merge:
                     self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)
@@ -106,33 +110,77 @@ class AutoFlowBasic2:
                     self.show_align(S1, S2, useKey, self.initJKey, self.alignKey)
         if merge and useKey == "DF":
             # final merge
-            spacemap.Info("LDMMgrMulti: Fix Affine Merge DF")
-            dfs = None
-            # initS = self.slices[0]
-            # Hs = []
-            # for s in self.slices[1:]:
-            #     H = s.data.loadH(initS.index, self.affineKey)
-            #     Hs.append(H)
-            # H1 = np.array(Hs)[:, :2, :2].mean(axis=0)
-            # H2 = np.linalg.inv(H1)
-            # H3 = np.eye(3)
-            # H3[:2, :2] = H2
-            for s in self.slices:
-                df = s.ps(self.alignKey)
-                if dfs is None:
-                    dfs = df
-                else:
-                    dfs = np.concatenate((dfs, df), axis=0)
-            mid = dfs.mean(axis=0)
-            mid0 = np.array([spacemap.XYRANGE/2, spacemap.XYRANGE/2])
-            spacemap.Info("LDMMgrMulti: Fix Center DF %d %d -> %d %d" % (mid[0], mid[1], mid0[0], mid0[1]))
-            for s in self.slices:
-                df = s.ps(self.alignKey)
-                df1 = df - mid
-                # df1 = spacemap.points.applyH_np(df1, H3)
-                df1 += mid0
-                s.save_value_points(df1, self.alignKey)
+            self.final_fix(useKey, show)            
         spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
+        
+    def affine2(self, useKey, show=False):
+        """ customFunc: (Slice) -> img"""
+        spacemap.Info("LDMMgrMulti: Start Affine2 Pair&Merge")
+        method = self.alignMethod
+        if method is None:
+            method = "sift_vgg"
+        spacemap.affine_block.AutoAffineImgKey.restart()
+        initS = self.slices[0]
+        key = self.affineKey
+        
+        lastImgJ = None
+        for i in range(self.continueStart, len(self.slices) - 1):
+            S1 = self.slices[i]
+            S2 = self.slices[i+1]
+            spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
+            if lastImgJ is None:
+                lastH = np.eye(3)
+                img1 = S1.create_img(useKey, self.initJKey, fixHe=True)
+            else:
+                lastH = S1.data.loadH(initS.index, key)
+                img1 = lastImgJ
+            S2.applyH(self.initJKey, lastH, self.alignKey)
+            img2 = S2.create_img(useKey, self.alignKey, fixHe=True)
+            mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
+            mgr.run()
+            H21 = mgr.resultH_img()
+            S2.data.saveH(H21, S1.index, key)
+            H2i = np.dot(lastH, H21)
+            S2.data.saveH(H2i, initS.index, key)
+            S2.applyH(self.initJKey, H2i, self.alignKey)
+            imgJ_new = S2.create_img(useKey, self.alignKey, fixHe=True)
+            mgr.each.lastImgs.add_img(imgJ_new)
+            lastImgJ = imgJ_new
+            if show:
+                self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)     
+        if useKey == "DF":
+            # final merge
+            self.final_fix(useKey, show)            
+        spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
+        
+    def final_fix(self, useKey, show=False):
+        spacemap.Info("LDMMgrMulti: Fix Affine Merge DF")
+        dfs = None
+        # initS = self.slices[0]
+        # Hs = []
+        # for s in self.slices[1:]:
+        #     H = s.data.loadH(initS.index, self.affineKey)
+        #     Hs.append(H)
+        # H1 = np.array(Hs)[:, :2, :2].mean(axis=0)
+        # H2 = np.linalg.inv(H1)
+        # H3 = np.eye(3)
+        # H3[:2, :2] = H2
+        for s in self.slices:
+            df = s.ps(self.alignKey)
+            if dfs is None:
+                dfs = df
+            else:
+                dfs = np.concatenate((dfs, df), axis=0)
+        mid = dfs.mean(axis=0)
+        mid0 = np.array([spacemap.XYRANGE/2, spacemap.XYRANGE/2])
+        spacemap.Info("LDMMgrMulti: Fix Center DF %d %d -> %d %d" % (mid[0], mid[1], mid0[0], mid0[1]))
+        for s in self.slices:
+            df = s.ps(self.alignKey)
+            df1 = df - mid
+            # df1 = spacemap.points.applyH_np(df1, H3)
+            df1 += mid0
+            s.save_value_points(df1, self.alignKey)
+                
         
     def affine_pair(self, show=False):
         self.affine(affine=True, merge=False, show=show)

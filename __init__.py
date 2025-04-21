@@ -1,6 +1,7 @@
 # from .curve_annotator import *
 # from .point_annotator import *
 from .base import *
+__version__ = "0.1.0"
 
 from .utils import he_img as he_img
 

@@ -6,13 +6,20 @@ from .flowMgrImg import AffineFlowMgrImg
 class AutoAffineImgKey(AffineFlowMgrImg):
     useLDM=True
     useDetail = True
-    useGrad = True
-    def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False, method="sift_vgg"):
+    useGrad = False
+    
+    @staticmethod
+    def restart():
+        spacemap.affine_block.MATCH_EACH_IMG.init = True
+        spacemap.affine_block.MATCH_EACH_IMG.clear()
+    
+    def __init__(self, imgI: np.array, imgJ: np.array, finder=None, show=False, method="auto"):
         super().__init__("AutoAffineImgKey", imgI, imgJ, finder)
         self.show=show
         self.method = method
         self.step1Err = 0.1
         self.processinit = True
+        self.each = spacemap.affine_block.MATCH_EACH_IMG
         
     def run(self):
         if self.processinit:
@@ -35,7 +42,7 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         if len(self.matches) > 5 and self.method != "only_grad":
             self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
             self.run_flow(spacemap.affine_block.FilterGlobalImg())
-            self.run_flow(spacemap.affine_block.MatchEachImg())
+            self.run_flow(self.each)
         if self.useGrad:
             grad1 = spacemap.affine_block.AutoGradImg()
             grad1.finalErr = self.step1Err

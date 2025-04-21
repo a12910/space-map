@@ -10,6 +10,15 @@ def err_mutinfo(imgI, imgJ):
     import sklearn.metrics as skm
     return skm.mutual_info_score(imgI.reshape(-1), imgJ.reshape(-1))
 
+from scipy import stats
+from PIL import Image
+
+def calculate_p_value_t_test(img1, img2):
+    pixels1 = img1.flatten()
+    pixels2 = img2.flatten()
+    t_stat, p_value = stats.ttest_ind(pixels1, pixels2)
+    return p_value
+
 def err_dice4(imgI, imgJ, mX, mY):
     mX = int(mX)
     mY = int(mY)

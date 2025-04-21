@@ -20,7 +20,7 @@ class AffineFlowMgrBase:
         self.AffineH.append((H, err, name))
         
     def resultH(self):
-        finalH = np.eye(3, 3)
+        finalH = np.eye(3, 3, dtype=np.float64)
         for i in range(len(self.AffineH)):
             H = self.AffineH[i][0]
             finalH = np.dot(H, finalH) 

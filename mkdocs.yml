@@ -1,0 +1,61 @@
+site_name: SpaceMap
+site_description: Reconstructing atlas-level single-cell 3D tissue maps from serial sections
+site_url: https://yourusername.github.io/spacemap
+repo_url: https://github.com/yourusername/spacemap
+repo_name: yourusername/spacemap
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: blue
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            docstring_style: numpy
+          rendering:
+            show_source: true
+  - git-revision-date-localized
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quickstart.md
+  - User Guide:
+    - Usage: usage.md
+    - Examples: examples.md
+  - Modules:
+    - Registration: api/registration.md
+    - Affine: api/affine.md
+    - Flow: api/flow.md
+    - Matches: api/matches.md
+    - Find: api/find.md
+    - Utils: api/utils.md
+  - API Reference: api.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md 
