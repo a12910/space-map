@@ -24,9 +24,8 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          selection:
+          options:
             docstring_style: numpy
-          rendering:
             show_source: true
   - git-revision-date-localized
 
