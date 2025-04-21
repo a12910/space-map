@@ -102,4 +102,4 @@ After completing this quick start guide, you can explore more advanced features:
 - [API Reference](api.md) for comprehensive documentation
 - [Examples](examples.md) for specific use cases
 
-For any issues or questions, please [open an issue](https://github.com/yourusername/spacemap/issues) on GitHub. 
+For any issues or questions, please [open an issue](https://github.com/a12910/spacemap/issues) on GitHub. 

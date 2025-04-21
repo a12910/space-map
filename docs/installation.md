@@ -95,4 +95,4 @@ source spacemap_env/bin/activate  # On Windows: spacemap_env\Scripts\activate
 pip install spacemap
 ```
 
-For more help, please [open an issue](https://github.com/yourusername/spacemap/issues) on GitHub. 
+For more help, please [open an issue](https://github.com/a12910/spacemap/issues) on GitHub. 
