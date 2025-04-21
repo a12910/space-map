@@ -69,7 +69,7 @@ Good documentation is crucial for the usability of SpaceMap. You can contribute 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/spacemap.git
+   git clone https://github.com/a12910/spacemap.git
    cd spacemap
    ```
 
