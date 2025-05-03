@@ -1,6 +1,6 @@
 # Detailed Usage Guide
 
-This guide provides detailed examples for using SpaceMap's core functionalities.
+This guide provides detailed examples for using Space-map's core functionalities. Space-map employs a sophisticated two-stage registration approach that combines dimensionality reduction with robust feature matching to handle large-scale single-cell data efficiently.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This guide provides detailed examples for using SpaceMap's core functionalities.
 
 ### Supported Data Formats
 
-SpaceMap works with various data types:
+Space-map works with various data types:
 
 ```python
 import spacemap as sm

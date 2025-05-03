@@ -1,8 +1,8 @@
-site_name: SpaceMap
+site_name: Space-map
 site_description: Reconstructing atlas-level single-cell 3D tissue maps from serial sections
-site_url: https://yourusername.github.io/spacemap
-repo_url: https://github.com/yourusername/spacemap
-repo_name: yourusername/spacemap
+site_url: https://a12910.github.io/space-map
+repo_url: https://github.com/a12910/space-map
+repo_name: a12910/Space-map
 
 theme:
   name: material
@@ -58,3 +58,4 @@ nav:
   - API Reference: api.md
   - Contributing: contributing.md
   - Changelog: changelog.md 
+  

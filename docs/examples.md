@@ -1,6 +1,33 @@
-# SpaceMap Usage Examples
+# Examples
 
-This page provides complete examples for common use cases of SpaceMap.
+This page provides practical examples of using Space-map for different applications.
+
+## Human Colon Polyp Study
+
+Space-map was used to reconstruct 3D models of human colon tissues using spatial transcriptomics and proteomics data. The dataset included ~2.9M cells from Xenium and ~2.4M cells from CODEX.
+
+```python
+import spacemap as sm
+import pandas as pd
+
+# Load and process Xenium data
+xenium_data = pd.read_csv('xenium_data.csv')
+xenium_slices = sm.process_xenium(xenium_data)
+
+# Load and process CODEX data
+codex_data = pd.read_csv('codex_data.csv')
+codex_slices = sm.process_codex(codex_data)
+
+# Perform registration
+mgr = sm.flow.AutoFlowMultiCenter3(xenium_slices + codex_slices)
+mgr.alignMethod = "auto"
+mgr.affine("DF", show=True)
+mgr.ldm_pair(sm.Slice.align1Key, sm.Slice.align2Key, show=True)
+
+# Export results
+export = sm.flow.FlowExport(mgr.slices)
+export.export_3d_model('colon_polyp_3d_model')
+```
 
 ## Example 1: Complete Registration Workflow with CSV Data
 
@@ -522,4 +549,4 @@ if cell_types:
 print(f"Results saved to {output_dir}")
 ```
 
-These examples should help you get started with SpaceMap. For more details on specific functions and features, refer to the [API Reference](api.md) and [Detailed Usage Guide](usage.md). 
+These examples should help you get started with Space-map. For more details on specific functions and features, refer to the [API Reference](api.md) and [Detailed Usage Guide](usage.md). 
