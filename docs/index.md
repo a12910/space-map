@@ -94,19 +94,39 @@ Space-map has been successfully applied to build high-resolution 3D tissue maps 
 
 ## Authors
 
-- **C.Z.** - Conceptualization, Data Analysis, Writing
-- **R.H.** - Implementation, Writing
-- **C.R.** - Conceptualization, Writing
-- **M.P.S.** - Conceptualization, Writing
-- **B.Z.** - Xenium Experiment
-- **J.B.** - Xenium and CODEX Experiments
-- **B.W.** - CODEX Experiment
-- **Y.T.** - CODEX Data Processing
-- **E.M.** - Project Management
+- **Rongduo Han**<sup>1,2,*</sup> - Implementation, Writing
+- **Chenchen Zhu**<sup>3,*</sup> - Conceptualization, Data Analysis, Writing
+- **Cihan Ruan**<sup>2,*</sup> - Conceptualization, Writing
+- **Bingqing Zhao**<sup>3</sup> - Xenium Experiment
+- **Yuqi Tan**<sup>4</sup> - CODEX Data Processing
+- **Emma Monte**<sup>2</sup> - Project Management
+- **Bei Wei**<sup>5,2</sup> - CODEX Experiment
+- **Joanna Bi**<sup>2</sup> - Xenium and CODEX Experiments
+- **Thomas V. Karathanos**<sup>3</sup>
+- **Rozelle Laquindanum**
+- **Greg Charville**<sup>4</sup>
+- **Meng Wang**<sup>6</sup>
+- **Yiing Lin**
+- **James M. Ford**
+- **Garry Nolan**
+- **Michael Snyder**<sup>3,#</sup> - Conceptualization, Writing
+
+<sup>1</sup> College of Software, Nankai University, Tianjin, China  
+<sup>2</sup> Department of Computer Science and Engineering, Santa Clara University, Santa Clara, CA, USA  
+<sup>3</sup> Department of Genetics, Stanford School of Medicine, Stanford, CA 94305  
+<sup>4</sup> Department of Pathology, Stanford School of Medicine, Stanford, CA 94305  
+<sup>5</sup> Sun Yat-Sen Memorial Hospital, Sun Yat-Sen University, Guangzhou, Guangdong, P.R.China  
+<sup>6</sup> Michigan University  
+
+<sup>*</sup> These authors contributed equally to this study  
+<sup>#</sup> Correspondence to: mpsnyder@stanford.edu
 
 ## Acknowledgments
 
-We gratefully thank Pauline Chu from Stanford Human Pathology/Histology Service Center for sectioning tissues and preparing slides.
+We gratefully thank:
+- Pauline Chu from Stanford Human Pathology/Histology Service Center for sectioning tissues and preparing slides
+- Shubham/Shannon for colectomy
+- Teri, Jeanne, Zhengyan (Yiing's lab), Uri, and Ed for their contributions
 
 ### Funding
 
