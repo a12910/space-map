@@ -100,7 +100,7 @@ def show_layer_img(points, labels):
         rawI[i+1, :, :] = img
     return rawI
     
-def show_img(values: np.array, imgConf=None):
+def show_img(values: np.array, imgConf=None, multi=1):
     if imgConf is None:
         imgConf = spacemap.IMGCONF
     kernel = imgConf.get("kernel", 0)
@@ -142,6 +142,9 @@ def show_img(values: np.array, imgConf=None):
         img += img1
     if mid > 0:
         img = cv2.medianBlur(img.astype(np.float32), mid)
+    if multi > 1:
+        img = img * multi
+        img[img > 255] = 255
     img = img.astype(np.uint8)
     return img
 
