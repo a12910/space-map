@@ -2,9 +2,7 @@
 
 This guide will help you get started with SpaceMap by walking through a basic example.
 
-![Workflow Diagram](assets/images/workflow.png)
-
-## Prerequisites
+![Workflow Diagram](../assets/images/workflow.png)
 
 ## Prerequisites
 
@@ -98,8 +96,8 @@ points = export.
 
 After completing this quick start guide, you can explore more advanced features:
 
-- [Detailed Usage Guide](usage.md) for more complex examples
-- [API Reference](api.md) for comprehensive documentation
-- [Examples](examples.md) for specific use cases
+- [Detailed Usage Guide](../examples/usage.md) for more complex examples
+- [API Reference](../api/api.md) for comprehensive documentation
+- [Examples](../examples/examples.md) for specific use cases
 
 For any issues or questions, please [open an issue](https://github.com/a12910/spacemap/issues) on GitHub. 

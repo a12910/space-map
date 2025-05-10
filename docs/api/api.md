@@ -221,17 +221,10 @@ export = spacemap.flow.FlowExport(slices)
 
 For complete usage examples, refer to:
 
-- [Quick Start Guide](quickstart.md)
-- [Usage Guide](usage.md)
-- [Examples](examples.md)
+- [Quick Start Guide](../index.md)
+- [Usage Guide](../examples/usage.md)
+- [Examples](../examples/examples.md)
 
 ## Detailed API Documentation
 
-For detailed function signatures, parameters, and return types, refer to the auto-generated API documentation:
-
-- [Registration Module](api/registration.md)
-- [Affine Module](api/affine.md)
-- [Flow Module](api/flow.md)
-- [Matches Module](api/matches.md)
-- [Find Module](api/find.md)
-- [Utils Module](api/utils.md) 
+For detailed function signatures, parameters, and return types, refer to the auto-generated API documentation. 

@@ -549,4 +549,6 @@ if cell_types:
 print(f"Results saved to {output_dir}")
 ```
 
-These examples should help you get started with Space-map. For more details on specific functions and features, refer to the [API Reference](api.md) and [Detailed Usage Guide](usage.md). 
+For more detailed information about the registration process, see the [Registration System](../registration/registration-system-(lddmm).md) documentation.
+
+For information about data management and preprocessing, refer to the [Data Management](../data/data-management.md) guide. 

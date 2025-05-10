@@ -43,19 +43,28 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: installation.md
-    - Quick Start: quickstart.md
-  - User Guide:
-    - Usage: usage.md
-    - Examples: examples.md
-  - Modules:
-    - Registration: api/registration.md
-    - Affine: api/affine.md
-    - Flow: api/flow.md
-    - Matches: api/matches.md
-    - Find: api/find.md
-    - Utils: api/utils.md
-  - API Reference: api.md
-  - Contributing: contributing.md
-  - Changelog: changelog.md 
+    - Overview: overview/overview.md
+    - Installation: overview/installation.md
+    - Quick Start: overview/quickstart.md
+  - Architecture:
+    - Overview: architecture/architecture-and-core-components.md
+  - Registration:
+    - LDDMM System: registration/registration-system-(lddmm).md
+    - Grid Transformations: grid/grid-transformations.md
+  - Data Management:
+    - Flow Slice: data/data-management.md
+    - Feature Matching: feature/feature-matching.md
+  - Workflows:
+    - Key Workflows: workflow/key-workflows.md
+    - Image Alignment: alignment/image-alignment.md
+    - 3D Reconstruction: reconstruction/3d-reconstruction.md
+  - Analysis:
+    - Spatial Transcriptomics: analysis/spatial-transcriptomics-analysis.md
+  - Examples:
+    - Usage Guide: examples/usage.md
+    - Examples: examples/examples.md
+  - API Reference:
+    - Overview: api/api.md
+  - Contributing: overview/contributing.md
+  - Changelog: overview/changelog.md 
   
