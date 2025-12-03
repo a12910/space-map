@@ -15,7 +15,7 @@
 
 ## Introduction
 
-This page provides a high-level overview of the SpaceMap architecture and its main components. SpaceMap is designed as a modular framework focused on reconstructing 3D tissue maps from consecutive tissue sections, particularly suitable for spatial transcriptomics and proteomics data.
+This page provides a high-level overview of the Space-map architecture and its main components. Space-map is designed as a modular framework focused on reconstructing 3D tissue maps from consecutive tissue sections, particularly suitable for spatial transcriptomics and proteomics data.
 
 For detailed component descriptions, please refer to the sub-pages:
 - [Registration System (LDDMM)](../registration/registration-system-(lddmm).md)
@@ -25,11 +25,11 @@ For detailed component descriptions, please refer to the sub-pages:
 
 ## System Architecture Overview
 
-SpaceMap employs a layered architecture that decouples data management, registration, and visualization while ensuring efficient data flow.
+Space-map employs a layered architecture that decouples data management, registration, and visualization while ensuring efficient data flow.
 
 ## Core Components
 
-SpaceMap consists of multiple interconnected components that work together to process and align tissue section data. The main classes and their relationships are as follows:
+Space-map consists of multiple interconnected components that work together to process and align tissue section data. The main classes and their relationships are as follows:
 
 - **Registration System**: Core registration system, divided into:
   - Affine Registration: Global coarse alignment, handling translation, rotation, scaling, and shearing.
@@ -54,7 +54,7 @@ The standard workflow is as follows:
 
 ## Multi-resolution Strategy
 
-SpaceMap employs a multi-resolution registration strategy (e.g., AutoFlowMultiCenter3 class) to process at different resolutions, balancing efficiency and accuracy.
+Space-map employs a multi-resolution registration strategy (e.g., AutoFlowMultiCenter3 class) to process at different resolutions, balancing efficiency and accuracy.
 
 ## TransformDB: Unified Transformation Management
 

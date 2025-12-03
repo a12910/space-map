@@ -2,11 +2,11 @@
 
 **Reconstructing atlas-level single-cell 3D tissue maps from serial sections**
 
-## About SpaceMap
+## About Space-map
 
-SpaceMap is an open-source framework for reconstructing atlas-level single-cell 3D tissue maps from serial sections. It integrates single-cell coordinates with optional histological image features to assemble consecutive tissue sections into coherent 3D models, combining multi-scale feature matching with large-deformation diffeomorphic metric mapping (LDDMM) to deliver global reconstructions while preserving local micro-anatomy.
+Space-map is an open-source framework for reconstructing atlas-level single-cell 3D tissue maps from serial sections. It integrates single-cell coordinates with optional histological image features to assemble consecutive tissue sections into coherent 3D models, combining multi-scale feature matching with large-deformation diffeomorphic metric mapping (LDDMM) to deliver global reconstructions while preserving local micro-anatomy.
 
-High‑resolution three‑dimensional (3D) tissue atlases are transforming how we study cellular architecture‑function relationships in human tissues. However, an accurate and efficient reconstruction method that can handle atlas-scale datasets remains elusive. SpaceMap addresses this challenge by combining multi‑scale feature matching with large‑deformation diffeomorphic metric mapping, delivering global reconstructions while preserving local micro‑anatomy.
+High‑resolution three‑dimensional (3D) tissue atlases are transforming how we study cellular architecture‑function relationships in human tissues. However, an accurate and efficient reconstruction method that can handle atlas-scale datasets remains elusive. Space-map addresses this challenge by combining multi‑scale feature matching with large‑deformation diffeomorphic metric mapping, delivering global reconstructions while preserving local micro‑anatomy.
 
 ![Space-map Logo](assets/images/logo.png)
 
@@ -25,7 +25,7 @@ High‑resolution three‑dimensional (3D) tissue atlases are transforming how w
 
 ## Applications
 
-SpaceMap has been successfully applied to build high-resolution 3D tissue maps of:
+Space-map has been successfully applied to build high-resolution 3D tissue maps of:
 
 - Serial sectioned spatial transcriptomics (Xenium, ~2.9M cells)
 - Spatial proteomics dataset (CODEX, ~2.4M cells)
@@ -79,7 +79,7 @@ For detailed installation instructions, see the [Installation Guide](installatio
 
 ## Methodology
 
-SpaceMap employs a two-stage registration approach:
+Space-map employs a two-stage registration approach:
 
 1. **Coarse Alignment**: Applies affine transformations for adjacent sections, computationally efficient and avoids local optima
 2. **Fine Mapping**: Focuses exclusively on local non-linear deformations using GPU-accelerated LDDMM
@@ -90,7 +90,7 @@ For more details on the methodology, refer to our paper: [Citation information]
 
 ## High-Level Architecture
 
-The SpaceMap framework is organized around several interconnected systems that handle different aspects of the 3D reconstruction process. The system is centered on core registration capabilities (affine and LDDMM), supported by data management, feature matching, and visualization tools.
+The Space-map framework is organized around several interconnected systems that handle different aspects of the 3D reconstruction process. The system is centered on core registration capabilities (affine and LDDMM), supported by data management, feature matching, and visualization tools.
 
 ### System Architecture Diagram
 
@@ -98,12 +98,12 @@ The SpaceMap framework is organized around several interconnected systems that h
 
 ## Registration Pipeline & Technical Approach
 
-SpaceMap employs a multi-stage registration pipeline to achieve accurate alignment of tissue sections:
+Space-map employs a multi-stage registration pipeline to achieve accurate alignment of tissue sections:
 
 1. **Coarse Alignment**: Applies affine transformations between adjacent sections. This step is computationally efficient, handles global positioning and orientation, and avoids local optima that can trap non-linear methods.
 2. **Fine Mapping**: Uses Large Deformation Diffeomorphic Metric Mapping (LDDMM) for local non-linear deformations, preserving micro-anatomical structures. This step is GPU-accelerated for high performance.
 
-This two-stage approach allows SpaceMap to efficiently handle large datasets while capturing complex local deformations necessary for accurate tissue reconstruction.
+This two-stage approach allows Space-map to efficiently handle large datasets while capturing complex local deformations necessary for accurate tissue reconstruction.
 
 **Multi-Resolution Processing:**
 - The registration process starts with coarse alignment, followed by feature matching refinement and fine alignment using LDDMM.
@@ -132,7 +132,7 @@ This two-stage approach allows SpaceMap to efficiently handle large datasets whi
 
 ## Summary of Capabilities
 
-SpaceMap offers several advantages for 3D tissue reconstruction:
+Space-map offers several advantages for 3D tissue reconstruction:
 
 1. **Integration of Multiple Data Types**: Combines cell coordinates, histology images, and other spatial data
 2. **Scalability**: Designed for atlas-scale datasets with millions of cells
@@ -141,7 +141,7 @@ SpaceMap offers several advantages for 3D tissue reconstruction:
 5. **Flexibility**: Works with various spatial omics technologies (Xenium, CODEX, etc.)
 6. **Visualization**: Built-in tools for exploring and validating 3D reconstructions
 
-These capabilities make SpaceMap suitable for creating comprehensive 3D models from serial tissue sections across a wide range of biological applications, from basic research to clinical studies.
+These capabilities make Space-map suitable for creating comprehensive 3D models from serial tissue sections across a wide range of biological applications, from basic research to clinical studies.
 
 ## Authors
 
@@ -192,7 +192,7 @@ The funding sources had no role in the design of the study, data analysis, or pr
 
 ## Citation
 
-If you use SpaceMap in your research, please cite our paper:
+If you use Space-map in your research, please cite our paper:
 
 ```
 [Citation details]

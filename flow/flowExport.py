@@ -50,10 +50,10 @@ class FlowExport:
             np.savez_compressed(save, **pack)
         return pack
     
-    def export_imgs(self, key, mchannel=True, he=False, scale=False):
+    def export_imgs(self, dfKey, key, mchannel=True, he=False, scale=False):
         imgs = []
         for s in self.slices:
-            img = s.get_img(key, mchannel=mchannel, scale=scale, fixHe=he)
+            img = s.get_img(dfKey, key, mchannel=mchannel, scale=scale, fixHe=he)
             imgs.append(img)
         return np.array(imgs)
     

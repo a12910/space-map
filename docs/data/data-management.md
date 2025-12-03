@@ -11,7 +11,7 @@
 
 ## Introduction
 
-The data management components of SpaceMap provide infrastructure for importing, organizing, processing, and exporting tissue section data. Flow and Slice are the core data management components for the 3D tissue reconstruction workflow.
+The data management components of Space-map provide infrastructure for importing, organizing, processing, and exporting tissue section data. Flow and Slice are the core data management components for the 3D tissue reconstruction workflow.
 
 For more about the transformation system, see: [Registration System (LDDMM)](../registration/registration-system-(lddmm).md) and [Grid Transformations](../grid/grid-transformations.md).
 
@@ -31,7 +31,7 @@ Together, they build a data lifecycle management framework for the entire tissue
 
 ## Data Flow
 
-Data flows through the SpaceMap system as follows:
+Data flows through the Space-map system as follows:
 1. Import data, initialize sections
 2. Process (registration, feature extraction, etc.)
 3. Export results

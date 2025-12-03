@@ -13,7 +13,7 @@
 
 ## Introduction
 
-Feature matching is a key component in the SpaceMap framework, used to identify corresponding points between images for accurate registration of tissue sections. SpaceMap implements two main feature matching methods: SIFT (Scale-Invariant Feature Transform) and LOFTR (Local Feature Transformer).
+Feature matching is a key component in the Space-map framework, used to identify corresponding points between images for accurate registration of tissue sections. Space-map implements two main feature matching methods: SIFT (Scale-Invariant Feature Transform) and LOFTR (Local Feature Transformer).
 
 For more information about the registration workflow, see: [Registration System (LDDMM)](../registration/registration-system-(lddmm).md) and [Image Alignment](../alignment/image-alignment.md).
 
@@ -27,13 +27,13 @@ The feature matching system is mainly responsible for:
 
 ## Feature Matching Components
 
-SpaceMap implements two main feature matching methods:
+Space-map implements two main feature matching methods:
 - SIFT (traditional computer vision method)
 - LOFTR (deep learning-based feature matching)
 
 ### SIFT Matching
 
-SIFT (Scale-Invariant Feature Transform) is a traditional local feature detection and description algorithm. In SpaceMap, SIFT is the default feature matching method.
+SIFT (Scale-Invariant Feature Transform) is a traditional local feature detection and description algorithm. In Space-map, SIFT is the default feature matching method.
 
 #### Key Functions
 1. **Feature Detection**: `__sift_kp()` detects keypoints and computes descriptors.
@@ -68,7 +68,7 @@ Feature matching is a key step in the image alignment workflow, providing the ba
 
 ### Homography Estimation
 
-After matches are determined, SpaceMap uses RANSAC to estimate the homography transformation for image alignment:
+After matches are determined, Space-map uses RANSAC to estimate the homography transformation for image alignment:
 - Main function: `createHFromPoints2()`
 - Input: matched points
 - Uses OpenCV's `findHomography()` + RANSAC to compute the transformation
@@ -77,7 +77,7 @@ After matches are determined, SpaceMap uses RANSAC to estimate the homography tr
 
 ## Match Visualization
 
-SpaceMap provides match visualization tools for quality control of alignment.
+Space-map provides match visualization tools for quality control of alignment.
 
 ### MatchShow Class
 
@@ -115,7 +115,7 @@ Feature matching is mainly used in the AutoFlow automatic registration workflow:
 
 ## Conclusion
 
-SpaceMap's feature matching system combines traditional computer vision (SIFT) and deep learning (LOFTR) methods, providing flexible solutions for different data types and registration challenges.
+Space-map's feature matching system combines traditional computer vision (SIFT) and deep learning (LOFTR) methods, providing flexible solutions for different data types and registration challenges.
 
 ---
 
