@@ -4,7 +4,7 @@ import pandas as pd
 from .flowMgrImg import AffineFlowMgrImg
 
 class AutoAffineImgKey(AffineFlowMgrImg):
-    useLDM=True
+    useLDM = False
     useDetail = True
     useGrad = False
     
@@ -40,8 +40,9 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         elif self.method != "" and self.method != "only_grad":
             self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method=self.method))
         if len(self.matches) > 5 and self.method != "only_grad":
-            self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
+            # self.run_flow(spacemap.affine_block.FilterGraphImg(std=2))
             self.run_flow(spacemap.affine_block.FilterGlobalImg())
+            self.run_flow(spacemap.affine_block.FilterLPMImg())
             self.run_flow(self.each)
         if self.useGrad:
             grad1 = spacemap.affine_block.AutoGradImg()

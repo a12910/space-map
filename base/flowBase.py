@@ -17,7 +17,7 @@ class AffineAlignment:
 class AffineBlock:
     def __init__(self, name):
         self.name = name
-        self.matches = []
+        self.matches = np.array([])
         self.imgIJ = (None, None)
         self.computeRaw = False
         self.updateMatches = False
@@ -66,7 +66,7 @@ class AffineFinder:
         self.minItem = None
         
     def err(self, imgI, imgJ):
-        raise Exception("Not Implemented")
+        # raise Exception("Not Implemented")
         return np.sum(abs(imgI - imgJ))
     
     def err_np(self, npI, npJ):

@@ -26,6 +26,7 @@ from .utils import grid3 as points
 from .utils import grid_points as grid_points
 from .utils import imaris as imaris
 from .utils import grid5 as grid5
+from .utils import show_flow
 
 from .base.flowBase import *
 

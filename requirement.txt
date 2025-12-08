@@ -14,3 +14,4 @@ seaborn
 scikit-image
 sphinx
 tifffile
+ipykernel

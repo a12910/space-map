@@ -9,6 +9,7 @@ from .afFlow2Basic import AutoFlowBasic2
 from .afFlow2Multi import AutoFlowMultiCenter2
 from .afFlow2MultiDF import AutoFlowMultiCenter2DF
 from .afFlowMultiCenter3 import AutoFlowMultiCenter3
+from .afFlowMultiCenter4 import AutoFlowMultiCenter4
 from .outputs import TransformDB
 from .flowExport import FlowExport
 from .flowImport import FlowImport

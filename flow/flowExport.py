@@ -49,6 +49,17 @@ class FlowExport:
         if save:
             np.savez_compressed(save, **pack)
         return pack
+
+    def wrrite_tiffs(self, dfKey, key, prefix):
+        imgs_ = self.export_imgs(dfKey, key, mchannel=False, he=False, scale=False)
+        imgs_ *= 32
+        imgs_[imgs_ > 255] = 255
+        imgs_ = imgs_.astype(np.uint8)
+        dirr = os.path.dirname(prefix)
+        if not os.path.exists(dirr):
+            os.makedirs(dirr)
+        for i in range(imgs.shape[0]):
+            tiff.imwrite("%s_%d.tiff" % (prefix, i), imgs_[i])
     
     def export_imgs(self, dfKey, key, mchannel=True, he=False, scale=False):
         imgs = []

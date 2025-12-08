@@ -1,4 +1,3 @@
-from numpy.core.multiarray import array as array
 import spacemap
 import matplotlib.pyplot as plt
 import numpy as np
