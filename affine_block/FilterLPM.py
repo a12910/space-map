@@ -70,7 +70,7 @@ def filter_non_rigid_matches(ptsA, ptsB, k=5, threshold=0.1):
 # clean_B = input_B[mask]
 
 class FilterLPMImg(spacemap.AffineBlock):
-    def __init__(self, k=8, threshold=0.05):
+    def __init__(self, k=8, threshold=0.10):
         super().__init__("FilterLPMImg")
         self.k = k
         self.threshold = threshold
@@ -85,6 +85,7 @@ class FilterLPMImg(spacemap.AffineBlock):
         inputB = matches1[:, 2:4]
         mask = filter_non_rigid_matches(inputA, inputB, k=self.k, threshold=self.threshold)
         matches1 = matches1[mask]
+        # print(mask.sum(), len(matches1))
+        spacemap.Info("LPM non rigid Matches: %d -> %d" % (len(self.matches), len(matches1)))
         self.matches = matches1
-        print(mask.sum(), len(matches1))
         return None

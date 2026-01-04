@@ -25,6 +25,7 @@ L.addHandler(fileHandle)
 XYRANGE = 4000
 XYD = 10
 IMGCONF = {"raw": 1}
+IMGCONF_CMP = {"raw": 0, "kernel": 3, "hull": 1}
 BASE = "data/flow"
 APPEND = np.array([0, 0])
 

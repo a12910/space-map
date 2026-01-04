@@ -115,6 +115,72 @@ class HullGuidedAligner:
         hull_fix_t = torch.from_numpy(fixed_hull).float().to(self.device).unsqueeze(0).unsqueeze(0)
         
         # 原始图片也转 Tensor，但只用于最后应用变形，不参与 Loss 计算！
+        img_mov_t = torch.from_numpy(moving_img).float().to(self.device).unsqueeze(0).unsqueeze(0)
+        
+        # 2. 定义变量
+        velocity_low = torch.zeros((1, 2, *grid_size), device=self.device, requires_grad=True)
+        core_low = LDDMM_Core(grid_size, self.device)
+        core_high = LDDMM_Core((H, W), self.device)
+        
+        optimizer = optim.Adam([velocity_low], lr=0.01)
+        
+        for i in range(iterations):
+            optimizer.zero_grad()
+            
+            # A. 优化流场
+            smooth_v = core_low.smooth_velocity(velocity_low, kernel_size=9, sigma=3)
+            flow_low = core_low.integrate_scaling_squaring(smooth_v)
+            flow_high = F.interpolate(flow_low, size=(H, W), mode='bilinear', align_corners=True)
+            
+            # B. 变形 Moving Hull (注意：这里变的是外壳！)
+            warped_hull = core_high.spatial_transform(hull_mov_t, flow_high)
+            
+            # C. 计算 Loss (只比较外壳的形状)
+            # 这样内部血管乱七八糟根本不会影响 Loss
+            loss_sim = F.mse_loss(warped_hull, hull_fix_t)
+            
+            # D. 正则化
+            loss_reg = torch.mean(velocity_low ** 2)
+            loss = loss_sim + reg_weight * loss_reg
+            
+            loss.backward()
+            optimizer.step()
+            
+        # 3. 最后应用流场到 原始图片 (Texture)
+        with torch.no_grad():
+            smooth_v = core_low.smooth_velocity(velocity_low, kernel_size=9, sigma=3)
+            flow_low = core_low.integrate_scaling_squaring(smooth_v)
+            flow_high = F.interpolate(flow_low, size=(H, W), mode='bilinear', align_corners=True)
+            
+            # 这里应用到原始血管图上
+            warped_img = core_high.spatial_transform(img_mov_t, flow_high)
+ 
+        flow_fwd = self.get_forward_flow_high_res(velocity_low, (H, W))[0]
+
+        return warped_img.squeeze().cpu().numpy(), flow_fwd
+
+
+    def run_hull_alignment_back(self, moving_img, fixed_hull, 
+                           grid_size=(16, 16), 
+                           iterations=200, 
+                           reg_weight=5.0): # 极高的正则权重，强制内部刚性
+        """
+        Input: 
+            moving_img: 原始含纹理的切片 (用于最后输出)
+            fixed_hull: 平滑后的完美外壳 (作为对齐目标)
+        """
+        H, W = moving_img.shape
+        
+        # 1. 动态提取 Moving 的外壳 (我们需要对齐的是形状)
+        # 注意：这里需要在 CPU 上做 opencv 操作，或者如果你有 tensor 版的也可以
+        # 为简单起见，我们预先计算好
+        mov_hull_np = extract_outer_hull(moving_img)
+        
+        # 转 Tensor
+        hull_fix_t = torch.from_numpy(mov_hull_np).float().to(self.device).unsqueeze(0).unsqueeze(0)
+        hull_mov_t = torch.from_numpy(fixed_hull).float().to(self.device).unsqueeze(0).unsqueeze(0)
+        
+        # 原始图片也转 Tensor，但只用于最后应用变形，不参与 Loss 计算！
         # img_mov_t = torch.from_numpy(moving_img).float().to(self.device).unsqueeze(0).unsqueeze(0)
         
         # 2. 定义变量
@@ -154,10 +220,9 @@ class HullGuidedAligner:
             
             # 这里应用到原始血管图上
             # warped_img = core_high.spatial_transform(img_mov_t, flow_high)
- 
-        flow_fwd = self.get_forward_flow_high_res(velocity_low, (H, W))[0]
-        return None, flow_fwd
-        # return warped_img.squeeze().cpu().numpy(), flow_fwd
+
+        return None, flow_high.squeeze().cpu().numpy()
+
 
     def transform_points_with_flow(self, points, forward_flow, img_shape, device='cpu', xyd=1):
         """
@@ -205,7 +270,7 @@ class HullGuidedAligner:
         result *= xyd
         return result
 
-def align_stack_perfect_shape(raw_slices):
+def align_stack_perfect_shape(raw_slices, back=False):
     """
     主流程
     """
@@ -220,12 +285,16 @@ def align_stack_perfect_shape(raw_slices):
     aligner = HullGuidedAligner(device='cpu')
     aligned_stack = []
     flows = []
+
+    func = aligner.run_hull_alignment
+    if back:
+        func = aligner.run_hull_alignment_back
     
     print("Aligning slices to ideal shape...")
     for i in range(N):
         # 让每一张原始图，去适应这个完美的模具
         # reg_weight=5.0 保证流场非常硬，内部不扭曲，只做整体搬运
-        warped, flow = aligner.run_hull_alignment(
+        warped, flow = func(
             raw_slices[i], 
             ideal_hulls[i], 
             grid_size=(8, 8), 

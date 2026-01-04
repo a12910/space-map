@@ -1,5 +1,7 @@
 import spacemap
 import numpy as np
+import os
+import tifffile as tiff
 import cv2
 
 class FlowExport:
@@ -50,16 +52,9 @@ class FlowExport:
             np.savez_compressed(save, **pack)
         return pack
 
-    def wrrite_tiffs(self, dfKey, key, prefix):
+    def write_tiffs(self, dfKey, key, prefix):
         imgs_ = self.export_imgs(dfKey, key, mchannel=False, he=False, scale=False)
-        imgs_ *= 32
-        imgs_[imgs_ > 255] = 255
-        imgs_ = imgs_.astype(np.uint8)
-        dirr = os.path.dirname(prefix)
-        if not os.path.exists(dirr):
-            os.makedirs(dirr)
-        for i in range(imgs.shape[0]):
-            tiff.imwrite("%s_%d.tiff" % (prefix, i), imgs_[i])
+        self.write_tiffs_imgs(imgs_, prefix)
     
     def export_imgs(self, dfKey, key, mchannel=True, he=False, scale=False):
         imgs = []
@@ -67,6 +62,17 @@ class FlowExport:
             img = s.get_img(dfKey, key, mchannel=mchannel, scale=scale, fixHe=he)
             imgs.append(img)
         return np.array(imgs)
+
+    def write_tiffs_imgs(self, imgs, prefix):
+        imgs_ = imgs
+        imgs_ *= 32
+        imgs_[imgs_ > 255] = 255
+        imgs_ = imgs_.astype(np.uint8)
+        dirr = os.path.dirname(prefix)
+        if not os.path.exists(dirr):
+            os.makedirs(dirr)
+        for i in range(imgs_.shape[0]):
+            tiff.imwrite("%s_%d.tiff" % (prefix, i), imgs_[i])
     
     def import_imgs(self, key, imgs):
         for i, img in enumerate(imgs):

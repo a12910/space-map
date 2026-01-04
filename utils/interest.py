@@ -8,8 +8,9 @@ def compute_interest_area(img, distance):
     img = img.copy()
     img[img > 0] = 1
     kernel = np.ones((distance * 2 + 1, distance * 2 + 1))
-    img2 = spacemap.conv_2d(img, kernel)
+    img2 = spacemap.utils.compute.conv_2d(img, kernel)
     img2[img2 > 0] = 1
+    img2 = img2.astype(np.uint8)
     return img2
 
 def compute_interest_area_inter(imgI, imgJ, distance):

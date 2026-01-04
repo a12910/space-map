@@ -38,6 +38,8 @@ def err_dice(imgI, imgJ):
     try:
         ii = np.array([i1, i2])
         inter = ii.min(axis=0).sum()
+        if inter == 0:
+            return 0
         return (2 * inter + 0.001) / (i1.sum() + i2.sum() + 0.001)
     except Exception as e:
         print(e)

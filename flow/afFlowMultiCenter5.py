@@ -2,69 +2,60 @@ import spacemap
 from spacemap import Slice, SliceImg
 import numpy as np
 import os
+from .afFlowMultiCenter4 import AutoFlowMultiCenter4
 
 
-class AutoFlowMultiCenter4:
+class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
     def __init__(self, slices: list[Slice],
                  initJKey=Slice.rawKey,
                  alignMethod=None,
                  gpu=None):
-        spacemap.Info("AutoFlowMultiCenter4: Init")
-        self.slices = slices
-        self.initJKey = initJKey
-        self.alignKey = Slice.align1Key
-        self.affineKey  ="cell"
-        self.ldmKey = Slice.align2Key
-        self.continueStart = 0
-        self.gpu=spacemap.DEVICE
-        if spacemap.DEVICE == "cpu":
-            self.gpu = None
-        self.finalKey = Slice.finalKey
-        self.enhanceKey = Slice.enhanceKey
-        self.err = spacemap.find.default()
-        self.alignMethod = alignMethod
-        self.rawXYD = spacemap.XYD
-        self.last_imgs = []
-        self.last_img_ratio = 0.5
-
-        self.cIndex = len(slices) // 2
-        self.slices1 = self.slices[self.cIndex:]
-        self.slices2 = self.slices[:self.cIndex+1]
-        self.slices2.reverse()
-    
-    def show_err(self, imgI, imgJ2, imgJ3, tag):
-        e1 = self.err.computeI(imgI, imgJ2, False)
-        e2 = self.err.computeI(imgI, imgJ3, False)
-        spacemap.Info("Err LDMPairMulti %s: %.5f->%.5f" % (tag, e1, e2))
-
-    def show(self, useKey, dfKey):
-        count = len(self.slices)
-        for i in range(count - 1):
-            self.show_align(self.slices[i], self.slices[i+1], useKey, dfKey, dfKey)
-
-    def show_align(self, S1: Slice, S2: Slice, useKey, key1, key2):
-        img1 = S1.create_img(useKey, key1, scale=True, fixHe=True)
-        img2 = S2.create_img(useKey, key2, scale=True, fixHe=True)
-        e = self.err.err(img1, img2)
-        spacemap.Info("Show AlignErr %s/%s %s/%s %f" % (S1.index, key1, S2.index, key2, e))
-        Slice.show_align(S1, S2, key1, key2, useKey)
-
-    def _affine_fix(self, imgs, Hs):
-        return Hs
+        super().__init__(slices, initJKey, alignMethod, gpu)
+        self.affine_skip=True
+        self.keep_1 = False
 
     def _affine_run(self, S1, S2, useKey, i, show, initS, key):
         img1 = S1.create_img(useKey, self.initJKey, fixHe=True)
         img2 = S2.create_img(useKey, self.initJKey, fixHe=True)
         spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
         # lastH = S1.data.loadH(initS.index, key) if i > 0 else np.eye(3)
-        mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
+        mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=False, method=self.alignMethod)
         # mgr.each.lastImgs.lastH = lastH
         mgr.run()
         H21 = mgr.resultH_img()
-        S2.data.saveH(H21, S1.index, key)
-        S2.applyH(self.initJKey, H21, self.alignKey)
+        if self.keep_1:
+            nonzero_indices = np.argwhere(img1 > 0)
+            center = nonzero_indices.mean(axis=0)
+            H21 = self.fix_single_matrix(H21, center)
         return H21
 
+    def fix_single_matrix(self, H, center_point):
+        H_old = H.astype(float)
+        cx, cy = center_point
+        P_center = np.array([cx, cy])
+        A_old = H_old[:2, :2]
+        T_old = H_old[:2, 2]
+        P_target = A_old @ P_center + T_old
+        U, S, Vt = np.linalg.svd(A_old)
+        R_new = U @ Vt
+        if np.linalg.det(R_new) < 0:
+            Vt[1, :] *= -1  # 反转 V 的第二行
+            R_new = U @ Vt
+        T_new = P_target - (R_new @ P_center)
+        H_new = H_old.copy()
+        H_new[:2, :2] = R_new
+        H_new[:2, 2] = T_new
+        if H_new.shape[0] == 3:
+            H_new[2, :] = [0, 0, 1]
+        return H_new
+
+    def _applyH(self, S, H, key):
+        img = S.create_img("DF", key, fixHe=True)
+        img2 = SliceImg.applyH_img(img, H)
+        # ps = S.ps(key)
+        # ps2 = SliceImg.applyH_ps(ps, H)
+        # img2 = spacemap.show_img(ps2)
+        return img2
 
     def affine(self, useKey, show=False):
         """ customFunc: (Slice) -> img"""
@@ -76,23 +67,51 @@ class AutoFlowMultiCenter4:
         initS = self.slices[0]
         key = self.affineKey
         
-        for i in range(self.continueStart, len(self.slices) - 1):
-            S1 = self.slices[i]
-            S2 = self.slices[i+1]
-            H21 = self._affine_run(S1, S2, useKey, i, show, initS, key)
-            if show:
-                self.show_align(S1, S2, useKey, self.initJKey, self.alignKey)                    
-            if i == 0:
+        for i in range(self.continueStart + 1, len(self.slices)):
+            S1 = self.slices[i-1]
+            S2 = self.slices[i]
+            H21 = self._affine_run(S1, S2, useKey, i, show, initS, key)          
+            if i == 1:
                 H1i = np.eye(3)
                 S1.applyH(self.initJKey, H1i, self.alignKey)
-            else:
+                H2i = np.dot(H1i, H21)
+                S2.data.saveH(H2i, initS.index, key)
+                S2.applyH(self.initJKey, H2i, self.alignKey)
+                if show:
+                    self.show_align(S1, S2, useKey, self.initJKey, self.alignKey)  
+            elif not self.affine_skip:
                 H1i = S1.data.loadH(initS.index, key)
-            H2i = np.dot(H1i, H21)
-            S2.data.saveH(H2i, initS.index, key)
-            S2.applyH(self.initJKey, H2i, self.alignKey)
-            # imgJ_new = S2.create_img(useKey, self.alignKey, fixHe=True)
-            # mgr.each.lastImgs.add_img(imgJ_new)
-            
+                H2i = np.dot(H1i, H21)
+                S2.data.saveH(H2i, initS.index, key)
+                S2.applyH(self.initJKey, H2i, self.alignKey)
+                if show:
+                    self.show_align(S1, S2, useKey, self.initJKey, self.alignKey)  
+            else:
+                err = spacemap.find.default()
+                S0 = self.slices[i-2]
+                H20 = self._affine_run(S0, S2, useKey, i, show, initS, key)
+                imgS1 = S1.create_img(useKey, self.initJKey, fixHe=True)
+                imgS0 = S0.create_img(useKey, self.initJKey, fixHe=True)
+                imgS21 = self._applyH(S2, H21, self.initJKey)
+                imgS20 = self._applyH(S2, H20, self.initJKey)
+                e1 = err.err(imgS21, imgS1)
+                e2 = err.err(imgS20, imgS0)
+                if e1 < e2:
+                    H1i = S1.data.loadH(initS.index, key)
+                    H2i = np.dot(H1i, H21)
+                    spacemap.Info("LDMMgrMulti: Affine %d/%d %s->%s by S1 %.4f>%.4f" % (i+1, len(self.slices), S1.index, S2.index, e1, e2))
+                    S2.data.saveH(H2i, initS.index, key)
+                    S2.applyH(self.initJKey, H2i, self.alignKey)
+                    if show:
+                        self.show_align(S1, S2, useKey, self.alignKey, self.alignKey)  
+                else:
+                    H0i = S0.data.loadH(initS.index, key)
+                    H2i = np.dot(H0i, H20)
+                    spacemap.Info("LDMMgrMulti: Affine %d/%d %s->%s by S0 %.4f>%.4f" % (i+1, len(self.slices), S0.index, S2.index, e2, e1))
+                    S2.data.saveH(H2i, initS.index, key)
+                    S2.applyH(self.initJKey, H2i, self.alignKey)
+                    if show:
+                        self.show_align(S0, S2, useKey, self.alignKey, self.alignKey) 
         spacemap.Info("LDMMgrMulti: Finish Affine Pair&Merge")
 
     def affine_fix(self, useKey, show=False):

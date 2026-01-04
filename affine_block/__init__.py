@@ -15,8 +15,10 @@ from .ImgDiffShow import ImgDiffShow
 from .MatchInitImg import MatchInitImg
 from .MatchShowImg import MatchShowImg
 from .AutoAffineImgGrad import AutoAffineImgGrad
-from .AutoAffineImgKey import AutoAffineImgKey
+from .AutoAffineImgKey import AutoAffineImgKey, AlignMethod
 from .LdmAffine import LDMAffine
 from .DetailAffine import DetailAffine
 from .matchinitauto import MatchInitAuto
 # from .LDMAffine2 import SVFAffine
+from .CPDAffine import CPDAffine
+from .AffineGlobal import AffineGlobalFix

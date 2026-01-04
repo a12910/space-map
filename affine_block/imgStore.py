@@ -99,6 +99,7 @@ class LastImgStore(spacemap.AffineBlock):
         affine_loss = self._compute_affine_loss(H)
         # return edge_loss * self.weight[0] + sim_loss * self.weight[1] + last_sim * self.weight[2] + affine_loss * self.weight[3]
         return [edge_loss, sim_loss, last_sim, affine_loss]
+        return 
     
     def _compute_last_only(self, imgI, imgJ):
         loss = self.finder.err(imgI, imgJ)

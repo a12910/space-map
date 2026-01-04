@@ -1,3 +1,4 @@
+from operator import index
 import spacemap
 import os
 import pandas as pd
@@ -25,6 +26,8 @@ class SliceData:
         np.save(path, H)
     
     def loadH(self, indexTo, tag=None):
+        if indexTo == self.index:
+            return np.eye(3)
         path = self.__path("alignH", "npy", tag=tag, indexTo=indexTo)
         if os.path.exists(path):
             H = np.load(path)

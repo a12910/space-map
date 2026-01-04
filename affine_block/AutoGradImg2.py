@@ -11,9 +11,17 @@ class AutoGradImg2(spacemap.AffineBlock):
         self.method = method
         self.finder = None
         self.useH = useH
+
+    def compute(self, dfI: np.array, dfJ: np.array, finder=None):
+        conf = spacemap.IMGCONF_CMP or spacemap.IMGCONF
+        imgI = spacemap.show_img(dfI, conf)
+        imgJ = spacemap.show_img(dfJ, conf)
+        return self.compute_img(imgI, imgJ, finder)
         
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
         self.finder = finder
+        # imgI = spacemap.show_img(imgI, {"hull": 0})
+        # imgJ = spacemap.show_img(imgJ, {"hull": 0})
         initial_params = [1, 0, 0, 0, 1, 0]
         result = minimize(self._err, initial_params, args=(imgI, imgJ), method=self.method)
         H = np.array([[result.x[0], result.x[1], result.x[2]], [result.x[3], result.x[4], result.x[5]], [0, 0, 1]])

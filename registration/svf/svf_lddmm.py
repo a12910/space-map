@@ -93,7 +93,7 @@ class GlobalLDDMM_Register:
         return final_warped.squeeze().cpu().numpy(), self.flow
 
     def run_high_res_loss_low_res_grid(self, moving_img, fixed_img, 
-                                       grid_size=(8, 8), # 关键：流场分辨率（控制点的密度）
+                                       grid_size=(16, 16), # 关键：流场分辨率（控制点的密度）
                                        iterations=200, 
                                        smooth_sigma=3,     # 在低分网格上的平滑
                                        reg_weight=1):

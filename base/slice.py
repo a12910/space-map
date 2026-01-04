@@ -84,6 +84,21 @@ class SliceImg:
         path = "%s/outputs/%s_%s_%s.csv.gz" % (self.projectf, self.index, self.imgKey, key)
         df = pd.DataFrame(data=points, columns=["x", "y"])
         df.to_csv(path, index=False)
+
+    @staticmethod
+    def applyH_ps(ps, H):
+        return spacemap.points.applyH_np(ps, H, fromImgH=True)
+
+    @staticmethod
+    def applyH_img(img, H):
+        shape = img.shape[0]
+        ishape = spacemap.XYRANGE / spacemap.XYD
+        ratio = shape / ishape
+        H = H.copy()
+        H[0, 2] *= ratio
+        H[1, 2] *= ratio
+        img = spacemap.he_img.rotate_imgH(img, H)
+        return img
         
     def applyH(self, fromKey, H, toKey):
         if H is None:
@@ -98,18 +113,12 @@ class SliceImg:
             if self.dfMode:
                 points = self.get_points(fromKey)
                 # H_np = spacemap.img.to_npH(H)
-                points2 = spacemap.points.applyH_np(points, 
-                                                    H, fromImgH=True)
+                
+                points2 = SliceImg.applyH_ps(points, H)
                 self.save_points(points2, toKey)
             else:
                 img = self.get_img(fromKey, mchannel=True, scale=False, fixHe=False)
-                shape = img.shape[0]
-                ishape = spacemap.XYRANGE / spacemap.XYD
-                ratio = shape / ishape
-                H = H.copy()
-                H[0, 2] *= ratio
-                H[1, 2] *= ratio
-                img = spacemap.he_img.rotate_imgH(img, H)
+                img = SliceImg.applyH_img(img, H)
                 self.save_img(img, toKey)
             
     def apply_grid(self, fromKey, toKey, grid, inv_grid=None):

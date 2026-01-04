@@ -106,24 +106,29 @@ def show_img(values: np.array, imgConf=None, multi=1):
     kernel = imgConf.get("kernel", 0)
     mid = imgConf.get("mid", 0)
     raw = imgConf.get("raw", 0)
+    hull = imgConf.get("hull", 0)
+    density = imgConf.get("density", 0)
+    gauss = imgConf.get("gauss", 0)
     
     xyrange = spacemap.XYRANGE
     xyd = spacemap.XYD
-    imgsize = int(xyrange/xyd)
-    img = np.zeros((imgsize, imgsize), dtype=int)
-    values1 = (values // xyd).astype(int)
-    valid_mask = (values1[:, 0] >= 0) & (values1[:, 0] < imgsize) & (values1[:, 1] >= 0) & (values1[:, 1] < imgsize)
-    values2 = values1[valid_mask].astype(int)
-    ix = values2[:, 0]
-    iy = values2[:, 1]
-    np.add.at(img, (ix, iy), 1)
+    if values[0].shape[0] == 2:
+        imgsize = int(xyrange/xyd)
+        img = np.zeros((imgsize, imgsize), dtype=int)
+        values1 = (values // xyd).astype(int)
+        valid_mask = (values1[:, 0] >= 0) & (values1[:, 0] < imgsize) & (values1[:, 1] >= 0) & (values1[:, 1] < imgsize)
+        values2 = values1[valid_mask].astype(int)
+        ix = values2[:, 0]
+        iy = values2[:, 1]
+        np.add.at(img, (ix, iy), 1)
+        img = img.astype(np.uint8)
+    else:
+        img = values.copy()
     if raw == 0:
         img[img > 0] = 1
     if kernel > 0:
         k = np.ones((kernel+1, kernel+1))
         img = convolve2d(img, k, mode="same", boundary="fill", fillvalue=0)
-    density = imgConf.get("density", 0)
-    gauss = imgConf.get("gauss", 0)
     if gauss > 0:
         k = int(img.shape[0] * gauss) if gauss < 1 else int(gauss)
         img = cv2.GaussianBlur(img, (k, k), 0)
@@ -145,6 +150,41 @@ def show_img(values: np.array, imgConf=None, multi=1):
     if multi > 1:
         img = img * multi
         img[img > 255] = 255
+    if hull == 1:
+        img[img > 0] = 255
+        img = img.astype(np.uint8)
+        _, binary = cv2.threshold(img, 1, 255, cv2.THRESH_BINARY)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        max_cnt = max(contours, key=cv2.contourArea)
+        hull_mask = np.zeros_like(img)
+        cv2.drawContours(hull_mask, [max_cnt], -1, 255, thickness=-1)
+        img = hull_mask
+    elif hull > 1:
+        img[img > 0] = 120
+        img = img.astype(np.uint8)
+        edges = cv2.Canny(img, threshold1=1, threshold2=150)
+        weights = np.zeros_like(edges, dtype=np.float32)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+        weights[edges > 0] = 1
+        # img = weights.astype(np.uint8)
+        # lines = cv2.HoughLines(edges, 1, np.pi / 180, 100)
+        # if lines is not None:
+        #     for rho, theta in lines[:, 0]:
+        #         a = np.cos(theta)
+        #         b = np.sin(theta)
+        #         x0 = a * rho
+        #         y0 = b * rho
+        #         x1 = int(x0 + 1000 * (-b))
+        #         y1 = int(y0 + 1000 * (a))
+        #         x2 = int(x0 - 1000 * (-b))
+        #         y2 = int(y0 - 1000 * (a))
+        #         cv2.line(weights, (x1, y1), (x2, y2), (2.0,), 1)
+        # img = cv2.normalize(weights, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)  
+        k = np.ones((5, 5))
+        weights = weights.astype(np.uint8)
+        weights = convolve2d(weights, k, mode="same", boundary="fill", fillvalue=0) * 10
+        img = weights
     img = img.astype(np.uint8)
     return img
 

@@ -27,5 +27,5 @@ class SVFLDDMM(Registration):
         return self.mgr.map_fix_points_to_moving_space(points, flow, xyd)
 
     def run_global(self, imgs):
-        return align_stack_perfect_shape(imgs)
+        return align_stack_perfect_shape(imgs, back=True)
 

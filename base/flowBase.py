@@ -26,11 +26,11 @@ class AffineBlock:
     
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
         """ dfI, dfJ -> H """
-        raise Exception("Not Implemented")
+        return None
     
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
         """ imgI, imgJ -> H """
-        raise Exception("Not Implemented")
+        return None
     
     @staticmethod
     def show_matches_img(matches, I, J, H):

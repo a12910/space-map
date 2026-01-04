@@ -31,12 +31,15 @@ class FlowImport:
             ids = [str(i) for i in range(len(xys))]
         
         self.slices = []
+        dfs = []
         for i, s in enumerate(xys2):
             idd = ids[i]
             spacemap.Info(f"Init Slice {idd} {s.shape}")
             slice = spacemap.Slice(ids[i], self.basePath, i==0)
             df = pd.DataFrame(s, columns=["x", "y"])
+            df["layer"] = i
             slice.init_df(df)
+            dfs.append(df)
             slice.save_config()
             self.slices.append(slice)
         conf = {
@@ -44,8 +47,10 @@ class FlowImport:
             "XYRANGE": spacemap.XYRANGE,
             "ids": ids
         }
+        dfs = pd.concat(dfs, axis=0, ignore_index=True)
         with open(self.basePath + "/conf.json", "w") as f:
             json.dump(conf, f)
+        dfs.to_csv(self.basePath + "/raw/cells.csv.gz", index=False)
         return self.slices
     
         

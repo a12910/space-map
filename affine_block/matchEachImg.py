@@ -21,6 +21,12 @@ class MatchEachImg(spacemap.AffineBlock):
         
     def clear(self):
         self.lastImgs.clear()
+
+    def compute(self, dfI: np.array, dfJ: np.array, finder=None):
+        conf = spacemap.IMGCONF_CMP or spacemap.IMGCONF
+        imgI = spacemap.show_img(dfI, conf)
+        imgJ = spacemap.show_img(dfJ, conf)
+        return self.compute_img(imgI, imgJ, finder)
     
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
         """ dfI, dfJ -> H """

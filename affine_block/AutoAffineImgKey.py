@@ -3,6 +3,13 @@ import spacemap
 import pandas as pd
 from .flowMgrImg import AffineFlowMgrImg
 
+
+class AlignMethod:
+    auto = "auto"
+    sift_only = "sift_only"
+    auto_old = "auto_old"
+    cpd = "cpd"
+
 class AutoAffineImgKey(AffineFlowMgrImg):
     useLDM = False
     useDetail = True
@@ -18,7 +25,7 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         self.show=show
         self.method = method
         self.step1Err = 0.1
-        self.processinit = True
+        self.processinit = False
         self.each = spacemap.affine_block.MATCH_EACH_IMG
         
     def run(self):
@@ -33,10 +40,21 @@ class AutoAffineImgKey(AffineFlowMgrImg):
             _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))
         elif self.method == "auto_old":
             _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))
-            if len(self.matches) < 20:
+            _ = self.run_flow(spacemap.affine_block.FilterLPMImg())
+            if len(self.matches) < 50:
                 _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="loftr"))
                 if len(self.matches) < 10:
                     self.method = ""
+        elif self.method == "cpd":
+            f = spacemap.affine_block.CPDAffine()
+            _ = self.run_flow(f)
+            if self.useDetail:
+                grad2 = spacemap.affine_block.AutoGradImg2()
+                _ = self.run_flow(grad2)
+            if self.show:
+                self.run_flow(spacemap.affine_block.ImgDiffShow(channel=True))
+            H = self.resultH_img()
+            return H
         elif self.method != "" and self.method != "only_grad":
             self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method=self.method))
         if len(self.matches) > 5 and self.method != "only_grad":
