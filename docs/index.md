@@ -74,10 +74,20 @@ See the [Quick Start Guide](overview/quickstart.md) for a complete tutorial.
 ## Installation
 
 ```bash
-pip install spacemap
+# Clone the repository
+git clone https://github.com/a12910/space-map.git
+cd space-map
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies and Space-map
+pip install -r requirement.txt
+pip install -e .
 ```
 
-For detailed installation instructions, see the [Installation Guide](installation.md).
+For detailed installation instructions, see the [Installation Guide](overview/installation.md).
 
 ## Methodology
 

@@ -1,98 +1,200 @@
 # Installation Guide
 
-There are several ways to install SpaceMap. Choose the method that best fits your needs.
+This guide will help you install Space-map on your system.
 
-## Installing via pip (Recommended)
+## Prerequisites
 
-The simplest way to install SpaceMap is via pip:
+- Python 3.7 or higher
+- pip package manager
+- Git (for installation from source)
 
-```bash
-pip install spacemap
-```
+## Recommended Installation (From Source)
 
-This will install SpaceMap and all its dependencies automatically.
+This is the current method to install Space-map until it's published on PyPI.
 
-## Installing from Source
-
-For the latest features or development purposes, you can install SpaceMap directly from the GitHub repository:
+### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/a12910/spacemap.git
-cd spacemap
-pip install -e .
+git clone https://github.com/a12910/space-map.git
+cd space-map
 ```
 
-The `-e` flag installs the package in "editable" mode, which means changes to the source code will be reflected in your environment without reinstallation.
+### Step 2: Create Virtual Environment
 
-## Dependencies
+It's highly recommended to use a virtual environment:
 
-SpaceMap requires the following Python packages:
-
-```
-opencv-python
-pandas
-numpy
-torch
-kornia
-scikit-learn
-tifffile
-matplotlib
-numba
-scipy
-tqdm
-nibabel
-seaborn
-scikit-image
+**On Linux/macOS:**
+```bash
+python -m venv venv
+source venv/bin/activate
 ```
 
-These dependencies will be automatically installed when installing via pip. If you're installing manually, you can install all required dependencies with:
+**On Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### Step 3: Install Dependencies
 
 ```bash
 pip install -r requirement.txt
 ```
 
-## Optional Dependencies
+### Step 4: Install Space-map
 
-For optimal performance, we recommend the following:
+Install in development mode (recommended for updates):
+```bash
+pip install -e .
+```
 
-### GPU Support
+Or install normally:
+```bash
+pip install .
+```
 
-SpaceMap can leverage GPU acceleration for faster processing:
-
-1. Make sure you have a CUDA-compatible NVIDIA GPU
-2. Install the appropriate CUDA toolkit version compatible with your PyTorch version
-3. Install the GPU version of PyTorch:
+### Step 5: Verify Installation
 
 ```bash
+python -c "import spacemap; print(spacemap.__version__)"
+```
+
+You should see the version number printed.
+
+## Alternative: Direct Installation from GitHub
+
+If you don't need to modify the code:
+
+```bash
+# Create and activate virtual environment first
+python -m venv venv
+source venv/bin/activate  # On Linux/Mac
+# venv\Scripts\activate   # On Windows
+
+# Install directly from GitHub
+pip install git+https://github.com/a12910/space-map.git
+```
+
+## Dependencies
+
+Space-map requires the following main packages:
+
+- **Core**: numpy, pandas, scipy
+- **Computer Vision**: opencv-python, scikit-image
+- **Deep Learning**: torch, kornia
+- **Scientific**: scikit-learn, numba
+- **Visualization**: matplotlib, seaborn
+- **Image Processing**: tifffile, nibabel
+
+See [`requirement.txt`](../../requirement.txt) for the complete list.
+
+## GPU Support (Optional but Recommended)
+
+For GPU acceleration with LDDMM:
+
+### CUDA-enabled PyTorch
+
+If you have an NVIDIA GPU:
+
+```bash
+# Install PyTorch with CUDA support
+# Visit https://pytorch.org/get-started/locally/ for the right command
+# Example for CUDA 11.8:
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-Replace `cu118` with your CUDA version as needed.
+Space-map will automatically use GPU if available.
 
-## Verifying Installation
+## Platform-Specific Notes
 
-You can verify your installation by importing SpaceMap in Python:
+### Linux
 
-```python
-import spacemap as sm
-print(sm.__version__)
+Should work out of the box. Ensure you have development tools:
+
+```bash
+sudo apt-get update
+sudo apt-get install python3-dev build-essential
 ```
 
-If the installation was successful, this will print the version number without any errors.
+### macOS
+
+```bash
+# Install Xcode command line tools if needed
+xcode-select --install
+```
+
+### Windows
+
+- Ensure Visual C++ Build Tools are installed for some dependencies
+- Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 ## Troubleshooting
 
-If you encounter issues during installation:
+### Import Errors
 
-1. Ensure your Python version is 3.7 or higher
-2. Update pip: `pip install --upgrade pip`
-3. Check for conflicts with other installed packages
-4. Try installing in a fresh virtual environment:
+If you get import errors:
 
 ```bash
-python -m venv spacemap_env
-source spacemap_env/bin/activate  # On Windows: spacemap_env\Scripts\activate
+# Make sure you're in the virtual environment
+which python  # Should point to venv/bin/python
+
+# Reinstall dependencies
+pip install -r requirement.txt
+```
+
+### OpenCV Issues
+
+If OpenCV doesn't work:
+
+```bash
+pip uninstall opencv-python
+pip install opencv-python-headless
+```
+
+### PyTorch CUDA Issues
+
+To check if PyTorch can use GPU:
+
+```python
+import torch
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"CUDA version: {torch.version.cuda}")
+```
+
+## Updating Space-map
+
+If you installed in development mode (`pip install -e .`):
+
+```bash
+cd space-map
+git pull origin master
+pip install -r requirement.txt  # Update dependencies if needed
+```
+
+## Uninstallation
+
+```bash
+pip uninstall spacemap
+```
+
+## Coming Soon: PyPI Installation
+
+Space-map will be available on PyPI soon, allowing simple installation:
+
+```bash
+# Future (not available yet)
 pip install spacemap
 ```
 
-For more help, please [open an issue](https://github.com/a12910/spacemap/issues) on GitHub. 
+## Next Steps
+
+After installation:
+- Read the [Quick Start Guide](quickstart.md)
+- Try the [example notebooks](../../examples/)
+- Explore the [documentation](https://a12910.github.io/space-map)
+
+## Getting Help
+
+If you encounter installation issues:
+- Check the [GitHub Issues](https://github.com/a12910/space-map/issues)
+- Create a new issue with your error message and system info 

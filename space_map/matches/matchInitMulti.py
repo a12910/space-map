@@ -1,0 +1,52 @@
+import space_map
+import matplotlib.pyplot as plt
+import numpy as np
+
+class MatchInitMulti(space_map.AffineBlock):
+    def __init__(self, methods=None, number=200):
+        super().__init__("MatchInitMulti")
+        self.updateMatches = True
+        self.number = number 
+        if methods is None:
+            methods = ["loftr"]
+        self.alignments = []
+        for method in methods:
+            if method == "loftr":
+                self.alignments.append(space_map.matches.LOFTR())
+            else:
+                self.alignments.append(space_map.AffineAlignment(method=method))
+        
+    def compute(self, dfI: np.array, dfJ: np.array, finder=None):
+        """ dfI, dfJ -> H """
+        imgI = space_map.show_img(dfI)
+        imgJ = space_map.show_img(dfJ)
+        return self.compute_img(imgI, imgJ, finder)
+    
+    def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+        space_map.Info("Init Matches start")
+        matches = []
+        for alignment in self.alignments:
+            matches += alignment.compute(imgI, imgJ, 
+                                         matchr=self.matchr)
+        self.matches = matches
+        space_map.Info("Init Matches finished: %d" % len(matches))
+        return None
+    
+# class MatchInitAuto(MatchInitMulti):
+#     def __init__(self, methods=None, number=200):
+#         if methods is None:
+#             methods = ["loftr", "sift"]
+#         super().__init__(methods, number)
+    
+#     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
+#         spacemap.Info("Init Matches start")
+#         matches = []
+#         for alignment in self.alignments:
+#             matches += alignment.compute(imgI, imgJ, 
+#                                          matchr=self.matchr)
+#             if len(matches) > self.number:
+#                 break
+#         self.matches = matches
+#         spacemap.Info("Init Matches finished: %d" % len(matches))
+#         return None
+    

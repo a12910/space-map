@@ -13,5 +13,5 @@ nibabel
 seaborn
 scikit-image
 sphinx
-tifffile
 ipykernel
+pycpd

@@ -18,14 +18,36 @@ Space-map is an open-source framework for reconstructing atlas-level single-cell
 
 ### Installation
 
+#### Option 1: Install from Source (Recommended)
+
 ```bash
+# Clone the repository
+git clone https://github.com/a12910/space-map.git
+cd space-map
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Linux/Mac:
+source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirement.txt
+
+# Install Space-map in development mode
+pip install -e .
 ```
 
-Or install directly:
+#### Option 2: Direct Installation from GitHub
+
 ```bash
-pip install spacemap
+pip install git+https://github.com/a12910/space-map.git
 ```
+
+> **Note**: Space-map will be available on PyPI soon. For now, please install from source.
 
 ### Basic Usage
 
