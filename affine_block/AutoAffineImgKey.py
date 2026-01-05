@@ -28,13 +28,13 @@ class AutoAffineImgKey(AffineFlowMgrImg):
         self.processinit = False
         self.each = spacemap.affine_block.MATCH_EACH_IMG
         
-    def run(self):
+    def run(self, df=None):
         if self.processinit:
             self.imgI, self.imgJ = AutoAffineImgKey.process_init(self.imgI, self.imgJ)
         if self.method is None:
             self.method = "auto"
         if self.method == "auto":
-            match = spacemap.affine_block.MatchInitAuto()
+            match = spacemap.affine_block.MatchInitAuto(df)
             _ = self.run_flow(match)
         elif self.method == "sift_only":
             _ = self.run_flow(spacemap.affine_block.MatchInitImg(matchr=0.75, method="sift_vgg"))

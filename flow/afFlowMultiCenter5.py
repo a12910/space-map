@@ -19,9 +19,12 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         img2 = S2.create_img(useKey, self.initJKey, fixHe=True)
         spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
         # lastH = S1.data.loadH(initS.index, key) if i > 0 else np.eye(3)
+        df = None
+        if useKey == "DF":
+            df = (S1.ps(self.initJKey), S2.ps(self.initJKey))
         mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=False, method=self.alignMethod)
         # mgr.each.lastImgs.lastH = lastH
-        mgr.run()
+        mgr.run(df)
         H21 = mgr.resultH_img()
         if self.keep_1:
             nonzero_indices = np.argwhere(img1 > 0)

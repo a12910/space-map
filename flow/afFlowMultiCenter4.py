@@ -31,7 +31,7 @@ class AutoFlowMultiCenter4:
         self.slices1 = self.slices[self.cIndex:]
         self.slices2 = self.slices[:self.cIndex+1]
         self.slices2.reverse()
-        
+
     
     def show_err(self, imgI, imgJ2, imgJ3, tag):
         e1 = self.err.computeI(imgI, imgJ2, False)
@@ -58,9 +58,12 @@ class AutoFlowMultiCenter4:
         img2 = S2.create_img(useKey, self.initJKey, fixHe=True)
         spacemap.Info("LDMMgrMulti: Start Affine %d/%d %s->%s" % (i+1, len(self.slices), S1.index, S2.index))
         # lastH = S1.data.loadH(initS.index, key) if i > 0 else np.eye(3)
+        df = None
+        if useKey == "DF":
+            df = (S1.ps(self.initJKey), S2.ps(self.initJKey))
         mgr = spacemap.affine_block.AutoAffineImgKey(img1, img2, show=show, method=self.alignMethod)
         # mgr.each.lastImgs.lastH = lastH
-        mgr.run()
+        mgr.run(df)
         H21 = mgr.resultH_img()
         S2.data.saveH(H21, S1.index, key)
         S2.applyH(self.initJKey, H21, self.alignKey)

@@ -1,78 +1,280 @@
 # Key Workflows
 
-> Related source files:
-> - [docs/assets/images/logo.png](https://github.com/a12910/space-map/blob/ad208055/docs/assets/images/logo.png)
-> - [docs/assets/images/qr.png](https://github.com/a12910/space-map/blob/ad208055/docs/assets/images/qr.png)
-> - [docs/examples.md](https://github.com/a12910/space-map/blob/ad208055/docs/examples.md)
-> - [docs/index.md](https://github.com/a12910/space-map/blob/ad208055/docs/index.md)
-> - [docs/usage.md](https://github.com/a12910/space-map/blob/ad208055/docs/usage.md)
-> - [flow/__init__.py](https://github.com/a12910/space-map/blob/ad208055/flow/__init__.py)
-> - [flow/afFlow2MultiDF.py](https://github.com/a12910/space-map/blob/ad208055/flow/afFlow2MultiDF.py)
-> - [mkdocs.yml](https://github.com/a12910/space-map/blob/ad208055/mkdocs.yml)
+This page outlines the main processing workflows for 3D tissue reconstruction in Space-map, covering the entire process from raw data import to 3D model generation and spatial analysis.
 
-## Introduction
-
-This page outlines the main processing workflows for 3D tissue reconstruction in the SpaceMap framework, covering the entire process from raw data import to 3D model generation and spatial analysis.
-
-For detailed API, see [API Reference](../api/api.md), and for specific implementation cases, see [Examples and Use Cases](../examples/examples.md).
+For detailed examples, see [Examples](../examples/examples.md) and the interactive notebooks in `examples/`.
 
 ## Main Workflow Overview
 
-SpaceMap employs a multi-stage workflow, combining multi-scale feature matching with LDDMM (Large Deformation Diffeomorphic Metric Mapping) to balance efficiency and accuracy.
+Space-map employs a two-stage workflow, combining multi-scale feature matching with LDDMM (Large Deformation Diffeomorphic Metric Mapping) to balance efficiency and accuracy.
 
-**Main Processing Workflow:**
-1. Data Import (FlowImport)
-2. Image Registration (AutoFlowMultiCenter2/3)
-3. 3D Reconstruction (TransformDB)
-4. Spatial Analysis (FlowExport)
+```
+Data Import → Affine Registration → LDDMM Registration → Export Results
+```
 
-## Image Registration Workflow
+## Complete Workflow
 
-- Coarse Registration: Affine registration + feature point matching (SIFT/LOFTR)
-- Fine Registration: LDDMM nonlinear registration (ldm_pair), grid generation and merging
-- Multi-center Registration Strategy: Using middle section as center, bidirectional registration to improve global consistency
+### 1. Data Import and Initialization
 
-## 3D Reconstruction Workflow
+Use `FlowImport` to load and initialize your data:
 
-- Grid Storage: Each registration step result saved as grid
-- TransformDB unified management of all transformations
-- Apply grid transformations to sections for point set/image 3D reconstruction
-- Support grid merging to ensure global consistency
+```python
+import spacemap
+from spacemap import Slice
 
-## Spatial Transcriptomics Analysis Workflow
+# Initialize project
+BASE = "data/flow"
+flowImport = spacemap.flow.FlowImport(BASE)
 
-- Cell-gene expression matrix analysis
-- Gene expression spatial distribution analysis
-- Cell type identification and spatial statistics
-- 3D visualization and export
+# For standard CSV data with layer column
+flowImport.init_xys(xys, ids=layer_ids)
 
-## End-to-End Integration Example
+# For CODEX data
+flowImport.init_from_codex('codex_data.csv')
 
-Typical complete workflow:
-1. FlowImport imports data
-2. AutoFlowMultiCenter2/3 performs registration
-3. TransformDB manages and applies all transformations
-4. FlowExport exports 3D model and analysis results
+# Get slice objects
+slices = flowImport.slices
+```
 
-## Key Parameters and Configuration
+**What happens:**
+- Automatically calculates coordinate range (`XYRANGE`)
+- Sets grid spacing (`XYD`)
+- Creates `Slice` objects for each section
+- Saves configuration to `conf.json`
 
-| Parameter      | Description              | Default    | Component           |
-|----------------|--------------------------|------------|---------------------|
-| alignMethod    | Initial registration method| "auto"    | AutoFlowMultiCenter2|
-| gpu            | Computing GPU device     | None       | AutoFlowMultiCenter2|
-| finalErr       | LDDMM convergence threshold| System default| ldm_pair        |
-| centerTrain    | Center section training  | False      | ldm_pair            |
-| show           | Show visualization results| False     | Multiple locations  |
-| saveGridKey    | Grid save key           | pairGridKey| ldm_pair            |
+### 2. Affine Registration (Coarse Alignment)
 
-## Programming and Development Guidelines
+Use one of the `AutoFlowMultiCenter` managers:
 
-- Always initialize data with FlowImport
-- Choose appropriate AutoFlow class (2/2DF/3)
-- Execute affine, ldmm, grid merging in sequence
-- Use TransformDB for unified transformation management
-- Use FlowExport for 3D result export
+```python
+# Create registration manager
+mgr = spacemap.flow.AutoFlowMultiCenter4(slices, Slice.rawKey)
 
----
+# Set alignment method
+mgr.alignMethod = "auto"  # Options: "auto", "sift", "sift_vgg", "loftr"
 
-> For reference source code and detailed implementation, please see the related source files above. 
+# Perform affine registration
+mgr.affine("DF", show=True)
+```
+
+**Available Managers:**
+- **`AutoFlowMultiCenter4`** (Recommended): Processes from middle outward for better global consistency
+- **`AutoFlowMultiCenter5`**: Latest version with additional optimizations
+- **`AutoFlowMultiCenter3`**: Simpler sequential processing
+
+**Alignment Methods:**
+- `"auto"`: Automatically selects best method (recommended)
+- `"sift"`: Traditional SIFT features
+- `"sift_vgg"`: SIFT with VGG features
+- `"loftr"`: Deep learning-based LoFTR (requires more memory)
+
+**What happens:**
+- Generates density field representation from cell coordinates
+- Finds feature correspondences between adjacent sections
+- Computes affine transformations
+- Results stored with key `Slice.align1Key`
+
+### 3. LDDMM Registration (Fine Alignment)
+
+Apply non-rigid deformation for precise local alignment:
+
+```python
+# Perform LDDMM between adjacent sections
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
+```
+
+**What happens:**
+- Uses GPU acceleration if available
+- Computes smooth, topology-preserving deformations
+- Preserves micro-anatomical structures
+- Results stored with key `Slice.align2Key`
+
+### 4. Export and Visualization
+
+Export aligned data and visualizations:
+
+```python
+# Create export manager
+export = spacemap.flow.FlowExport(slices)
+
+# Extract aligned points
+for i, slice_obj in enumerate(slices):
+    points = slice_obj.imgs[Slice.rawKey].get_points(Slice.align2Key)
+    # Process points...
+```
+
+## Data Keys and Pipeline Stages
+
+Space-map uses keys to track data through the registration pipeline:
+
+| Key | Description | Stage |
+|-----|-------------|-------|
+| `Slice.rawKey` | Original input data | Initial |
+| `Slice.align1Key` | After affine registration | Coarse alignment |
+| `Slice.align2Key` | After LDDMM registration | Fine alignment |
+| `Slice.finalKey` | Final output | Complete |
+
+## Workflow Variations
+
+### Sequential vs. Multi-center Registration
+
+**Sequential (AutoFlowMultiCenter3):**
+- Processes sections 0→1→2→...→N
+- Simpler, but errors can accumulate
+
+**Multi-center (AutoFlowMultiCenter4/5):**
+- Starts from middle section
+- Processes outward in both directions
+- Better global consistency
+- Recommended for most cases
+
+### With vs. Without Visualization
+
+```python
+# With visualization (slower, useful for debugging)
+mgr.affine("DF", show=True)
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
+
+# Without visualization (faster, for production)
+mgr.affine("DF", show=False)
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=False)
+```
+
+## Advanced Workflows
+
+### Custom Parameter Configuration
+
+```python
+# Customize canvas size
+flowImport.ratio = 1.5  # Default: 1.4
+
+# Manual parameter adjustment
+spacemap.XYRANGE = 2000
+spacemap.XYD = 10
+
+# Image processing configuration
+spacemap.IMGCONF = {"raw": 1}  # Use raw intensity values
+```
+
+### Processing Large Datasets
+
+For datasets with many sections or cells:
+
+1. **Reduce resolution:**
+   ```python
+   spacemap.XYD = 20  # Larger value = lower resolution
+   ```
+
+2. **Disable visualization:**
+   ```python
+   mgr.affine("DF", show=False)
+   mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=False)
+   ```
+
+3. **Process in batches:**
+   ```python
+   # Process first 5 sections
+   slices_batch = slices[:5]
+   mgr = spacemap.flow.AutoFlowMultiCenter4(slices_batch, Slice.rawKey)
+   ```
+
+### Quality Assessment Workflow
+
+```python
+# Compare before and after alignment
+for i in range(len(slices) - 1):
+    # Before alignment
+    points1_raw = slices[i].imgs[Slice.rawKey].get_points(Slice.rawKey)
+    points2_raw = slices[i+1].imgs[Slice.rawKey].get_points(Slice.rawKey)
+
+    # After alignment
+    points1_aligned = slices[i].imgs[Slice.rawKey].get_points(Slice.align2Key)
+    points2_aligned = slices[i+1].imgs[Slice.rawKey].get_points(Slice.align2Key)
+
+    # Visualize or compute metrics...
+```
+
+## Integration with Spatial Analysis
+
+### Cell Type Analysis
+
+```python
+# After registration, analyze cell types spatially
+for i, slice_obj in enumerate(slices):
+    points = slice_obj.imgs[Slice.rawKey].get_points(Slice.align2Key)
+    # Match with original metadata
+    # Analyze spatial patterns...
+```
+
+### Gene Expression Mapping
+
+```python
+# Map gene expression to 3D coordinates
+for i, slice_obj in enumerate(slices):
+    points = slice_obj.imgs[Slice.rawKey].get_points(Slice.align2Key)
+    z = i * z_spacing
+    # Add gene expression data
+    # Create 3D visualization...
+```
+
+## Best Practices
+
+1. **Always start with a small test dataset** to validate parameters
+2. **Use `show=True` initially** to verify alignment quality
+3. **Try different `alignMethod` options** if results are poor
+4. **Check intermediate results** between affine and LDDMM stages
+5. **Save your work frequently** - transformations are stored automatically
+6. **Document your parameters** for reproducibility
+
+## Troubleshooting Workflows
+
+### Poor Alignment Results
+
+1. Try different alignment methods:
+   ```python
+   mgr.alignMethod = "sift_vgg"  # or "loftr"
+   ```
+
+2. Adjust preprocessing:
+   ```python
+   spacemap.IMGCONF = {"raw": 0}  # Binary density field
+   ```
+
+3. Check data quality and remove outliers
+
+### Memory Issues
+
+1. Reduce resolution:
+   ```python
+   spacemap.XYD = 20  # or higher
+   ```
+
+2. Process fewer sections at once
+
+3. Disable visualization:
+   ```python
+   show=False
+   ```
+
+### Slow Processing
+
+1. Ensure GPU is being used:
+   ```python
+   print(f"Device: {mgr.gpu}")
+   ```
+
+2. Disable visualization
+
+3. Reduce data resolution
+
+## Complete Example
+
+See the complete workflow in action:
+- [01_quickstart.ipynb](../../examples/01_quickstart.ipynb) - Basic workflow
+- [02_advanced_registration.ipynb](../../examples/02_advanced_registration.ipynb) - Advanced techniques
+
+## Related Documentation
+
+- [Data Management](../data/data-management.md) - Data structures and storage
+- [Registration System](../registration/registration-system-(lddmm).md) - LDDMM details
+- [Examples](../examples/examples.md) - Practical examples 

@@ -1,96 +1,363 @@
 # Registration System (LDDMM)
 
-> Related source files:
-> - [registration/__init__.py](https://github.com/a12910/space-map/blob/ad208055/registration/__init__.py)
-> - [registration/lddmm.py](https://github.com/a12910/space-map/blob/ad208055/registration/lddmm.py)
-> - [registration/lddmm2.py](https://github.com/a12910/space-map/blob/ad208055/registration/lddmm2.py)
-> - [registration/ldm2/torch_LDDMM2D.py](https://github.com/a12910/space-map/blob/ad208055/registration/ldm2/torch_LDDMM2D.py)
-> - [registration/ldm2/torch_LDDMMBase.py](https://github.com/a12910/space-map/blob/ad208055/registration/ldm2/torch_LDDMMBase.py)
+The LDDMM (Large Deformation Diffeomorphic Metric Mapping) registration system is a core component of Space-map, responsible for precise non-rigid alignment of tissue sections while preserving topological structure.
 
-## Introduction
-
-The LDDMM (Large Deformation Diffeomorphic Metric Mapping) registration system is a core component of the SpaceMap framework, responsible for precise nonlinear alignment of images and point clouds. It achieves high-precision registration between tissue sections by computing smooth, topology-preserving transformations.
-
-For more about grid transformation applications, see: [Grid Transformations](../grid/grid-transformations.md).
+For grid transformations, see: [Grid Transformations](../grid/grid-transformations.md).
 
 ## Overview
 
-The LDDMM registration system employs a multi-scale, two-stage registration strategy:
-1. **Affine Registration**: Initial global linear transformation for coarse alignment
-2. **Diffeomorphic Registration**: Smooth, invertible nonlinear transformation based on time-varying velocity fields for fine alignment
+Space-map employs a two-stage registration strategy:
 
-This approach captures complex local deformations while preserving the topological structure of the original data.
+1. **Affine Registration (Coarse)**: Global linear transformation for initial alignment
+2. **LDDMM Registration (Fine)**: Smooth, invertible non-rigid transformation for precise local alignment
 
-## System Architecture
+This approach captures complex local deformations while maintaining tissue topology.
 
-The LDDMM registration system is primarily implemented through the `LDDMMRegistration` class, which inherits from the base `Registration` class and interfaces with the core LDDMM algorithm to complete mathematical optimization and transformation computation.
+## How It Works in Practice
 
-## Registration Process
+### In Your Workflow
 
-The LDDMM registration process uses a hierarchical optimization strategy, aligning from coarse to fine to avoid local optima.
+When you run:
+
+```python
+mgr = spacemap.flow.AutoFlowMultiCenter4(slices, Slice.rawKey)
+mgr.alignMethod = "auto"
+
+# Step 1: Affine registration
+mgr.affine("DF", show=True)
+
+# Step 2: LDDMM registration
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
+```
+
+**What happens:**
+
+1. **Affine stage** (`mgr.affine()`):
+   - Converts cell coordinates to density field images
+   - Finds feature correspondences (SIFT/LoFTR)
+   - Computes affine transformation matrices
+   - Applies transformations to align sections globally
+
+2. **LDDMM stage** (`mgr.ldm_pair()`):
+   - Takes affine-aligned images as input
+   - Computes smooth deformation fields
+   - Iteratively optimizes to match tissue structures
+   - Preserves topology (no tears or folds)
+
+## Registration Methods
+
+### Affine Registration Methods
+
+Control with `mgr.alignMethod`:
+
+```python
+# Automatic selection (recommended)
+mgr.alignMethod = "auto"
+
+# Traditional SIFT features
+mgr.alignMethod = "sift"
+
+# SIFT with VGG features (more robust)
+mgr.alignMethod = "sift_vgg"
+
+# Deep learning-based (requires more memory)
+mgr.alignMethod = "loftr"
+```
+
+**How to choose:**
+- Start with `"auto"` - works for most cases
+- Try `"sift_vgg"` if results are poor
+- Use `"loftr"` for challenging alignments (requires GPU)
+
+### LDDMM Process
+
+The `ldm_pair()` method handles LDDMM registration between adjacent sections:
+
+```python
+# Basic usage
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
+
+# What it does:
+# 1. Loads affine-aligned images (align1Key)
+# 2. Computes velocity fields for smooth deformation
+# 3. Iteratively optimizes matching
+# 4. Saves results with align2Key
+```
+
+**GPU Acceleration:**
+- Automatically uses GPU if available
+- Check with: `print(f"Device: {mgr.gpu}")`
+- Falls back to CPU if no GPU
+
+## Multi-Scale Registration
+
+LDDMM uses a multi-scale approach to avoid local optima:
 
 ### Registration Stages
 
-1. **Initial Affine Stage**: High v_scale and epsilon for rough alignment
-2. **Intermediate Affine Stage**: Reduced parameters for improved accuracy
-3. **Fine Affine Stage**: Further reduced parameters for precise alignment
-4. **LDDMM Stage**: Switch to LDDMM mode for nonlinear transformation optimization
-5. **Final LDDMM Stage**: Minimum epsilon for highest precision
+The algorithm progresses through multiple stages with decreasing regularization:
 
-#### Key Parameters Table
+| Stage | Purpose | v_scale | epsilon | iterations |
+|-------|---------|---------|---------|------------|
+| 1 | Coarse affine | 8.0 | 10000 | 300 |
+| 2 | Medium affine | 4.0 | 1000 | 1000 |
+| 3 | Fine affine | 1.0 | 50 | 6000 |
+| 4 | Coarse LDDMM | 1.0 | 1000 | 20000 |
+| 5 | Fine LDDMM | 1.0 | 1 | 20000 |
 
-| Stage | Do Affine | Do LDDMM | v_scale | epsilon | niter  |
-|-------|-----------|----------|---------|---------|--------|
-| 1     | 1         | 0        | 8.0     | 10000   | 300    |
-| 2     | 1         | 0        | 4.0     | 1000    | 1000   |
-| 3     | 1         | 0        | 1.0     | 50      | 6000   |
-| 4     | 0         | 1        | 1.0     | 1000    | 20000  |
-| 5     | 0         | 1        | 1.0     | 1       | 20000  |
+**Parameters:**
+- **v_scale**: Controls deformation smoothness (higher = smoother)
+- **epsilon**: Regularization strength (higher = more rigid)
+- **iterations**: Optimization steps
 
-## Implementation Details
+## Data Flow Through Registration
 
-### LDDMMRegistration Class
-
-- `run_affine()`: Execute affine registration only
-- `run()`: Complete registration process
-- `load_img(imgI, imgJ)`: Load registration images
-- `load_params()/output_params()`: Parameter serialization and deserialization
-- `apply_img(img)`: Apply transformation to new image
-- `generate_img_grid()`: Generate transformation grid for visualization
-
-### Transformation Structure
-
-- **Affine Part**: 3×3 matrix (affineA), containing rotation, scaling, and translation
-- **LDDMM Part**: Time-varying velocity field (vt0, vt1), defining nonlinear transformation
-
-Parameter structure example:
-```json
-{
-  "vt0": "velocity field x component",
-  "vt1": "velocity field y component",
-  "affineA": "3×3 affine matrix"
-}
+```
+Raw Coordinates
+    ↓
+Density Field Generation
+    ↓
+Affine Registration
+    ↓ (Slice.align1Key)
+Affine-Aligned Sections
+    ↓
+LDDMM Registration
+    ↓ (Slice.align2Key)
+Precisely Aligned Sections
+    ↓
+Export/Analysis
 ```
 
-Parameters can be saved via `output_params_path()` and loaded via `load_params_path()`, enabling transformation persistence and reuse.
+## Accessing Registration Results
 
-## Usage Examples
+### Get Transformed Points
 
-### Basic Registration
+```python
+# After affine registration
+points_affine = slice_obj.imgs[Slice.rawKey].get_points(Slice.align1Key)
 
-1. Create `LDDMMRegistration` instance
-2. Load source and target images
-3. Execute registration
-4. Apply transformation or export parameters
+# After LDDMM registration
+points_lddmm = slice_obj.imgs[Slice.rawKey].get_points(Slice.align2Key)
+```
 
-### Affine Registration Only
+### Compare Registration Quality
 
-If only linear alignment is needed, call `run_affine()`.
+```python
+import matplotlib.pyplot as plt
 
-## Integration with SpaceMap
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-The LDDMM registration system is a core component of the SpaceMap alignment workflow, typically used after feature point coarse registration and before grid transformation. The final transformation is stored in `TransformDB` and can be used for subsequent processing of various data types.
+# Original
+ax = axes[0]
+ax.scatter(points1_raw[:, 0], points1_raw[:, 1], s=1, alpha=0.3, c='red')
+ax.scatter(points2_raw[:, 0], points2_raw[:, 1], s=1, alpha=0.3, c='blue')
+ax.set_title('Before Registration')
 
----
+# After affine
+ax = axes[1]
+ax.scatter(points1_affine[:, 0], points1_affine[:, 1], s=1, alpha=0.3, c='red')
+ax.scatter(points2_affine[:, 0], points2_affine[:, 1], s=1, alpha=0.3, c='blue')
+ax.set_title('After Affine')
 
-> For reference source code and detailed implementation, please see the related source files above. 
+# After LDDMM
+ax = axes[2]
+ax.scatter(points1_lddmm[:, 0], points1_lddmm[:, 1], s=1, alpha=0.3, c='red')
+ax.scatter(points2_lddmm[:, 0], points2_lddmm[:, 1], s=1, alpha=0.3, c='blue')
+ax.set_title('After LDDMM')
+
+plt.show()
+```
+
+## Density Field Representation
+
+Space-map converts sparse cell coordinates to continuous density fields for registration:
+
+```
+Cell Coordinates → Density Field → Registration
+```
+
+**"DF" Parameter:**
+```python
+mgr.affine("DF", show=True)
+# "DF" = Density Field representation
+```
+
+This creates a grayscale image where pixel intensity represents cell density, enabling image-based registration techniques.
+
+## Advanced: Manager Classes
+
+Different managers handle the registration workflow:
+
+### AutoFlowMultiCenter4 (Recommended)
+
+```python
+mgr = spacemap.flow.AutoFlowMultiCenter4(slices, Slice.rawKey)
+```
+
+**Features:**
+- Starts from middle section
+- Processes outward in both directions
+- Better global consistency
+- Reduces error accumulation
+
+### AutoFlowMultiCenter5 (Latest)
+
+```python
+mgr = spacemap.flow.AutoFlowMultiCenter5(slices, Slice.rawKey)
+```
+
+**Features:**
+- Additional optimizations
+- Improved memory management
+- Enhanced GPU utilization
+
+### AutoFlowMultiCenter3 (Simple)
+
+```python
+mgr = spacemap.flow.AutoFlowMultiCenter3(slices)
+```
+
+**Features:**
+- Sequential processing (0→1→2→...→N)
+- Simpler implementation
+- May accumulate errors
+
+## Transformation Storage
+
+Transformations are automatically saved in the project directory:
+
+```
+{BASE}/
+└── {slice_id}/
+    ├── H/              # Affine transformation matrices
+    │   └── *.npz
+    └── grids/          # LDDMM deformation grids
+        └── *.npz
+```
+
+**Loading existing transformations:**
+```python
+# Projects automatically load saved transformations
+flowImport = spacemap.flow.FlowImport(BASE)
+slices = flowImport.slices  # Transformations restored
+```
+
+## Visualization
+
+### Enable Visualization
+
+```python
+# Show alignment progress
+mgr.affine("DF", show=True)
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
+```
+
+**What you'll see:**
+- Side-by-side section comparisons
+- Feature matches
+- Transformation grids
+- Alignment quality metrics
+
+### Disable for Speed
+
+```python
+# Faster processing without visualization
+mgr.affine("DF", show=False)
+mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=False)
+```
+
+## Performance Considerations
+
+### GPU vs CPU
+
+```python
+# Check device being used
+print(f"Using device: {mgr.gpu}")
+
+# GPU typically 10-50x faster for LDDMM
+# CPU still works but slower
+```
+
+### Memory Usage
+
+LDDMM memory usage depends on:
+- Image resolution (controlled by `spacemap.XYD`)
+- Number of iterations
+- Batch size
+
+**Reduce memory:**
+```python
+# Increase XYD (lowers resolution)
+spacemap.XYD = 20  # Default is often 10-15
+```
+
+### Processing Time
+
+Typical processing times (GPU):
+- Affine: 1-5 seconds per pair
+- LDDMM: 10-60 seconds per pair
+
+Depends on image size, complexity, and hardware.
+
+## Troubleshooting
+
+### Poor Alignment
+
+**Try different methods:**
+```python
+mgr.alignMethod = "sift_vgg"  # More robust features
+```
+
+**Adjust parameters:**
+```python
+spacemap.IMGCONF = {"raw": 0}  # Binary density field
+```
+
+### Memory Errors
+
+```python
+# Reduce resolution
+spacemap.XYD = 25
+
+# Process fewer sections
+slices_subset = slices[:5]
+```
+
+### Slow Performance
+
+```python
+# Disable visualization
+show=False
+
+# Check GPU usage
+print(f"GPU: {mgr.gpu}")
+
+# Reduce iterations (less accurate)
+# Not directly accessible - use default settings
+```
+
+## Integration with Spatial Analysis
+
+After registration, you can analyze tissue in 3D:
+
+```python
+# Get aligned coordinates
+for i, slice_obj in enumerate(slices):
+    points_3d = slice_obj.imgs[Slice.rawKey].get_points(Slice.align2Key)
+    z = i * z_spacing
+
+    # Now analyze spatially with cell types, gene expression, etc.
+```
+
+## Complete Examples
+
+See registration in action:
+- [01_quickstart.ipynb](../../examples/01_quickstart.ipynb) - Basic registration
+- [02_advanced_registration.ipynb](../../examples/02_advanced_registration.ipynb) - Quality assessment
+- [Examples page](../examples/examples.md) - More scenarios
+
+## Related Documentation
+
+- [Key Workflows](../workflow/key-workflows.md) - Overall workflow
+- [Data Management](../data/data-management.md) - Data structures
+- [Grid Transformations](../grid/grid-transformations.md) - Transformation details 

@@ -100,7 +100,7 @@ def show_layer_img(points, labels):
         rawI[i+1, :, :] = img
     return rawI
     
-def show_img(values: np.array, imgConf=None, multi=1):
+def show_img(values: np.array, imgConf=None, multi=1, xyd=None):
     if imgConf is None:
         imgConf = spacemap.IMGCONF
     kernel = imgConf.get("kernel", 0)
@@ -111,7 +111,7 @@ def show_img(values: np.array, imgConf=None, multi=1):
     gauss = imgConf.get("gauss", 0)
     
     xyrange = spacemap.XYRANGE
-    xyd = spacemap.XYD
+    xyd = xyd or spacemap.XYD
     if values[0].shape[0] == 2:
         imgsize = int(xyrange/xyd)
         img = np.zeros((imgsize, imgsize), dtype=int)
