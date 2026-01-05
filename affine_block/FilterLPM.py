@@ -80,6 +80,7 @@ class FilterLPMImg(spacemap.AffineBlock):
         return self.compute(None, None, finder)
 
     def compute(self, dfI: np.array, dfJ: np.array, finder=None):
+        return None
         matches1 = np.array(self.matches.copy())
         inputA = matches1[:, :2]
         inputB = matches1[:, 2:4]

@@ -38,36 +38,38 @@ import spacemap
 from spacemap import Slice
 import pandas as pd
 
-# Load cell coordinate data from CSV
+# Step 1: Load cell coordinate data
 df = pd.read_csv("cells.csv.gz")
-groups = df.groupby("layer")
 
-# Organize data by layers
-xys = []  # xy coordinates for each layer
-ids = []  # layer IDs
+# Step 2: Organize data by layers
+xys = []
+layer_ids = []
 
-for layer, dff in groups:
-    xy = dff[["x", "y"]].values
-    ids.append(layer)
+for layer_id in sorted(df['layer'].unique()):
+    layer_data = df[df['layer'] == layer_id]
+    xy = layer_data[['x', 'y']].values
     xys.append(xy)
+    layer_ids.append(layer_id)
 
-# Set up project
-base = "data/flow"
-flow = spacemap.flow.FlowImport(base)
-flow.init_xys(xys, ids)
-slices = flow.slices
+# Step 3: Initialize project
+BASE = "data/flow"
+flowImport = spacemap.flow.FlowImport(BASE)
+flowImport.init_xys(xys, ids=layer_ids)
+slices = flowImport.slices
 
-# Perform affine registration for coarse alignment
-mgr = spacemap.flow.AutoFlowMultiCenter3(slices)
+# Step 4: Perform affine registration (coarse alignment)
+mgr = spacemap.flow.AutoFlowMultiCenter4(slices, Slice.rawKey)
 mgr.alignMethod = "auto"
 mgr.affine("DF", show=True)
 
-# Perform LDDMM for precise alignment
+# Step 5: Perform LDDMM (fine alignment)
 mgr.ldm_pair(Slice.align1Key, Slice.align2Key, show=True)
 
-# Export results
+# Step 6: Export results
 export = spacemap.flow.FlowExport(slices)
 ```
+
+See the [Quick Start Guide](overview/quickstart.md) for a complete tutorial.
 
 ## Installation
 

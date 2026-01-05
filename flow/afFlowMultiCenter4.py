@@ -31,6 +31,7 @@ class AutoFlowMultiCenter4:
         self.slices1 = self.slices[self.cIndex:]
         self.slices2 = self.slices[:self.cIndex+1]
         self.slices2.reverse()
+        
     
     def show_err(self, imgI, imgJ2, imgJ3, tag):
         e1 = self.err.computeI(imgI, imgJ2, False)
