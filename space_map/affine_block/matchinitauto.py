@@ -30,24 +30,38 @@ class MatchInitAuto(space_map.AffineBlock):
         xyd = space_map.XYD
         conf = space_map.IMGCONF
         all_matches = []
-        def sift_match(conf, xyd, raw_xyd):
+        def sift_match(conf, xyd, raw_xyd, loftr=False):
             imgI = space_map.show_img(dfI, conf, xyd=xyd)
             imgJ = space_map.show_img(dfJ, conf, xyd=xyd)
-            matches = space_map.AffineAlignment("sift_vgg").compute(imgI, imgJ)
+            if loftr:
+                matches = space_map.matches.LOFTR().compute(imgI, imgJ)
+            else:
+                matches = space_map.AffineAlignment("sift_vgg").compute(imgI, imgJ)
             matches = matches * xyd / raw_xyd
             return matches
+        maxCount = 0
+        maxConf = {}
         for xyd_ in [xyd, xyd * 2, xyd // 2]:
             for raw in [0, 1]:
-                for kernel in [0, 1]:
-                    conf1 = conf.copy()
-                    conf1["raw"] = raw
-                    conf1["kernel"] = kernel
-                    matches = sift_match(conf1, xyd_, xyd)
-                    if matches.shape[0] > 0:
-                        all_matches.append(matches)
+                for kernel in [0, 1, 3]:
+                    for hull in [0]:
+                        conf1 = conf.copy()
+                        conf1["raw"] = raw
+                        conf1["kernel"] = kernel
+                        conf1["hull"] = hull
+                        matches = sift_match(conf1, xyd_, xyd)
+                        if matches.shape[0] > 0:
+                            if len(matches) > maxCount:
+                                maxCount = len(matches)
+                                maxConf = conf1
+                            maxConf["xyd"] = xyd_
+                            all_matches.append(matches)
         all_matches = np.concatenate(all_matches, axis=0)
+        if maxCount < 30:
+            matches = sift_match(maxConf, maxConf["xyd"], xyd, loftr=True)
+            all_matches = np.concatenate([all_matches, matches], axis=0)
         self.matches = all_matches
-        space_map.Info("Init Multi-DF-Matches finished: %d" % (len(all_matches)))
+        space_map.Info("Init Multi-DF-Matches finished: %d %s" % (len(all_matches), maxConf))
         return None
     
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):

@@ -1,5 +1,7 @@
+from this import s
 import space_map
 import numpy as np
+import pandas as pd
 import os
 import tifffile as tiff
 import cv2
@@ -63,6 +65,25 @@ class FlowExport:
             imgs.append(img)
         return np.array(imgs)
 
+    def export_dfs(self, keys_mapping, path=None):
+        dfs = []
+        for s in self.slices:
+            index = s.index
+            df = None
+            for k, v in keys_mapping.items():
+                ps = s.ps(k)
+                if df is None:
+                    df = pd.DataFrame(ps, columns=[v + "_x", v + "_y"])
+                    df["index"] = index
+                else:
+                    df[v + "_x"] = ps[:, 0]
+                    df[v + "_y"] = ps[:, 1]
+            dfs.append(df)
+        df = pd.concat(dfs, axis=0)
+        if path is not None:
+            df.to_csv(path, index=False)
+        return df
+
     def write_tiffs_imgs(self, imgs, prefix):
         imgs_ = imgs
         imgs_ *= 32
@@ -73,6 +94,10 @@ class FlowExport:
             os.makedirs(dirr)
         for i in range(imgs_.shape[0]):
             tiff.imwrite("%s_%d.tiff" % (prefix, i), imgs_[i])
+
+    def write_tiffs_dfs(self, dfs, prefix):
+        imgs = [space_map.show_img(df) for df in dfs ]
+        self.write_tiffs_imgs(imgs, prefix)
     
     def import_imgs(self, key, imgs):
         for i, img in enumerate(imgs):

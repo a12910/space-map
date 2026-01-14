@@ -155,7 +155,8 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         ldm.load_img(imgI1, imgJ2)
         imgI2 = ldm.run()
         self.show_err(imgJ2, imgI1, imgI2, sJ.index)
-        space_map.show_compare_channel(imgJ2, imgI2)
+        if show:
+            space_map.show_compare_channel(imgJ2, imgI2)
         ps = sJ.imgs["DF"].ps(toKey)
         ps2 = ldm.apply_points2d(ps, space_map.XYD)
         # ps2 = spacemap.points.fix_points(imgI1, ps2)

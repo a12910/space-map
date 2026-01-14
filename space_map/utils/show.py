@@ -101,8 +101,9 @@ def show_layer_img(points, labels):
     return rawI
     
 def show_img(values: np.array, imgConf=None, multi=1, xyd=None):
-    if imgConf is None:
-        imgConf = space_map.IMGCONF
+    
+
+    imgConf = imgConf or space_map.IMGCONF
     kernel = imgConf.get("kernel", 0)
     mid = imgConf.get("mid", 0)
     raw = imgConf.get("raw", 0)
@@ -112,6 +113,11 @@ def show_img(values: np.array, imgConf=None, multi=1, xyd=None):
     
     xyrange = space_map.XYRANGE
     xyd = xyd or space_map.XYD
+    if values.shape[0] == 0:
+        imgsize = int(xyrange/xyd)
+        img = np.zeros((imgsize, imgsize), dtype=np.uint8)
+        return img
+
     if values[0].shape[0] == 2:
         imgsize = int(xyrange/xyd)
         img = np.zeros((imgsize, imgsize), dtype=int)

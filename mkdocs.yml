@@ -21,13 +21,6 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: numpy
-            show_source: true
-  - git-revision-date-localized
 
 markdown_extensions:
   - pymdownx.highlight
@@ -43,28 +36,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Overview: overview/overview.md
-    - Installation: overview/installation.md
-    - Quick Start: overview/quickstart.md
-  - Architecture:
-    - Overview: architecture/architecture-and-core-components.md
-  - Registration:
-    - LDDMM System: registration/registration-system-(lddmm).md
-    - Grid Transformations: grid/grid-transformations.md
-  - Data Management:
-    - Flow Slice: data/data-management.md
-    - Feature Matching: feature/feature-matching.md
-  - Workflows:
-    - Key Workflows: workflow/key-workflows.md
-    - Image Alignment: alignment/image-alignment.md
-    - 3D Reconstruction: reconstruction/3d-reconstruction.md
-  - Analysis:
-    - Spatial Transcriptomics: analysis/spatial-transcriptomics-analysis.md
-  - Examples:
-    - Usage Guide: examples/usage.md
-    - Examples: examples/examples.md
-  - API Reference:
-    - Overview: api/api.md
-  - Contributing: overview/contributing.md
-  - Changelog: overview/changelog.md 
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Contributing: contributing.md 
   
