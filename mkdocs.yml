@@ -22,6 +22,22 @@ theme:
 plugins:
   - search
 
+exclude_docs: |
+  BUILDING.md
+  code.py
+  alignment/*
+  analysis/*
+  api/*
+  architecture/*
+  data/*
+  examples/*
+  feature/*
+  grid/*
+  overview/*
+  reconstruction/*
+  registration/*
+  workflow/*
+
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences

@@ -1,4 +1,3 @@
-from this import s
 import space_map
 import numpy as np
 import pandas as pd
