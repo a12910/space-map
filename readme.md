@@ -92,6 +92,23 @@ flowImport.init_from_codex('codex_data.csv')
 slices = flowImport.slices
 ```
 
+## Reproduce Results
+
+A toy dataset is included so you can verify the pipeline in ~1 minute:
+
+```bash
+git clone https://github.com/a12910/space-map.git
+cd space-map
+pip install -e .
+python benchmarks/run.py examples/toy_data.csv.gz
+```
+
+Or open the step-by-step notebook: [`benchmarks/example_notebook.ipynb`](benchmarks/example_notebook.ipynb)
+
+For the full dataset (32 layers, ~2.9M cells, ~1 hour): `python benchmarks/run.py examples/cells2.csv.gz`
+
+See [`benchmarks/README.md`](benchmarks/README.md) for details.
+
 ## Documentation
 
 - **[Quick Start Guide](https://a12910.github.io/space-map/overview/quickstart/)** - Complete tutorial
@@ -100,6 +117,7 @@ slices = flowImport.slices
 
 ### Example Notebooks
 
+- [`benchmarks/example_notebook.ipynb`](benchmarks/example_notebook.ipynb) - Reproduce alignment results
 - [`examples/01_quickstart.ipynb`](examples/01_quickstart.ipynb) - Complete beginner tutorial
 - [`examples/02_advanced_registration.ipynb`](examples/02_advanced_registration.ipynb) - Advanced techniques
 
