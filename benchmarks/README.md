@@ -8,7 +8,7 @@ Align your spatial transcriptomics serial sections with one command or one noteb
 
 ```bash
 # Install
-pip install space-map
+pip install git+https://github.com/a12910/space-map.git
 
 # Quick test with toy data (~1 minute)
 python benchmarks/run.py examples/toy_data.csv.gz
