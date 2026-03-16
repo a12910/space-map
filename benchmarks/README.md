@@ -10,7 +10,10 @@ Align your spatial transcriptomics serial sections with one command or one noteb
 # Install
 pip install space-map
 
-# Run with example data
+# Quick test with toy data (~1 minute)
+python benchmarks/run.py examples/toy_data.csv.gz
+
+# Full run with example data (~1 hour)
 python benchmarks/run.py examples/cells2.csv.gz
 
 # Run with your own data
