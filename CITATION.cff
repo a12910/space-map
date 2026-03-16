@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use Space-map in your research, please cite it as below."
+title: "Space-map: Reconstructing atlas-level single-cell 3D tissue maps from serial sections"
+type: software
+license: MIT
+url: "https://github.com/a12910/space-map"
+repository-code: "https://github.com/a12910/space-map"
+authors:
+  - family-names: Han
+    given-names: Rongduo
+    affiliation: Nankai University
+  - family-names: Zhu
+    given-names: Chenchen
+    affiliation: Stanford School of Medicine
+  - family-names: Ruan
+    given-names: Cihan
+    affiliation: Santa Clara University
+  - family-names: Snyder
+    given-names: Michael
+    affiliation: Stanford School of Medicine
+keywords:
+  - spatial-transcriptomics
+  - 3d-reconstruction
+  - tissue-mapping
+  - image-registration
+  - lddmm
