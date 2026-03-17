@@ -107,6 +107,8 @@ Or open the step-by-step notebook: [`benchmarks/example_notebook.ipynb`](benchma
 
 For the full dataset (32 layers, ~2.9M cells, ~1 hour): `python benchmarks/run.py examples/cells2.csv.gz`
 
+**Sample dataset with cell types** (20 layers, ~1.87M cells): download from [Releases](https://github.com/a12910/space-map/releases/download/v0.1.0/celltype_0427.csv.gz)
+
 See [`benchmarks/README.md`](benchmarks/README.md) for details.
 
 ## Documentation
