@@ -201,8 +201,8 @@ If you use Space-map in your research, please cite our paper:
 ```bibtex
 @article{spacemap2024,
   title={Space-map: Reconstructing atlas-level single-cell 3D tissue maps from serial sections},
-  author={Han, Rongduo and Zhu, Chenchen and Ruan, Cihan and ...},
-  journal={...},
+  author={Han, Rongduo and Zhu, Chenchen and Ruan, Cihan and Snyder, Michael},
+  journal={Nature Methods (under review)},
   year={2024}
 }
 ```

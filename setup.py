@@ -55,7 +55,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.9",
     keywords="spatial-transcriptomics 3d-reconstruction tissue-mapping image-registration lddmm codex xenium",
     license="MIT",
     include_package_data=True,
