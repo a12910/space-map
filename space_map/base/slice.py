@@ -135,7 +135,7 @@ class SliceImg:
                 self.save_img(img1, toKey)
         
     @staticmethod
-    def load_config(path, projectf) -> dict[str: 'SliceImg']:
+    def load_config(path, projectf):
         if os.path.exists(path):
             with open(path, "r") as f:
                 text = f.read()
