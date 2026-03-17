@@ -169,7 +169,7 @@ class Slice:
     enhanceKey = "enhance"
     
     def __init__(self, index, projectf=None, first=False):
-        self.imgs: dict[str: SliceImg] = {}
+        self.imgs = {}
         self.index = str(index)
         self.projectf = space_map.BASE if projectf is None else projectf
         self.data = SliceData(index, self.projectf)

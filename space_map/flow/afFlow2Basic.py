@@ -1,3 +1,4 @@
+from __future__ import annotations
 import space_map
 from space_map import Slice
 import numpy as np

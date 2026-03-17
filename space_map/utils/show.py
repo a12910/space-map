@@ -50,7 +50,7 @@ def show_xy_np(nps: [np.array], labels: [str],
         fig.savefig(path, transparent=transparent)
     plt.show()
 
-def show_xy(dfs: list[pd.DataFrame], labels: list[str], 
+def show_xy(dfs, labels,
             keyx: str="x", keyy: str="y", 
             xylim=None, s=1, alpha=0.2):
     nps = []

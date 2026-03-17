@@ -1,3 +1,4 @@
+from __future__ import annotations
 import space_map
 import numpy as np
 import pandas as pd

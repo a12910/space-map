@@ -139,7 +139,7 @@ def merge_label(df, label, start, end):
         df1.loc[df1["layer"] == i, "cell_type"] = label[label["layer"] == i]["cell_type"]
     return df1
 
-def compare_workflow(dfs: dict[str:pd.DataFrame], start, end, 
+def compare_workflow(dfs, start, end,
                      err: space_map.AffineFinder=None):
     """ 比较不同df之间相邻层的评分 """
     if err is None:
