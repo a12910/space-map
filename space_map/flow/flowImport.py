@@ -12,7 +12,7 @@ class FlowImport:
         self.ratio = 1.4
         self.auto_init()
         
-    def init_xys(self, xys: list[np.array], ids=None) -> None:
+    def init_xys(self, xys: list[np.array], ids=None, norm=True) -> None:
         size = 0
         for i, s in enumerate(xys):
             sX, sY = s[:, 0], s[:, 1]
@@ -22,8 +22,11 @@ class FlowImport:
         targetSize = (int(size * self.ratio / 1000)) * 1000
         for i, s in enumerate(xys):
             # mid = np.mean(s, axis=0)
-            mid = np.max(s, axis=0) / 2 + np.min(s, axis=0) / 2
-            xys2.append(targetSize // 2 + s - mid)
+            if norm:
+                mid = np.max(s, axis=0) / 2 + np.min(s, axis=0) / 2
+                xys2.append(targetSize // 2 + s - mid)
+            else:
+                xys2.append(s)
         space_map.XYRANGE = targetSize
         xyd = int(targetSize / 400 / 5) * 5 + 5
         space_map.XYD = xyd

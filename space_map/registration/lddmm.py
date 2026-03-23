@@ -2,10 +2,13 @@ import space_map
 from .base import Registration
 import numpy as np
 from . import LDDMM2D
+from . import LDDMM2DFast
+# from . import LDDMM2DSuper
 
 
 def lddmm_main(ldm, err=0.1):
     """ J -> I """
+    ldm.setParams('adam_alpha', 0.5)
     ldm.setParams('do_lddmm', 0)
     ldm.setParams('do_affine', 1)
     ldm.setParams('v_scale', 8.0)
@@ -70,11 +73,12 @@ import torch.jit
 class LDDMMRegistration(Registration):
     nt=5
     verbose=100
+    backend = LDDMM2DFast
     def __init__(self):
         super().__init__("LDDMM")
         self.imgI = None
         self.imgJ = None
-        self.ldm: space_map.LDDMM2D = None
+        self.ldm = None
         self.gpu = space_map.DEVICE
         self.err = 0.1
         self.verbose = LDDMMRegistration.verbose
@@ -102,12 +106,16 @@ class LDDMMRegistration(Registration):
             # continue
             space_map.Info("LDDMM continue device: %s" % self.gpu)
             lddmm_main2(self.ldm, err=self.err)
-            
+        return self.ldm.result
+
     def _get_init(self, restart=False):
         do_l = 0 if restart else 1
-        self.ldm = LDDMM2D(template=self.imgJ, 
-                           target=self.imgI, do_affine=1,do_lddmm=do_l, 
-                           nt=LDDMMRegistration.nt,optimizer='adam', sigma=20.0,sigmaR=20.0, gpu_number=self.gpu, target_err=0.1,verbose=self.verbose, target_step=20000, show_init=False)
+        cls = self.backend
+        self.ldm = cls(template=self.imgJ, 
+                       target=self.imgI, do_affine=1, do_lddmm=do_l, 
+                       nt=LDDMMRegistration.nt, optimizer='adam', sigma=20.0, sigmaR=80.0,
+                       gpu_number=self.gpu, target_err=0.1, verbose=self.verbose,
+                       target_step=20000, show_init=False)
 
     def load_params_path(self, path):
         path = path + ".npz"
@@ -149,7 +157,7 @@ class LDDMMRegistration(Registration):
     def apply_points2d(self, points):
         if self.ldm is None:
             raise Exception("LDDMMRegistration: ldm is None")
-        pass
+        return self.ldm.apply_points2d(points, space_map.XYD)
 
     def apply_img(self, img):
         if self.ldm is None:

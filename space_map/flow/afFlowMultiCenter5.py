@@ -149,18 +149,27 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
                                 mchannel=False, scale=True, fixHe=True)
         imgJ2 = sJ.create_img(useKey, toKey,
                                 mchannel=False, scale=True, fixHe=True)
-        ldm = space_map.registration.SVFLDDMM()
+        ldm = space_map.registration.LDDMMRegistration()
         ldm.device = space_map.DEVICE
-        ldm.grid_size = (8, 8)
+        # ldm.grid_size = (8, 8)
         imgI1 = self.create_last_merge(imgI1)
-        ldm.load_img(imgI1, imgJ2)
+        # ldm.load_img(imgI1, imgJ2)
+        ldm.err = 0.01
+        ldm.load_img(imgJ2, imgI1)
         imgI2 = ldm.run()
         self.show_err(imgJ2, imgI1, imgI2, sJ.index)
+
         if show:
             space_map.show_compare_channel(imgJ2, imgI2)
         ps = sJ.imgs["DF"].ps(toKey)
-        ps2 = ldm.apply_points2d(ps, space_map.XYD)
-        # ps2 = spacemap.points.fix_points(imgI1, ps2)
+        # ps2 = ldm.apply_points2d(ps)
+        # ps2 = space_map.points.fix_points(imgI1, ps2)
+
+        grid = ldm.generate_img_grid()
+        N = imgI1.shape[1]
+        grid = grid.reshape((N, N, 2))
+        ps2, _ = space_map.points.apply_points_by_grid(grid, ps, grid)
+
         sJ.imgs["DF"].save_points(ps2, toKey)
         imgJ1 = space_map.show_img(ps2)
         self.last_imgs.append(imgJ1)
@@ -181,14 +190,14 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         
         self.last_imgs = []
         for i in range(len(self.slices1) - 1):
-            space_map.XYD = self.rawXYD
+            space_map.XYD = self.rawXYD // 2
             self._ldm_pair(i, i+1, self.slices1, toKey, False)
             if show:
                 self.show_align(self.slices1[i], self.slices1[i+1], SliceImg.DF, toKey, toKey)
                 
         self.last_imgs = []
         for i in range(len(self.slices2) - 1):
-            space_map.XYD = self.rawXYD
+            space_map.XYD = self.rawXYD // 2
             self._ldm_pair(i, i+1, self.slices2, toKey, False)
             if show:
                 self.show_align(self.slices2[i], self.slices2[i+1], SliceImg.DF, toKey, toKey)

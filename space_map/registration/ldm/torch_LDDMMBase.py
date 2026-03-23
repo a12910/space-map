@@ -4,7 +4,7 @@ import scipy.linalg
 import time
 import sys
 import os
-import distutils.version
+from packaging import version as pkg_version
 import nibabel as nib
 import space_map
 
@@ -48,11 +48,18 @@ def mygaussian_3d_torch_selectcenter_meshgrid(X,Y,Z,sigma=1,center_x=0,center_y=
     #out_mat = out_mat / torch.sum(out_mat)
     return out_mat
 
-def grid_sample(*args,**kwargs):
-    if distutils.version.LooseVersion(torch.__version__) < distutils.version.LooseVersion("1.3.0"):
-        return torch.nn.functional.grid_sample(*args,**kwargs)
+_TORCH_GE_13 = pkg_version.parse(torch.__version__) >= pkg_version.parse("1.3.0")
+_TORCH_GE_18 = pkg_version.parse(torch.__version__) >= pkg_version.parse("1.8.0")
+
+def grid_sample(*args, **kwargs):
+    # MPS doesn't support 'border' padding mode, use 'zeros' instead
+    if 'padding_mode' in kwargs and kwargs['padding_mode'] == 'border':
+        if len(args) > 0 and args[0].device.type == 'mps':
+            kwargs['padding_mode'] = 'zeros'
+    if _TORCH_GE_13:
+        return torch.nn.functional.grid_sample(*args, **kwargs, align_corners=True)
     else:
-        return torch.nn.functional.grid_sample(*args,**kwargs,align_corners=True)
+        return torch.nn.functional.grid_sample(*args, **kwargs)
 
 def _fillGrid(grid):
     if isinstance(grid, np.ndarray):
@@ -64,19 +71,18 @@ def _fillGrid(grid):
     return grid
 
 def irfft(mat,dim,onesided=False):
-    if distutils.version.LooseVersion(torch.__version__) < distutils.version.LooseVersion("1.8.0"):
+    if not _TORCH_GE_18:
         return torch.irfft(mat,dim,onesided=onesided)
     else:
         return torch.fft.irfftn(mat,s=mat.shape)
 
 def rfft(mat,dim,onesided=False):
-    if distutils.version.LooseVersion(torch.__version__) < distutils.version.LooseVersion("1.8.0"):
+    if not _TORCH_GE_18:
         return torch.rfft(mat,dim,onesided=onesided)
     else:
         return torch.fft.fftn(mat)
     
-        
-import torch
+
 
 class JTensor(torch.nn.Module):
     def __init__(self, device):
@@ -92,7 +98,7 @@ class LDDMMBase:
                  a=5.0,p=2,niter=100,epsilon=5e-3,epsilonL=1.0e-7,epsilonT=2.0e-5,sigma=2.0,sigmaR=1.0,
                  nt=5,do_lddmm=1,do_affine=0,checkaffinestep=0,optimizer='gd',
                  sg_mask_mode='ones',sg_rand_scale=1.0,sg_sigma=1.0,sg_climbcount=1,sg_holdcount=1,sg_gamma=0.9,
-                 adam_alpha=0.1,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
+                 adam_alpha=0.5,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
                  rms_rho=0.9,rms_epsilon=1e-8,rms_alpha=0.001,maxclimbcount=3,savebestv=False, rmlambda=1.0,
                  minenergychange = 0.000001,minbeta=1e-4,dtype='float',im_norm_ms=0,
                  slice_alignment=0,energy_fraction=0.02,energy_fraction_from=0,
@@ -253,7 +259,8 @@ class LDDMMBase:
         
             print('\n')
             if template is None:
-                print('WARNING: template file name is not set. Use LDDMM.setParams(\'template\',filename\/array).\n')
+                pass
+                # print('WARNING: template file name is not set. Use LDDMM.setParams(\'template\',filename\/array).\n')
             elif isinstance(template,np.ndarray):
                 print('>    template        = numpy.ndarray\n')
             elif isinstance(template,list) and isinstance(template[0],np.ndarray):
@@ -267,7 +274,8 @@ class LDDMMBase:
                 print('>    template        = ' + str(template) + '\n')
             
             if target is None:
-                print('WARNING: target file name is not set. Use LDDMM.setParams(\'target\',filename\/array).\n')
+                pass
+                # print('WARNING: target file name is not set. Use LDDMM.setParams(\'target\',filename\/array).\n')
             elif isinstance(target,np.ndarray):
                 print('>    target          = numpy.ndarray\n')
             elif isinstance(target,list) and isinstance(target[0],np.ndarray):
@@ -311,28 +319,16 @@ class LDDMMBase:
         self.willUpdate = None
         
     def tensor(self, t):
-        if isinstance(t, np.ndarray) or isinstance(t, float):
+        if isinstance(t, (np.ndarray, float)):
             t = torch.tensor(t)
-        # elif isinstance(t, torch.Tensor):
-        #     t = t.clone()
         if isinstance(t, torch.Tensor):
             if self._JT is None:
                 self._JT = torch.jit.script(JTensor(self.params['cuda']))
             return self._JT(t)
-            # return t.type(self.params['dtype']).to(device=self.params['cuda'])
-        return t
         return t
     
     def tensor_ncp(self, t):
-        if isinstance(t, np.ndarray) or isinstance(t, float):
-            t = torch.tensor(t)
-        if isinstance(t, torch.Tensor):
-            if self._JT is None:
-                self._JT = torch.jit.script(JTensor(self.params['cuda']))
-            return self._JT(t)
-            # return t.type(self.params['dtype']).to(device=self.params['cuda'])
-        return t
-        return t
+        return self.tensor(t)
     
     # manual edit parameter
     def setParams(self,parameter_name,parameter_value):
@@ -366,42 +362,22 @@ class LDDMMBase:
         
         return
     
-        # image loader
-    def loadImage(self, filename,im_norm_ms=0):
+    def loadImage(self, filename, im_norm_ms=0):
         fname, fext = os.path.splitext(filename)
-        if fext == '.img' or fext == '.hdr':
-            img_struct = nib.load(fname + '.img')
-            spacing = img_struct.header['pixdim'][1:4]
-            size = img_struct.header['dim'][1:4]
-            image = np.squeeze(img_struct.get_data().astype(np.float32))
-            if im_norm_ms == 1:
-                if np.std(image) != 0:
-                    image = torch.tensor((image - np.mean(image)) / np.std(image)).type(self.params['dtype']).to(device=self.params['cuda'])
-
-                else:
-                    image = torch.tensor((image - np.mean(image)) ).type(self.params['dtype']).to(device=self.params['cuda'])
-                    # print('WARNING: stdev of image is zero, not rescaling.')
-            else:
-                image = torch.tensor(image).type(self.params['dtype']).to(device=self.params['cuda'])
-            return (image, spacing, size)
-        elif fext == '.nii':
-            img_struct = nib.load(fname + '.nii')
-            spacing = img_struct.header['pixdim'][1:4]
-            size = img_struct.header['dim'][1:4]
-            image = np.squeeze(img_struct.get_data().astype(np.float32))
-            if im_norm_ms == 1:
-                if np.std(image) != 0:
-                    image = torch.tensor((image - np.mean(image)) / np.std(image)).type(self.params['dtype']).to(device=self.params['cuda'])
-
-                else:
-                    image = torch.tensor((image - np.mean(image)) ).type(self.params['dtype']).to(device=self.params['cuda'])
-                    # print('WARNING: stdev of image is zero, not rescaling.')
-            else:
-                image = torch.tensor(image).type(self.params['dtype']).to(device=self.params['cuda'])
-            return (image, spacing, size)
-        else:
+        supported = {'.img': fname + '.img', '.hdr': fname + '.img', '.nii': fname + '.nii'}
+        if fext not in supported:
             print('File format not supported.\n')
-            return (-1,-1,-1)
+            return (-1, -1, -1)
+        img_struct = nib.load(supported[fext])
+        spacing = img_struct.header['pixdim'][1:4]
+        size = img_struct.header['dim'][1:4]
+        image = np.squeeze(img_struct.get_data().astype(np.float32))
+        if im_norm_ms == 1:
+            std = np.std(image)
+            image = image - np.mean(image)
+            if std != 0:
+                image = image / std
+        return (self.tensor(image), spacing, size)
     
     # helper function to check parameters before running registration
     def _checkParameters(self):
