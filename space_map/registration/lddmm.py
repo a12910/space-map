@@ -8,7 +8,7 @@ from . import LDDMM2DFast
 
 def lddmm_main(ldm, err=0.1):
     """ J -> I """
-    ldm.setParams('adam_alpha', 0.5)
+    # ldm.setParams('adam_alpha', 0.5)
     ldm.setParams('do_lddmm', 0)
     ldm.setParams('do_affine', 1)
     ldm.setParams('v_scale', 8.0)

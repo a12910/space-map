@@ -100,9 +100,9 @@ def grid_sample_points_vectorized(points, phi, xyd=10):
     bottom_interp = (1 - x_ratio) * bottom_left + x_ratio * bottom_right
     interpolated = (1 - y_ratio) * top_interp + y_ratio * bottom_interp
 
-    interpolated = (interpolated + 1) / 2 * xymax
-    interpolated[:, [0, 1]] = interpolated[:, [1, 0]]  # 交换 x, y 坐标
-    result = (interpolated - xymax / 2) * ((size - 2) / size) + xymax / 2
+    interpolated = (interpolated + 1) / 2 * (size * xyd)
+    interpolated[:, [0, 1]] = interpolated[:, [1, 0]]
+    result = interpolated
     return result
 
 def points_to_grid(ps, xyd):

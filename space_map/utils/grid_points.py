@@ -41,9 +41,9 @@ def _grid_sample_points_vectorized(points, phi, xyd=10):
     bottom_interp = (1 - x_ratio) * bottom_left + x_ratio * bottom_right
     interpolated = (1 - y_ratio) * top_interp + y_ratio * bottom_interp
 
-    interpolated = (interpolated + 1) / 2 * xymax
-    interpolated[:, [0, 1]] = interpolated[:, [1, 0]]  # 交换 x, y 坐标
-    result = (interpolated - xymax / 2) * ((size - 2) / size) + xymax / 2
+    interpolated = (interpolated + 1) / 2 * (size * xyd)
+    interpolated[:, [0, 1]] = interpolated[:, [1, 0]]
+    result = interpolated
     return result
 
 def _fill_nan(nan_mask, arr0, v, edge_width):
@@ -208,3 +208,15 @@ def export_grid_use_points(dfRaw, dfAlign, layerFrom, layerTo,
     if outPath is not None:
         np.savez_compressed(outPath, **pack)
     return pack
+
+
+def fix_center_points(xys):
+    min_xy = np.min([np.min(xy, axis=0) for xy in xys], axis=0)
+    max_xy = np.max([np.max(xy, axis=0) for xy in xys], axis=0)
+    xy_range = max(max_xy - min_xy)
+    min_xy -= xy_range * 0.05
+    max_xy -= min_xy
+    max_xy += xy_range * 0.05
+    xys = [xy - min_xy for xy in xys]
+    xyrange = max(max_xy) // 100 * 100 + 100
+    return xys, xyrange

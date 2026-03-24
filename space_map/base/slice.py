@@ -40,10 +40,14 @@ class SliceImg:
         return self.get_points(dfk)
     
     def get_points(self, key):
-        path = "%s/outputs/%s_%s_%s.csv.gz" % (self.projectf, self.index, self.imgKey, key)
-        if os.path.exists(path):
-            df = pd.read_csv(path)
+        path1 = "%s/outputs/%s_%s_%s.csv.gz" % (self.projectf, self.index, self.imgKey, key)
+        path2 = "%s/outputs/%s_%s_%s.npy" % (self.projectf, self.index, self.imgKey, key)
+        if os.path.exists(path1):
+            df = pd.read_csv(path1)
             return df[["x", "y"]].values
+        elif os.path.exists(path2):
+            points = np.load(path2)[:, :2]
+            return points
         elif key == Slice.rawKey:
             raise Exception("no Data")
         else:
@@ -81,9 +85,11 @@ class SliceImg:
         
     def save_points(self, points, key):
         space_map.Info("SliceImg Save Points %s-%s:%s" % (self.index, self.imgKey, key))
-        path = "%s/outputs/%s_%s_%s.csv.gz" % (self.projectf, self.index, self.imgKey, key)
-        df = pd.DataFrame(data=points, columns=["x", "y"])
-        df.to_csv(path, index=False)
+        # path = "%s/outputs/%s_%s_%s.csv.gz" % (self.projectf, self.index, self.imgKey, key)
+        # df = pd.DataFrame(data=points, columns=["x", "y"])
+        # df.to_csv(path, index=False)
+        path = "%s/outputs/%s_%s_%s.npy" % (self.projectf, self.index, self.imgKey, key)
+        np.save(path, points)
 
     @staticmethod
     def applyH_ps(ps, H):

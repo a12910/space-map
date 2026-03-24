@@ -185,8 +185,11 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         """ customFunc: ([Slice], index, dfKey) -> img """
         space_map.Info("LDMMgrMulti: Start LDM Pair")
 
-        for s in self.slices:
-            s.applyH(fromKey, None, toKey)
+        xys = [s.ps(fromKey) for s in self.slices]
+        xys, xyrange = space_map.utils.grid_points.fix_center_points(xys)
+        space_map.XYRANGE = xyrange
+        for i, s in enumerate(self.slices):
+            s.save_value_points(xys[i], toKey)
         
         self.last_imgs = []
         for i in range(len(self.slices1) - 1):

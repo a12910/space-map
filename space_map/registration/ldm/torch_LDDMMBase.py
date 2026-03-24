@@ -98,7 +98,7 @@ class LDDMMBase:
                  a=5.0,p=2,niter=100,epsilon=5e-3,epsilonL=1.0e-7,epsilonT=2.0e-5,sigma=2.0,sigmaR=1.0,
                  nt=5,do_lddmm=1,do_affine=0,checkaffinestep=0,optimizer='gd',
                  sg_mask_mode='ones',sg_rand_scale=1.0,sg_sigma=1.0,sg_climbcount=1,sg_holdcount=1,sg_gamma=0.9,
-                 adam_alpha=0.5,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
+                 adam_alpha=0.1,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
                  rms_rho=0.9,rms_epsilon=1e-8,rms_alpha=0.001,maxclimbcount=3,savebestv=False, rmlambda=1.0,
                  minenergychange = 0.000001,minbeta=1e-4,dtype='float',im_norm_ms=0,
                  slice_alignment=0,energy_fraction=0.02,energy_fraction_from=0,

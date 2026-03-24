@@ -51,8 +51,11 @@ class AutoFlowMultiCenter3(AutoFlowMultiCenter2):
 
         space_map.Info("LDMMgrMulti: Start LDM Pair")
 
-        for s in self.slices:
-            s.applyH(fromKey, None, toKey)
+        xys = [s.ps(fromKey) for s in self.slices]
+        xys, xyrange = space_map.utils.grid_points.fix_center_points(xys)
+        space_map.XYRANGE = xyrange
+        for i, s in enumerate(self.slices):
+            s.save_value_points(xys[i], toKey)
         
         for i in range(len(self.slices1) - 1):
             for ste in range(self.xydSteps):
