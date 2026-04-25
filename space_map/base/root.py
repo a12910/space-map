@@ -29,11 +29,16 @@ IMGCONF_CMP = {"raw": 0, "kernel": 3, "hull": 1}
 BASE = "data/flow"
 APPEND = np.array([0, 0])
 
-DEVICE = "cpu"
+import torch as _torch
 
-import torch
-if torch.cuda.is_available():
-    DEVICE = 0
+def _detect_device():
+    if _torch.cuda.is_available():
+        return "cuda:0"
+    if _torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+DEVICE = _detect_device()
 
 LAYER_START = 0
 LAYER_END = 0

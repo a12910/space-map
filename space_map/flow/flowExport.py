@@ -54,15 +54,18 @@ class FlowExport:
             np.savez_compressed(save, **pack)
         return pack
 
-    def write_tiffs(self, dfKey, key, prefix):
-        imgs_ = self.export_imgs(dfKey, key, mchannel=False, he=False, scale=False)
+    def write_tiffs(self, dfKey, key, prefix, center=False):
+        imgs_ = self.export_imgs(dfKey, key, mchannel=False, he=False, scale=False, center=center)
         self.write_tiffs_imgs(imgs_, prefix)
     
-    def export_imgs(self, dfKey, key, mchannel=True, he=False, scale=False):
-        imgs = []
-        for s in self.slices:
-            img = s.get_img(dfKey, key, mchannel=mchannel, scale=scale, fixHe=he)
-            imgs.append(img)
+    def export_imgs(self, dfKey, key, mchannel=True, he=False, scale=False, center=False):
+        if center and dfKey == "DF":
+            xys = np.concatenate([s.ps(key) for s in self.slices])
+            mid = np.mean(xys, axis=0)
+            xys = [np.array(s.ps(key)) - mid + space_map.XYRANGE / 2 for s in self.slices]
+            imgs = [space_map.show_img(xy) for xy in xys]
+        else:
+            imgs = [s.get_img(dfKey, key, mchannel=mchannel, scale=scale, fixHe=he) for s in self.slices]
         return np.array(imgs)
 
     def export_dfs(self, keys_mapping, path=None):

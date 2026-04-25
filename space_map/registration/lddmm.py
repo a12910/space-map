@@ -113,7 +113,7 @@ class LDDMMRegistration(Registration):
         cls = self.backend
         self.ldm = cls(template=self.imgJ, 
                        target=self.imgI, do_affine=1, do_lddmm=do_l, 
-                       nt=LDDMMRegistration.nt, optimizer='adam', sigma=20.0, sigmaR=80.0,
+                       nt=LDDMMRegistration.nt, optimizer='adam', sigma=20.0, sigmaR=10.0,
                        gpu_number=self.gpu, target_err=0.1, verbose=self.verbose,
                        target_step=20000, show_init=False)
 

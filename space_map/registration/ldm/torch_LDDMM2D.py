@@ -26,13 +26,13 @@ def unsqueeze2(I):
 
 def get_init2D(imgI, imgJ, gpu=None, verbose=100):
     """ img: J -> I """
-    if gpu is None and space_map.DEVICE != "cpu":
+    if gpu is None:
         gpu = space_map.DEVICE
     ldm = LDDMM2D(template=imgJ,target=imgI,
                               do_affine=1,do_lddmm=0,
                               nt=7,
                               optimizer='adam',
-                              sigma=20.0,sigmaR=40.0,
+                              sigma=20.0,sigmaR=20.0,
                               gpu_number=gpu,
                               target_err=0.1,
                               verbose=verbose,

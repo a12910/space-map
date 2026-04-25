@@ -2,7 +2,9 @@ from __future__ import annotations
 import space_map
 from space_map import Slice, SliceImg
 import numpy as np
+import cv2
 import os
+import matplotlib.pyplot as plt
 from .afFlowMultiCenter4 import AutoFlowMultiCenter4
 
 
@@ -14,6 +16,7 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         super().__init__(slices, initJKey, alignMethod, gpu)
         self.affine_skip=True
         self.keep_1 = False
+        self.xydSteps = 3
 
     def _affine_run(self, S1, S2, useKey, i, show, initS, key):
         img1 = S1.create_img(useKey, self.initJKey, fixHe=True)
@@ -138,10 +141,22 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         if len(self.last_imgs) == 0 or self.last_img_ratio == 0.0:
             return newI
         lasts = np.array(self.last_imgs)
-        newI = self.last_img_ratio * np.mean(lasts, axis=0) + (1 - self.last_img_ratio) * newI
-        return newI
+        lasts1 = np.zeros((lasts.shape[1], lasts.shape[2]))
+        ratio_sum = 0.0
+        for i in range(lasts.shape[0]):
+            ratio = self.last_img_ratio ** (lasts.shape[0] - i - 1)
+            lasts1 += lasts[i] * ratio
+            ratio_sum += ratio
+        if lasts1.shape != newI.shape:
+            lasts1 = lasts1.astype(np.uint8)
+            lasts1 = cv2.resize(lasts1, (newI.shape[1], newI.shape[0]))
+            lasts1 = lasts1.astype(np.float32)
+        lasts1 += newI
+        ratio_sum += 1.0
+        lasts1 /= ratio_sum
+        return lasts1
 
-    def _ldm_pair(self, indexI, indexJ, slices, toKey, show=False):
+    def _ldm_pair(self, indexI, indexJ, slices, toKey, targetErr, show=False):
         sI = slices[indexI]
         sJ = slices[indexJ]
         useKey = SliceImg.DF
@@ -172,7 +187,6 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
 
         sJ.imgs["DF"].save_points(ps2, toKey)
         imgJ1 = space_map.show_img(ps2)
-        self.last_imgs.append(imgJ1)
         # spacemap.utils.show_flow.analyze_distortion(ldm.mgr.flow, title=f"High Res Loss + Low Res Grid Result")
         if not show:
             return
@@ -190,44 +204,73 @@ class AutoFlowMultiCenter5(AutoFlowMultiCenter4):
         space_map.XYRANGE = xyrange
         for i, s in enumerate(self.slices):
             s.save_value_points(xys[i], toKey)
+
+        # for i in range(len(self.slices1) - 1):
+        #     for ste in range(self.xydSteps):
+        #         space_map.XYD = self.XYDs[ste]
+        #         _ldm_pair(i, i+1, self.slices1, 0.1**ste, False)
+        #     if show:
+        #         self.show_align(self.slices1[i], self.slices1[i+1], 
+        #                     SliceImg.DF, toKey, toKey)
+        # for i in range(len(self.slices2) - 1):
+        #     for ste in range(self.xydSteps):
+        #         space_map.XYD = self.XYDs[ste]
+        #         _ldm_pair(i, i+1, self.slices2, 0.1**ste, False)
+        #     if show:
+        #         self.show_align(self.slices2[i], self.slices2[i+1], 
+        #                     SliceImg.DF, toKey, toKey)
         
         self.last_imgs = []
+        self.rawXYD = space_map.XYD
+        XYDs = [self.rawXYD * 2, self.rawXYD, self.rawXYD // 2]
+        lastImg = None
         for i in range(len(self.slices1) - 1):
-            space_map.XYD = self.rawXYD // 2
-            self._ldm_pair(i, i+1, self.slices1, toKey, False)
+            for ste in range(self.xydSteps):
+                space_map.XYD = XYDs[ste]
+                lastImg = self._ldm_pair(i, i+1, self.slices1, toKey, 0.1**ste, False)
             if show:
                 self.show_align(self.slices1[i], self.slices1[i+1], SliceImg.DF, toKey, toKey)
+            lastPS = self.slices1[i+1].ps(toKey)
+            lastImg = space_map.show_img(lastPS)
+            # self.last_imgs.append(lastImg)
+            self.last_imgs = [lastImg]
                 
         self.last_imgs = []
         for i in range(len(self.slices2) - 1):
-            space_map.XYD = self.rawXYD // 2
-            self._ldm_pair(i, i+1, self.slices2, toKey, False)
+            for ste in range(self.xydSteps):
+                space_map.XYD = XYDs[ste]
+                lastImg = self._ldm_pair(i, i+1, self.slices2, toKey, 0.1**ste, False)
             if show:
                 self.show_align(self.slices2[i], self.slices2[i+1], SliceImg.DF, toKey, toKey)
+            lastPS = self.slices1[i+1].ps(toKey)
+            lastImg = space_map.show_img(lastPS)
+            # self.last_imgs.append(lastImg)
+            self.last_imgs = [lastImg]
+
         space_map.XYD = self.rawXYD
         space_map.Info("LDMMgrMulti: Finish LDM Pair")
 
-    def ldm_global(self, fromKey, toKey):
-        imgs = []
-        for s in self.slices:
-            img = s.create_img(SliceImg.DF, fromKey,
-                                mchannel=False, scale=True, fixHe=True)
-            imgs.append(img)
-        m = space_map.registration.SVFLDDMM()
-        imgs_, flow_ = m.run_global(imgs)
-        imgs2 = []
-        for i, s in enumerate(self.slices):
-            ps = s.imgs["DF"].ps(fromKey)
-            flow = flow_[i]
-            ps2 = m.apply_points2d(ps, space_map.XYD, flow)
-            # ps2 = spacemap.points.fix_points(imgs_[i], ps2)
-            s.imgs["DF"].save_points(ps2, toKey)
-            imgs2.append(space_map.show_img(ps2))
+    # def ldm_global(self, fromKey, toKey):
+    #     imgs = []
+    #     for s in self.slices:
+    #         img = s.create_img(SliceImg.DF, fromKey,
+    #                             mchannel=False, scale=True, fixHe=True)
+    #         imgs.append(img)
+    #     m = space_map.registration.SVFLDDMM()
+    #     imgs_, flow_ = m.run_global(imgs)
+    #     imgs2 = []
+    #     for i, s in enumerate(self.slices):
+    #         ps = s.imgs["DF"].ps(fromKey)
+    #         flow = flow_[i]
+    #         ps2 = m.apply_points2d(ps, space_map.XYD, flow)
+    #         # ps2 = spacemap.points.fix_points(imgs_[i], ps2)
+    #         s.imgs["DF"].save_points(ps2, toKey)
+    #         imgs2.append(space_map.show_img(ps2))
 
-        for i in range(len(imgs_) - 1):
-            e1 = self.err.computeI(imgs[i], imgs[i+1], False)
-            e2 = self.err.computeI(imgs2[i], imgs2[i+1], False)
-            space_map.Info("Err LDMGlobal %d: %.5f->%.5f" % (i, e1, e2))
+    #     for i in range(len(imgs_) - 1):
+    #         e1 = self.err.computeI(imgs[i], imgs[i+1], False)
+    #         e2 = self.err.computeI(imgs2[i], imgs2[i+1], False)
+    #         space_map.Info("Err LDMGlobal %d: %.5f->%.5f" % (i, e1, e2))
     
     def cpd_affine(self, show=True):
         from ..affine_block import CPDAffine

@@ -18,8 +18,6 @@ class AutoFlowMultiCenter4:
         self.ldmKey = Slice.align2Key
         self.continueStart = 0
         self.gpu=space_map.DEVICE
-        if space_map.DEVICE == "cpu":
-            self.gpu = None
         self.finalKey = Slice.finalKey
         self.enhanceKey = Slice.enhanceKey
         self.err = space_map.find.default()

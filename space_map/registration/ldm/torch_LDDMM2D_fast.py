@@ -118,7 +118,7 @@ def _gradient2d_fast(
 
 def get_init2D_fast(imgI, imgJ, gpu=None, verbose=100):
     """img: J -> I. Drop-in replacement for get_init2D."""
-    if gpu is None and space_map.DEVICE != "cpu":
+    if gpu is None:
         gpu = space_map.DEVICE
     ldm = LDDMM2DFast(
         template=imgJ, target=imgI,

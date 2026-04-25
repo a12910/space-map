@@ -20,6 +20,7 @@ class LastImgStore(space_map.AffineBlock):
         self.lastH = np.eye(3)
 
         self.weight = [0.2, 0.2, 0.2, 0.4] # edge_loss, sim_loss, last_sim, affine_loss
+        # self.weight = [1.0, 1.0, 0.0, 0.0]
         
     def compute_img(self, imgI: np.array, imgJ: np.array, finder=None):
         self.finder = finder

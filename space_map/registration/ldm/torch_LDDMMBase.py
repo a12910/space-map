@@ -95,7 +95,7 @@ class JTensor(torch.nn.Module):
     
 class LDDMMBase:
     def __init__(self,template=None,target=None,costmask=None,outdir='./',gpu_number=0,
-                 a=5.0,p=2,niter=100,epsilon=5e-3,epsilonL=1.0e-7,epsilonT=2.0e-5,sigma=2.0,sigmaR=1.0,
+                 a=10.0,p=2,niter=100,epsilon=5e-3,epsilonL=1.0e-7,epsilonT=2.0e-5,sigma=2.0,sigmaR=1.0,
                  nt=5,do_lddmm=1,do_affine=0,checkaffinestep=0,optimizer='gd',
                  sg_mask_mode='ones',sg_rand_scale=1.0,sg_sigma=1.0,sg_climbcount=1,sg_holdcount=1,sg_gamma=0.9,
                  adam_alpha=0.1,adam_beta1=0.9,adam_beta2=0.999,adam_epsilon=1e-8,ada_rho=0.95,ada_epsilon=1e-6,
@@ -109,8 +109,6 @@ class LDDMMBase:
         
         self.params = {}
         self.params['gpu_number'] = gpu_number
-        if gpu_number == 'cpu':
-            self.params['gpu_number'] = None
         self.params['a'] = float(a)
         self.params['p'] = float(p)
         self.params['niter'] = niter
@@ -382,16 +380,19 @@ class LDDMMBase:
     # helper function to check parameters before running registration
     def _checkParameters(self):
         flag = 1
-        if self.params['gpu_number'] is not None and not isinstance(self.params['gpu_number'], (int, float)):
-            flag = -1
-            print('ERROR: gpu_number must be None or a number.')
+        gpu = self.params['gpu_number']
+        if isinstance(gpu, str):
+            # Standard device string: "cpu", "mps", "cuda:0", etc.
+            self.params['cuda'] = gpu
+        elif gpu is None:
+            self.params['cuda'] = 'cpu'
+        elif gpu == -1:
+            self.params['cuda'] = 'mps'
+        elif isinstance(gpu, (int, float)):
+            self.params['cuda'] = 'cuda:' + str(int(gpu))
         else:
-            if self.params['gpu_number'] is None:
-                self.params['cuda'] = 'cpu'
-            elif self.params['gpu_number'] == -1:
-                self.params['cuda'] = 'mps'
-            else:
-                self.params['cuda'] = 'cuda:' + str(self.params['gpu_number'])
+            flag = -1
+            print('ERROR: gpu_number must be None, a number, or a device string.')
         
         number_list = ['a','p','niter','epsilon','sigmaR','nt','do_lddmm','do_affine','epsilonL','epsilonT','im_norm_ms','slice_alignment','energy_fraction','energy_fraction_from','cc','we','nMstep','low_memory','update_epsilon','v_scale','adam_alpha','adam_beta1','adam_beta2','adam_epsilon','ada_rho','ada_epsilon','rms_rho','rms_alpha','rms_epsilon','sg_sigma','sg_climbcount','sg_rand_scale','sg_holdcount','sg_gamma','v_scale_smoothing','verbose', 'rmlambda']
         string_list = ['outdir','optimizer']
