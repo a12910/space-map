@@ -1,0 +1,1274 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reconstructing atlas-level single-cell 3D tissue maps from serial sections">
+      
+      
+      
+        <link rel="canonical" href="https://a12910.github.io/space-map/contributing/">
+      
+      
+        <link rel="prev" href="../getting-started/quickstart/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Contributing - Space-map</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contributing-to-space-map" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Space-map" class="md-header__button md-logo" aria-label="Space-map" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Space-map
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contributing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/a12910/space-map" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    a12910/Space-map
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Space-map" class="md-nav__button md-logo" aria-label="Space-map" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Space-map
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/a12910/space-map" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    a12910/Space-map
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-you-can-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How You Can Contribute
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-bugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Bugs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reporting Bugs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-bug-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Bug Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggesting-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggesting Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Suggesting Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-suggesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Suggesting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-feature-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Feature Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-make-your-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Make Your Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-test-your-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Test Your Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-commit-your-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Commit Your Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-push-to-your-fork" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Push to Your Fork
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-create-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Create a Pull Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-code-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Code Review
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coding-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding Standards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding Standards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#style-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Style Guidelines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-contributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Contributions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Contributions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-to-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-documentation-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building Documentation Locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#community-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Community Guidelines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Community Guidelines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-of-conduct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code of Conduct
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#communication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recognition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Questions?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="contributing-to-space-map">Contributing to Space-map<a class="headerlink" href="#contributing-to-space-map" title="Permanent link">&para;</a></h1>
+<p>Thank you for your interest in contributing to Space-map! We welcome contributions from the community to help improve this project.</p>
+<h2 id="how-you-can-contribute">How You Can Contribute<a class="headerlink" href="#how-you-can-contribute" title="Permanent link">&para;</a></h2>
+<p>There are many ways to contribute to Space-map:</p>
+<ul>
+<li>🐛 <strong>Report bugs</strong> - Help us identify and fix issues</li>
+<li>💡 <strong>Suggest features</strong> - Share ideas for new functionality</li>
+<li>📖 <strong>Improve documentation</strong> - Enhance guides, fix typos, add examples</li>
+<li>🔬 <strong>Share use cases</strong> - Tell us how you're using Space-map</li>
+<li>💻 <strong>Submit code</strong> - Fix bugs or implement new features</li>
+<li>🧪 <strong>Test releases</strong> - Help validate new versions</li>
+<li>💬 <strong>Help others</strong> - Answer questions in discussions</li>
+</ul>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<p>Before contributing, make sure you have:</p>
+<ul>
+<li>Python 3.7+ installed</li>
+<li>Git installed</li>
+<li>A GitHub account</li>
+<li>Basic Python programming knowledge</li>
+</ul>
+<h3 id="development-setup">Development Setup<a class="headerlink" href="#development-setup" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Fork the repository</strong> on GitHub by clicking the "Fork" button at <a href="https://github.com/a12910/space-map">github.com/a12910/space-map</a></p>
+</li>
+<li>
+<p><strong>Clone your fork</strong> locally:
+   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/YOUR_USERNAME/space-map.git
+<span class="nb">cd</span><span class="w"> </span>space-map
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Add upstream remote</strong> to stay in sync:
+   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/a12910/space-map.git
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Create virtual environment</strong> and install:
+   <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">  </span><span class="c1"># On Windows: venv\Scripts\activate</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify installation</strong>:
+   <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import space_map; print(space_map.__version__)&quot;</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h2 id="reporting-bugs">Reporting Bugs<a class="headerlink" href="#reporting-bugs" title="Permanent link">&para;</a></h2>
+<p>Found a bug? Please help us fix it by creating a detailed bug report.</p>
+<h3 id="before-reporting">Before Reporting<a class="headerlink" href="#before-reporting" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Search <a href="https://github.com/a12910/space-map/issues">existing issues</a> to avoid duplicates</li>
+<li>Try to reproduce the bug with the latest version</li>
+<li>Collect relevant information about your environment</li>
+</ul>
+<h3 id="creating-a-bug-report">Creating a Bug Report<a class="headerlink" href="#creating-a-bug-report" title="Permanent link">&para;</a></h3>
+<p>Open a <a href="https://github.com/a12910/space-map/issues/new">new issue</a> and include:</p>
+<p><strong>Required Information:</strong>
+- <strong>Clear title</strong> - Brief description of the bug
+- <strong>Description</strong> - What happened vs. what you expected
+- <strong>Steps to reproduce</strong> - Minimal code example that triggers the bug
+- <strong>Environment details</strong>:
+  - Space-map version: <code>python -c "import space_map; print(space_map.__version__)"</code>
+  - Python version: <code>python --version</code>
+  - Operating system: e.g., "Ubuntu 22.04", "macOS 13.0", "Windows 11"
+  - GPU info (if relevant): <code>nvidia-smi</code> output</p>
+<p><strong>Optional but Helpful:</strong>
+- Screenshots or visualizations
+- Error messages and stack traces
+- Sample data (if shareable)</p>
+<p><strong>Example Bug Report:</strong></p>
+<p><div class="highlight"><pre><span></span><code><span class="gu">### Bug: LDDMM fails with GPU out of memory</span>
+
+<span class="gs">**Description**</span>: When processing 10 sections with ~500K cells each, LDDMM
+registration fails with CUDA out of memory error.
+
+<span class="gs">**Steps to reproduce**</span>:
+<span class="k">1.</span> Load 10 sections with 500K cells each
+<span class="k">2.</span> Run affine registration (succeeds)
+<span class="k">3.</span> Run LDDMM with <span class="sb">`mgr.ldm_pair(...)`</span> (fails)
+
+<span class="gs">**Environment**</span>:
+<span class="k">-</span><span class="w"> </span>Space-map: 0.1.0
+<span class="k">-</span><span class="w"> </span>Python: 3.9.7
+<span class="k">-</span><span class="w"> </span>OS: Ubuntu 20.04
+<span class="k">-</span><span class="w"> </span>GPU: NVIDIA RTX 3080 (10GB VRAM)
+
+<span class="gs">**Error message**</span>:
+</code></pre></div>
+RuntimeError: CUDA out of memory. Tried to allocate 2.5 GiB...
+<div class="highlight"><pre><span></span><code>
+</code></pre></div></p>
+<h2 id="suggesting-features">Suggesting Features<a class="headerlink" href="#suggesting-features" title="Permanent link">&para;</a></h2>
+<p>Have an idea to improve Space-map? We'd love to hear it!</p>
+<h3 id="before-suggesting">Before Suggesting<a class="headerlink" href="#before-suggesting" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check if the feature already exists in the latest version</li>
+<li>Search <a href="https://github.com/a12910/space-map/issues">existing issues</a> for similar suggestions</li>
+<li>Consider if the feature fits Space-map's scope (3D tissue reconstruction)</li>
+</ul>
+<h3 id="creating-a-feature-request">Creating a Feature Request<a class="headerlink" href="#creating-a-feature-request" title="Permanent link">&para;</a></h3>
+<p>Open a <a href="https://github.com/a12910/space-map/issues/new">new issue</a> with:</p>
+<ul>
+<li><strong>Clear title</strong> - Brief feature description</li>
+<li><strong>Problem statement</strong> - What problem does this solve?</li>
+<li><strong>Proposed solution</strong> - How should it work?</li>
+<li><strong>Use cases</strong> - Who would benefit and how?</li>
+<li><strong>Alternatives</strong> - Other approaches you've considered</li>
+</ul>
+<p><strong>Example Feature Request:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="gu">### Feature: Support for multi-channel image alignment</span>
+
+<span class="gs">**Problem**</span>: Currently Space-map only uses cell coordinates. I have
+histology images for each section that could improve alignment.
+
+<span class="gs">**Proposed solution**</span>: Add option to provide images alongside coordinates:
+```python
+flowImport.init_with_images(xys, images, ids=layer_ids)
+</code></pre></div>
+<p><strong>Use cases</strong>: Researchers with H&amp;E or immunofluorescence images of
+sections could achieve better registration accuracy.</p>
+<p><strong>Alternatives</strong>: Manual pre-alignment of images before using Space-map.
+<div class="highlight"><pre><span></span><code>## Contributing Code
+
+Ready to contribute code? Here&#39;s our workflow:
+
+### 1. Create a Branch
+
+```bash
+# Update your fork
+git checkout master
+git pull upstream master
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+# or for bug fixes:
+git checkout -b fix/bug-description
+</code></pre></div></p>
+<h3 id="2-make-your-changes">2. Make Your Changes<a class="headerlink" href="#2-make-your-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Write clean, readable code</li>
+<li>Follow existing code style</li>
+<li>Add comments for complex logic</li>
+<li>Keep changes focused on one issue/feature</li>
+</ul>
+<h3 id="3-test-your-changes">3. Test Your Changes<a class="headerlink" href="#3-test-your-changes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test import</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import space_map&quot;</span>
+
+<span class="c1"># Test basic functionality</span>
+python<span class="w"> </span>examples/01_quickstart.py<span class="w">  </span><span class="c1"># If you have test data</span>
+
+<span class="c1"># Check for obvious errors</span>
+python<span class="w"> </span>-m<span class="w"> </span>py_compile<span class="w"> </span>space_map/**/*.py
+</code></pre></div>
+<h3 id="4-commit-your-changes">4. Commit Your Changes<a class="headerlink" href="#4-commit-your-changes" title="Permanent link">&para;</a></h3>
+<p>Write clear commit messages:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add: support for multi-channel image alignment</span>
+
+<span class="s2">- Add init_with_images() method to FlowImport</span>
+<span class="s2">- Update registration to use image features</span>
+<span class="s2">- Add example notebook demonstrating usage</span>
+<span class="s2">&quot;</span>
+</code></pre></div>
+<p><strong>Commit Message Format:</strong>
+- <strong>Add:</strong> for new features
+- <strong>Fix:</strong> for bug fixes
+- <strong>Update:</strong> for improvements to existing features
+- <strong>Docs:</strong> for documentation changes
+- <strong>Refactor:</strong> for code restructuring</p>
+<h3 id="5-push-to-your-fork">5. Push to Your Fork<a class="headerlink" href="#5-push-to-your-fork" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/your-feature-name
+</code></pre></div>
+<h3 id="6-create-a-pull-request">6. Create a Pull Request<a class="headerlink" href="#6-create-a-pull-request" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to your fork on GitHub</li>
+<li>Click "Pull Request" button</li>
+<li>Select your branch</li>
+<li>Fill out the PR template with:</li>
+<li>Description of changes</li>
+<li>Related issue number (if applicable)</li>
+<li>Testing performed</li>
+<li>Screenshots (if relevant)</li>
+</ol>
+<h3 id="7-code-review">7. Code Review<a class="headerlink" href="#7-code-review" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Maintainers will review your PR</li>
+<li>Address any requested changes</li>
+<li>Once approved, your PR will be merged</li>
+</ul>
+<h2 id="coding-standards">Coding Standards<a class="headerlink" href="#coding-standards" title="Permanent link">&para;</a></h2>
+<h3 id="style-guidelines">Style Guidelines<a class="headerlink" href="#style-guidelines" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PEP 8</strong>: Follow Python's style guide</li>
+<li><strong>Line length</strong>: Max 100 characters (flexible for readability)</li>
+<li><strong>Imports</strong>: Group by standard library, third-party, local</li>
+<li><strong>Naming</strong>:</li>
+<li>Functions/variables: <code>snake_case</code></li>
+<li>Classes: <code>PascalCase</code></li>
+<li>Constants: <code>UPPER_CASE</code></li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<p>Add docstrings for all public functions and classes:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">register_sections</span><span class="p">(</span><span class="n">sections</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Register multiple tissue sections using specified method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sections : list of Slice</span>
+<span class="sd">        Tissue sections to register</span>
+<span class="sd">    method : str, optional</span>
+<span class="sd">        Registration method (&#39;auto&#39;, &#39;sift&#39;, &#39;loftr&#39;), by default &#39;auto&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of Slice</span>
+<span class="sd">        Registered sections with aligned coordinates</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sections = load_sections()</span>
+<span class="sd">    &gt;&gt;&gt; aligned = register_sections(sections, method=&#39;auto&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<h2 id="documentation-contributions">Documentation Contributions<a class="headerlink" href="#documentation-contributions" title="Permanent link">&para;</a></h2>
+<p>Improving documentation is incredibly valuable!</p>
+<h3 id="what-to-document">What to Document<a class="headerlink" href="#what-to-document" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Fix typos and errors</strong> - Even small fixes help</li>
+<li><strong>Add examples</strong> - Show how to use features</li>
+<li><strong>Clarify explanations</strong> - Make concepts easier to understand</li>
+<li><strong>Add tutorials</strong> - Create guides for common workflows</li>
+<li><strong>Update outdated info</strong> - Keep docs current with code</li>
+</ul>
+<h3 id="documentation-structure">Documentation Structure<a class="headerlink" href="#documentation-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>docs/
+├── index.md                    # Home page
+├── getting-started/
+│   ├── installation.md         # Installation guide
+│   └── quickstart.md          # Quick start tutorial
+└── contributing.md            # This file
+</code></pre></div>
+<h3 id="building-documentation-locally">Building Documentation Locally<a class="headerlink" href="#building-documentation-locally" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install documentation dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>mkdocs<span class="w"> </span>mkdocs-material
+
+<span class="c1"># Serve documentation locally</span>
+mkdocs<span class="w"> </span>serve
+
+<span class="c1"># Open http://127.0.0.1:8000 in your browser</span>
+</code></pre></div>
+<h2 id="community-guidelines">Community Guidelines<a class="headerlink" href="#community-guidelines" title="Permanent link">&para;</a></h2>
+<h3 id="code-of-conduct">Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h3>
+<p>We are committed to providing a welcoming and inclusive environment. We expect all contributors to:</p>
+<ul>
+<li><strong>Be respectful</strong> - Treat everyone with respect and kindness</li>
+<li><strong>Be constructive</strong> - Provide helpful, actionable feedback</li>
+<li><strong>Be collaborative</strong> - Work together towards common goals</li>
+<li><strong>Be patient</strong> - Remember that everyone is learning</li>
+<li><strong>Be inclusive</strong> - Welcome people of all backgrounds and skill levels</li>
+</ul>
+<h3 id="communication">Communication<a class="headerlink" href="#communication" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>GitHub Issues</strong> - Bug reports and feature requests</li>
+<li><strong>GitHub Discussions</strong> - Questions and community discussion</li>
+<li><strong>Pull Requests</strong> - Code contributions and reviews</li>
+<li><strong>Email</strong> - Direct contact: a12910@qq.com</li>
+</ul>
+<h2 id="recognition">Recognition<a class="headerlink" href="#recognition" title="Permanent link">&para;</a></h2>
+<p>Contributors are recognized in several ways:</p>
+<ul>
+<li>Listed in commit history</li>
+<li>Mentioned in release notes</li>
+<li>Acknowledged in documentation</li>
+<li>Added to CONTRIBUTORS file (for significant contributions)</li>
+</ul>
+<h2 id="questions">Questions?<a class="headerlink" href="#questions" title="Permanent link">&para;</a></h2>
+<p>Not sure how to get started? Have questions about contributing?</p>
+<ul>
+<li>Check <a href="https://github.com/a12910/space-map/discussions">GitHub Discussions</a></li>
+<li>Open an <a href="https://github.com/a12910/space-map/issues">issue</a> with your question</li>
+<li>Email us at a12910@qq.com</li>
+</ul>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>By contributing to Space-map, you agree that your contributions will be licensed under the MIT License.</p>
+<hr />
+<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<p><strong>Setting up development environment:</strong>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/YOUR_USERNAME/space-map.git
+<span class="nb">cd</span><span class="w"> </span>space-map
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</code></pre></div></p>
+<p><strong>Creating a contribution:</strong>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>master
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>master
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/my-feature
+<span class="c1"># Make changes</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add: my feature&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/my-feature
+<span class="c1"># Create PR on GitHub</span>
+</code></pre></div></p>
+<p><strong>Building documentation:</strong>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>mkdocs<span class="w"> </span>mkdocs-material
+mkdocs<span class="w"> </span>serve
+</code></pre></div></p>
+<hr />
+<p>Thank you for contributing to Space-map and helping advance spatial biology research! 🔬</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1173 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reconstructing atlas-level single-cell 3D tissue maps from serial sections">
+      
+      
+      
+        <link rel="canonical" href="https://a12910.github.io/space-map/getting-started/quickstart/">
+      
+      
+        <link rel="prev" href="../installation/">
+      
+      
+        <link rel="next" href="../../contributing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Quick Start - Space-map</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quick-start-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Space-map" class="md-header__button md-logo" aria-label="Space-map" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Space-map
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quick Start
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/a12910/space-map" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    a12910/Space-map
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Space-map" class="md-nav__button md-logo" aria-label="Space-map" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Space-map
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/a12910/space-map" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    a12910/Space-map
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complete Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-import-libraries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Import Libraries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-load-and-organize-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Load and Organize Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-initialize-space-map-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Initialize Space-map Project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-affine-registration-coarse-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Affine Registration (Coarse Alignment)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-lddmm-registration-fine-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: LDDMM Registration (Fine Alignment)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-visualize-3d-reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Visualize 3D Reconstruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-export-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Export Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-with-different-data-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with Different Data Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working with Different Data Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codex-spatial-proteomics-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CODEX Spatial Proteomics Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-data-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Data Loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alternative-registration-managers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alternative Registration Managers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alignment-method-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alignment Method Selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Tuning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-data-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Data Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-for-success" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips for Success
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Notebooks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quick-start-guide">Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permanent link">&para;</a></h1>
+<p>This guide walks you through a complete 3D tissue reconstruction workflow using Space-map.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Space-map uses a two-stage registration approach to align serial tissue sections:</p>
+<ol>
+<li><strong>Affine Registration</strong> - Fast coarse alignment (handles rotation, scaling, translation)</li>
+<li><strong>LDDMM Registration</strong> - Precise fine alignment (preserves micro-anatomy)</li>
+</ol>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Space-map installed (<a href="../installation/">Installation Guide</a>)</li>
+<li>Spatial data with cell coordinates and layer/section identifiers</li>
+<li>Basic Python knowledge</li>
+</ul>
+<h2 id="data-format">Data Format<a class="headerlink" href="#data-format" title="Permanent link">&para;</a></h2>
+<p>Your input data should contain:</p>
+<ul>
+<li><strong>x, y coordinates</strong> - Cell positions within each section</li>
+<li><strong>layer/section ID</strong> - Identifier for each tissue section</li>
+</ul>
+<p>Example CSV format:</p>
+<div class="highlight"><pre><span></span><code>x,y,layer
+100.5,200.3,0
+150.2,180.7,0
+95.3,205.1,1
+...
+</code></pre></div>
+<h2 id="complete-workflow">Complete Workflow<a class="headerlink" href="#complete-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-import-libraries">Step 1: Import Libraries<a class="headerlink" href="#step-1-import-libraries" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">space_map</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">space_map</span><span class="w"> </span><span class="kn">import</span> <span class="n">Slice</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Check installation</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Space-map version: </span><span class="si">{</span><span class="n">space_map</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="step-2-load-and-organize-data">Step 2: Load and Organize Data<a class="headerlink" href="#step-2-load-and-organize-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Load cell coordinates from file</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;path/to/cells.csv.gz&quot;</span><span class="p">)</span>
+
+<span class="c1"># Organize data by tissue sections</span>
+<span class="n">xys</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List to store coordinate arrays for each layer</span>
+<span class="n">layer_ids</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List to store layer identifiers</span>
+
+<span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()):</span>
+    <span class="c1"># Extract coordinates for this layer</span>
+    <span class="n">layer_data</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">layer_id</span><span class="p">]</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">layer_data</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># Extract x, y as numpy array</span>
+
+    <span class="n">xys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span>
+    <span class="n">layer_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_id</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">xys</span><span class="p">)</span><span class="si">}</span><span class="s2"> tissue sections&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total cells: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">xy</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">xys</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="step-3-initialize-space-map-project">Step 3: Initialize Space-map Project<a class="headerlink" href="#step-3-initialize-space-map-project" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set project directory (will be created if doesn&#39;t exist)</span>
+<span class="n">BASE</span> <span class="o">=</span> <span class="s2">&quot;data/my_reconstruction&quot;</span>
+
+<span class="c1"># Initialize the Flow system for data management</span>
+<span class="n">flowImport</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">FlowImport</span><span class="p">(</span><span class="n">BASE</span><span class="p">)</span>
+
+<span class="c1"># Initialize slices with your coordinate data</span>
+<span class="n">flowImport</span><span class="o">.</span><span class="n">init_xys</span><span class="p">(</span><span class="n">xys</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">layer_ids</span><span class="p">)</span>
+
+<span class="c1"># Get slice objects for processing</span>
+<span class="n">slices</span> <span class="o">=</span> <span class="n">flowImport</span><span class="o">.</span><span class="n">slices</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">)</span><span class="si">}</span><span class="s2"> slices&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="step-4-affine-registration-coarse-alignment">Step 4: Affine Registration (Coarse Alignment)<a class="headerlink" href="#step-4-affine-registration-coarse-alignment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create registration manager</span>
+<span class="c1"># AutoFlowMultiCenter4 processes from center outward for better results</span>
+<span class="n">mgr</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">AutoFlowMultiCenter4</span><span class="p">(</span><span class="n">slices</span><span class="p">,</span> <span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">)</span>
+
+<span class="c1"># Set alignment method</span>
+<span class="c1"># &quot;auto&quot; - Automatic selection (recommended)</span>
+<span class="c1"># &quot;sift&quot; - Traditional SIFT features</span>
+<span class="c1"># &quot;sift_vgg&quot; - SIFT with VGG feature enhancement</span>
+<span class="c1"># &quot;loftr&quot; - Deep learning feature matching</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">alignMethod</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
+
+<span class="c1"># Perform affine registration using Density Field (DF) representation</span>
+<span class="c1"># show=True displays alignment visualizations (set False for faster processing)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting affine registration...&quot;</span><span class="p">)</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="s2">&quot;DF&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Affine registration completed!&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>What happens in this step:</strong>
+- Converts cell coordinates to density fields
+- Detects and matches features between adjacent sections
+- Computes optimal affine transformations (rotation, scaling, translation)
+- Applies transformations for coarse alignment</p>
+<h3 id="step-5-lddmm-registration-fine-alignment">Step 5: LDDMM Registration (Fine Alignment)<a class="headerlink" href="#step-5-lddmm-registration-fine-alignment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Perform LDDMM registration for precise local deformations</span>
+<span class="c1"># This step preserves micro-anatomical structures</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting LDDMM registration...&quot;</span><span class="p">)</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">ldm_pair</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align1Key</span><span class="p">,</span> <span class="n">Slice</span><span class="o">.</span><span class="n">align2Key</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ LDDMM registration completed!&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>What happens in this step:</strong>
+- Takes affine-aligned sections as input
+- Computes smooth, diffeomorphic deformations
+- Preserves topology and local structure
+- GPU-accelerated for performance</p>
+<h3 id="step-6-visualize-3d-reconstruction">Step 6: Visualize 3D Reconstruction<a class="headerlink" href="#step-6-visualize-3d-reconstruction" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create 3D visualization</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+<span class="c1"># Use different colors for each layer</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">viridis</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">)))</span>
+<span class="n">z_spacing</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Distance between sections (adjust as needed)</span>
+
+<span class="c1"># Plot each aligned section</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">slice_obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+    <span class="c1"># Get final aligned coordinates</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">imgs</span><span class="p">[</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">]</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align2Key</span><span class="p">)</span>
+
+    <span class="c1"># Downsample for visualization if needed</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+    <span class="c1"># Create z-coordinates for this section</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">))</span> <span class="o">*</span> <span class="n">i</span> <span class="o">*</span> <span class="n">z_spacing</span>
+
+    <span class="c1"># Plot points</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">,</span>
+               <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">s</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Section </span><span class="si">{</span><span class="n">slice_obj</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Customize plot</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X (μm)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Y (μm)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;Z (Section)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;3D Tissue Reconstruction&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+<span class="c1"># Add legend (limit to first few sections if many)</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">markerscale</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="step-7-export-results">Step 7: Export Results<a class="headerlink" href="#step-7-export-results" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Initialize export manager</span>
+<span class="n">export</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">FlowExport</span><span class="p">(</span><span class="n">slices</span><span class="p">)</span>
+
+<span class="c1"># Export aligned coordinates to CSV</span>
+<span class="n">aligned_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">slice_obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+    <span class="c1"># Get aligned points</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">imgs</span><span class="p">[</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">]</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align2Key</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">z_spacing</span>
+
+    <span class="c1"># Create records</span>
+    <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+        <span class="n">aligned_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">z</span><span class="p">,</span>
+            <span class="s1">&#39;section_id&#39;</span><span class="p">:</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">})</span>
+
+<span class="c1"># Save to compressed CSV</span>
+<span class="n">df_aligned</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">aligned_data</span><span class="p">)</span>
+<span class="n">output_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">BASE</span><span class="si">}</span><span class="s1">/aligned_coordinates.csv.gz&#39;</span>
+<span class="n">df_aligned</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Exported </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df_aligned</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> aligned cells to </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="working-with-different-data-types">Working with Different Data Types<a class="headerlink" href="#working-with-different-data-types" title="Permanent link">&para;</a></h2>
+<h3 id="codex-spatial-proteomics-data">CODEX Spatial Proteomics Data<a class="headerlink" href="#codex-spatial-proteomics-data" title="Permanent link">&para;</a></h3>
+<p>For CODEX data with 'array' column indicating sections:</p>
+<div class="highlight"><pre><span></span><code><span class="n">flowImport</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">FlowImport</span><span class="p">(</span><span class="n">BASE</span><span class="p">)</span>
+<span class="n">flowImport</span><span class="o">.</span><span class="n">init_from_codex</span><span class="p">(</span><span class="s1">&#39;codex_data.csv&#39;</span><span class="p">)</span>
+<span class="n">slices</span> <span class="o">=</span> <span class="n">flowImport</span><span class="o">.</span><span class="n">slices</span>
+</code></pre></div>
+<h3 id="custom-data-loading">Custom Data Loading<a class="headerlink" href="#custom-data-loading" title="Permanent link">&para;</a></h3>
+<p>For other formats:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Manual data preparation</span>
+<span class="n">xys</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">section_file</span> <span class="ow">in</span> <span class="n">section_files</span><span class="p">:</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">load_your_data</span><span class="p">(</span><span class="n">section_file</span><span class="p">)</span>  <span class="c1"># Your custom loader</span>
+    <span class="n">xys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+<span class="n">flowImport</span><span class="o">.</span><span class="n">init_xys</span><span class="p">(</span><span class="n">xys</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xys</span><span class="p">)))</span>
+</code></pre></div>
+<h2 id="advanced-options">Advanced Options<a class="headerlink" href="#advanced-options" title="Permanent link">&para;</a></h2>
+<h3 id="alternative-registration-managers">Alternative Registration Managers<a class="headerlink" href="#alternative-registration-managers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Option 1: AutoFlowMultiCenter4 (Recommended)</span>
+<span class="c1"># Processes from center section outward</span>
+<span class="n">mgr</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">AutoFlowMultiCenter4</span><span class="p">(</span><span class="n">slices</span><span class="p">,</span> <span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">)</span>
+
+<span class="c1"># Option 2: AutoFlowMultiCenter5 (Latest)</span>
+<span class="c1"># Includes additional optimizations</span>
+<span class="n">mgr</span> <span class="o">=</span> <span class="n">space_map</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">AutoFlowMultiCenter5</span><span class="p">(</span><span class="n">slices</span><span class="p">,</span> <span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="alignment-method-selection">Alignment Method Selection<a class="headerlink" href="#alignment-method-selection" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Automatic (recommended) - selects best method</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">alignMethod</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
+
+<span class="c1"># SIFT - Fast, works well for most data</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">alignMethod</span> <span class="o">=</span> <span class="s2">&quot;sift&quot;</span>
+
+<span class="c1"># SIFT+VGG - More robust for challenging alignments</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">alignMethod</span> <span class="o">=</span> <span class="s2">&quot;sift_vgg&quot;</span>
+
+<span class="c1"># LoFTR - Deep learning, best for difficult cases</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">alignMethod</span> <span class="o">=</span> <span class="s2">&quot;loftr&quot;</span>
+</code></pre></div>
+<h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Disable visualization for faster processing</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="s2">&quot;DF&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">ldm_pair</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align1Key</span><span class="p">,</span> <span class="n">Slice</span><span class="o">.</span><span class="n">align2Key</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># For large datasets, adjust grid spacing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">space_map</span>
+<span class="n">space_map</span><span class="o">.</span><span class="n">XYD</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># Larger value = coarser grid = less memory</span>
+</code></pre></div>
+<h2 id="understanding-data-keys">Understanding Data Keys<a class="headerlink" href="#understanding-data-keys" title="Permanent link">&para;</a></h2>
+<p>Space-map tracks transformations using keys:</p>
+<ul>
+<li><strong><code>Slice.rawKey</code></strong> - Original input coordinates</li>
+<li><strong><code>Slice.align1Key</code></strong> - After affine registration</li>
+<li><strong><code>Slice.align2Key</code></strong> - After LDDMM registration (final)</li>
+</ul>
+<p>Access coordinates at any stage:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Original coordinates</span>
+<span class="n">raw_coords</span> <span class="o">=</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">imgs</span><span class="p">[</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">]</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">)</span>
+
+<span class="c1"># After affine alignment</span>
+<span class="n">affine_coords</span> <span class="o">=</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">imgs</span><span class="p">[</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">]</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align1Key</span><span class="p">)</span>
+
+<span class="c1"># Final aligned coordinates</span>
+<span class="n">final_coords</span> <span class="o">=</span> <span class="n">slice_obj</span><span class="o">.</span><span class="n">imgs</span><span class="p">[</span><span class="n">Slice</span><span class="o">.</span><span class="n">rawKey</span><span class="p">]</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="n">Slice</span><span class="o">.</span><span class="n">align2Key</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="tips-for-success">Tips for Success<a class="headerlink" href="#tips-for-success" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Start Small</strong> - Test with 3-5 sections first before processing entire dataset</li>
+<li><strong>Check Intermediate Results</strong> - Use <code>show=True</code> to verify alignment quality</li>
+<li><strong>GPU Acceleration</strong> - Space-map automatically uses GPU if available</li>
+<li><strong>Memory Management</strong> - For very large datasets (&gt;5M cells), increase <code>space_map.XYD</code></li>
+<li><strong>Quality Control</strong> - Visually inspect alignments and try different methods if needed</li>
+</ol>
+<h2 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h2>
+<p><strong>Q: Registration is very slow</strong></p>
+<p>A:
+- Set <code>show=False</code> to disable visualizations
+- Ensure PyTorch can use GPU: <code>torch.cuda.is_available()</code>
+- Reduce resolution with larger <code>space_map.XYD</code> value</p>
+<p><strong>Q: Alignment looks poor</strong></p>
+<p>A:
+- Try different alignment methods (<code>"sift_vgg"</code> or <code>"loftr"</code>)
+- Check if sections are in correct order
+- Verify coordinate units are consistent across sections</p>
+<p><strong>Q: Out of memory errors</strong></p>
+<p>A:
+- Increase <code>space_map.XYD</code> (e.g., from 10 to 20)
+- Process fewer sections at a time
+- Close visualization windows to free memory</p>
+<p><strong>Q: Import errors</strong></p>
+<p>A:
+- Verify installation: <code>python -c "import space_map"</code>
+- Reinstall dependencies: <code>pip install -r requirement.txt</code></p>
+<h2 id="example-notebooks">Example Notebooks<a class="headerlink" href="#example-notebooks" title="Permanent link">&para;</a></h2>
+<p>For interactive tutorials with full visualizations:</p>
+<ul>
+<li><a href="https://github.com/a12910/space-map/blob/master/examples/01_quickstart.ipynb">01_quickstart.ipynb</a> - Complete beginner tutorial</li>
+<li><a href="https://github.com/a12910/space-map/blob/master/examples/02_advanced_registration.ipynb">02_advanced_registration.ipynb</a> - Advanced techniques</li>
+</ul>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Explore <a href="https://github.com/a12910/space-map/tree/master/examples">example notebooks</a> with real data</li>
+<li>Read about <a href="../../contributing/">contributing</a> to Space-map</li>
+<li>Check <a href="https://github.com/a12910/space-map/issues">GitHub Issues</a> for support</li>
+</ul>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<p>Need assistance?</p>
+<ul>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/a12910/space-map/issues">Report bugs or ask questions</a></li>
+<li><strong>GitHub Discussions</strong>: <a href="https://github.com/a12910/space-map/discussions">Community Q&amp;A</a></li>
+<li><strong>Email</strong>: a12910@qq.com</li>
+</ul>
+<hr />
+<p><strong>Ready to process your own data?</strong> Start with a small subset and gradually scale up. Good luck with your 3D reconstruction!</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "search.suggest", "search.highlight", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
